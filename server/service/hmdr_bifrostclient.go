@@ -46,5 +46,51 @@ func InitBifrostClient() {
 			}
 		}
 	}
+}
 
+func CreateBifrostGroup(group model.HmdrGroup) {
+	BifrostGroups[group.ID] = &model.BifrostGroup{
+		HmdrGroup: group,
+		Hosts:     make(map[uint]*model.BifrostHost),
+	}
+}
+
+func CreateBifrostHost(host model.HmdrHost) {
+	bifrostClient, initErr := bifrost.NewClient(host.Ipaddr + ":" + host.Port)
+	if initErr != nil {
+		global.GVA_LOG.Error("init bifrostClient Failed", zap.String("err", initErr.Error()))
+	}
+	BifrostGroups[host.GroupId].Hosts[host.ID] = &model.BifrostHost{
+		HmdrHost: host,
+		Client:   bifrostClient,
+	}
+}
+
+func DeleteBifrostHost(host model.HmdrHost) {
+	group, ok := BifrostGroups[host.GroupId]
+	if ok {
+		ghost, ok := group.Hosts[host.ID]
+		if ok {
+			// 关闭客户端
+			ghost.Client.Close()
+			delete(group.Hosts, host.ID)
+		}
+	}
+}
+
+func DeleteBifrostGroup(group model.HmdrGroup) {
+	bgroup, ok := BifrostGroups[group.ID]
+	if ok {
+		// 删除组之前 关闭清理所有组下的客户端
+		for u, host := range bgroup.Hosts {
+			host.Client.Close()
+			delete(bgroup.Hosts, u)
+		}
+		delete(BifrostGroups, group.ID)
+	}
+}
+
+func UpdateBifrostHost(oldhost, newhost model.HmdrHost) {
+	DeleteBifrostHost(oldhost)
+	CreateBifrostHost(newhost)
 }
