@@ -92,5 +92,7 @@ func DeleteBifrostGroup(group model.HmdrGroup) {
 
 func UpdateBifrostHost(oldhost, newhost model.HmdrHost) {
 	DeleteBifrostHost(oldhost)
-	CreateBifrostHost(newhost)
+	if newhost.Status {
+		CreateBifrostHost(newhost)
+	}
 }
