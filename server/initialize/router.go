@@ -27,6 +27,8 @@ func Routers() *gin.Engine {
 	PublicGroup := Router.Group("")
 	{
 		router.InitBaseRouter(PublicGroup) // 注册基础功能路由 不做鉴权
+
+		router.InitHmdrWebSocketRouter(PublicGroup) // 初始化websocket接口 WebSocket
 	}
 	PrivateGroup := Router.Group("")
 	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
@@ -47,6 +49,11 @@ func Routers() *gin.Engine {
 		router.InitSysOperationRecordRouter(PrivateGroup)    // 操作记录
 		router.InitSysDictionaryDetailRouter(PrivateGroup)   // 字典详情管理
 		router.InitFileUploadAndDownloadRouter(PrivateGroup) // 文件上传下载功能路由
+		// 添加heimdallr相关路由
+		router.InitHmdrAgentRouter(PrivateGroup) // 获取agent相关信息
+		router.InitHmdrGroupRouter(PrivateGroup) // 添加组信息
+		router.InitHmdrHostRouter(PrivateGroup)  // 添加主机agent信息
+		router.InitHmdrConfRouter(PrivateGroup)  // 获取选择参数信息
 	}
 	global.GVA_LOG.Info("router register success")
 	return Router

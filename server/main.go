@@ -4,6 +4,7 @@ import (
 	"gin-vue-admin/core"
 	"gin-vue-admin/global"
 	"gin-vue-admin/initialize"
+	"gin-vue-admin/service"
 )
 
 // @title Swagger Example API
@@ -21,6 +22,15 @@ func main() {
 	// 程序结束前关闭数据库链接
 	db, _ := global.GVA_DB.DB()
 	defer db.Close()
-
+	// 初始化bifrost客户端
+	service.InitBifrostClient()
+	// 关闭所有的bifrost客户端
+	defer func() {
+		for _, bg := range service.BifrostGroups {
+			for _, c := range (*bg).Hosts {
+				c.Client.Close()
+			}
+		}
+	}()
 	core.RunWindowsServer()
 }

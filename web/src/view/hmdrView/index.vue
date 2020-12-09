@@ -4,7 +4,7 @@
 
 <script>
 export default {
-  name: 'SuperAdmin'
+  name: 'HmdrView'
 }
 </script>
 <style lang="scss">
