@@ -10,6 +10,5 @@ func InitHmdrWebSocketRouter(Router *gin.RouterGroup) {
 	HmdrWebSocketRouter := Router.Group("hmdrWebSocket").Use(middleware.OperationRecord())
 	{
 		HmdrWebSocketRouter.GET("ws", v1.WebSocket)
-		HmdrWebSocketRouter.POST("getLogsInfo", v1.GetLogsInfo)
 	}
 }

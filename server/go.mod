@@ -3,7 +3,7 @@ module gin-vue-admin
 go 1.14
 
 require (
-	github.com/ClessLi/bifrost v1.0.1-alpha.1
+	github.com/ClessLi/bifrost v1.0.1-alpha.3
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/casbin/casbin v1.9.1
 	github.com/casbin/casbin/v2 v2.11.0
@@ -45,7 +45,7 @@ require (
 	github.com/tebeka/strftime v0.1.3 // indirect
 	github.com/unrolled/secure v1.0.7
 	go.uber.org/zap v1.13.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da // indirect
 	golang.org/x/tools v0.0.0-20200324003944-a576cf524670 // indirect
 	gopkg.in/ini.v1 v1.55.0 // indirect

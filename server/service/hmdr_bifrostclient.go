@@ -11,6 +11,18 @@ import (
 
 var BifrostGroups = make(map[uint]*model.BifrostGroup)
 
+func SelectBifrostGroup(sf model.SearchConf) bool {
+	_, ok := BifrostGroups[sf.GroupId]
+	if !ok {
+		return ok
+	}
+	_, ok = BifrostGroups[sf.GroupId].Hosts[sf.HostId]
+	if !ok {
+		return ok
+	}
+	return ok
+}
+
 // 初始化bifrost客户端
 func InitBifrostClient() {
 

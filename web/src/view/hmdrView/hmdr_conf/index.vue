@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card>
-      <el-row :gutter="15">
+      <el-row :gutter="15" class="searchClass">
         <el-form
           ref="elForm"
           :model="formData"
@@ -11,7 +11,7 @@
           label-position="left"
         >
           <el-col :span="12">
-            <el-form-item label-width="120px" label="应用服务器选择">
+            <el-form-item label-width="120px" prop="value" label="应用服务器选择">
               <el-cascader
                 v-model="formData.value"
                 :options="Options"
@@ -47,7 +47,7 @@ export default {
         value: []
       },
       rules: {
-        hmdr_groupOptions: [{
+        value: [{
           required: true,
           type: 'array',
           message: '请至少选择一个应用服务器选择',
@@ -69,16 +69,20 @@ export default {
       }
     },
     async searchConfInfo() {
-      const sf = {
-        group_id: this.formData.value[0],
-        host_id: this.formData.value[1],
-        srv_name: this.formData.value[2]
-      }
-      const res = await getConfInfo(sf)
-      if (res.code === 0) {
-        this.code = res.data
-        console.log(res.data)
-      }
+      this.$refs['elForm'].validate(async(valid) => {
+        if (!valid) return
+        // TODO 提交表单
+        const sf = {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2]
+        }
+        const res = await getConfInfo(sf)
+        if (res.code === 0) {
+          this.code = res.data
+          console.log(res.data)
+        }
+      })
     }
   }
 }
@@ -99,5 +103,8 @@ export default {
 .el-scrollbar__wrap {
   overflow: visible;
   overflow-x: hidden;
+}
+.searchClass {
+  padding-bottom: 0;
 }
 </style>

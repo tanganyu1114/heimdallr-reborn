@@ -6,6 +6,7 @@ function resolve(dir) {
   return path.join(__dirname, dir)
 }
 module.exports = {
+  // webSocketPath: 'ws://192.168.43.93:8888/hmdrWebSocket/ws',
   // 基础配置 详情看文档
   publicPath: './',
   outputDir: 'dist',
@@ -28,6 +29,11 @@ module.exports = {
         pathRewrite: { // 修改路径数据
           ['^' + process.env.VUE_APP_BASE_API]: '' // 举例 '^/api:""' 把路径中的/api字符串删除
         }
+      },
+      [process.env.VUE_APP_WS]: { // 需要代理的路径   例如 '/api'
+        target: process.env.VUE_APP_WS, // 代理到 目标路径
+        changeOrigin: true,
+        ws: true
       }
     }
   },
