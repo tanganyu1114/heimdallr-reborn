@@ -2,7 +2,6 @@ package log_watcher_pipe
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -54,7 +53,6 @@ func (p logWatcherPipe) Watching() {
 					case outer <- data:
 						break
 					case <-time.After(time.Second * 5):
-						fmt.Println("time out")
 						delete(p.outers, outerName)
 						break
 					}
