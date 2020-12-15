@@ -11,6 +11,7 @@ type LogWatcherPipe interface {
 	Watching()
 	Close()
 	InsertOuterChannel(string, chan<- []byte) error
+	RemoveOuterChannel(string) error
 	IsInPipe(string) bool
 }
 
@@ -81,6 +82,16 @@ func (p *logWatcherPipe) InsertOuterChannel(outerName string, outer chan<- []byt
 	}
 	p.outers[outerName] = outer
 	return nil
+}
+
+func (p *logWatcherPipe) RemoveOuterChannel(outerName string) error {
+	p.transferLock.Lock()
+	defer p.transferLock.Unlock()
+	if p.IsInPipe(outerName) {
+		delete(p.outers, outerName)
+		return nil
+	}
+	return errors.New("outer channel is not exist")
 }
 
 func (p logWatcherPipe) IsInPipe(outerName string) bool {

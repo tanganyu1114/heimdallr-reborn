@@ -48,6 +48,11 @@ func TestNewLogWatcherBuffer(t *testing.T) {
 	str = "111111"
 	w <- []byte(str)
 	time.Sleep(time.Second * 5)
+	err = pipe.RemoveOuterChannel("test1")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
 	w <- []byte("333333")
 	err = pipe.InsertOuterChannel("test3", r3)
 	w <- []byte("4444444")
