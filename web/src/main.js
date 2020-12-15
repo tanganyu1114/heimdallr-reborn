@@ -68,3 +68,5 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 Vue.use(hljs.vuePlugin)
 
+// 导入icon图标
+import '@/assets/icon'

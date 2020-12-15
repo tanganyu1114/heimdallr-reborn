@@ -12,6 +12,7 @@ type LogWatcherPipe interface {
 	Close()
 	InsertOuterChannel(string, chan<- []byte) error
 	IsInPipe(string) bool
+	Remove(string)
 }
 
 type logWatcherPipe struct {
@@ -31,7 +32,7 @@ func (p *logWatcherPipe) new(inner <-chan []byte, outers map[string]chan<- []byt
 	return nil
 }
 
-func (p logWatcherPipe) Watching() {
+func (p *logWatcherPipe) Watching() {
 	if p.isWatching {
 		return
 	}
@@ -69,6 +70,14 @@ func (p *logWatcherPipe) Close() {
 	p.transferLock.Lock()
 	for s := range p.outers {
 		delete(p.outers, s)
+	}
+	p.transferLock.Unlock()
+}
+
+func (p *logWatcherPipe) Remove(str string) {
+	p.transferLock.Lock()
+	if ok := p.IsInPipe(str); ok {
+		delete(p.outers, str)
 	}
 	p.transferLock.Unlock()
 }

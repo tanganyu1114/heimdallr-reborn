@@ -2,6 +2,7 @@ package log_watcher_pipe
 
 import (
 	"fmt"
+	"gin-vue-admin/utils"
 	"testing"
 	"time"
 )
@@ -54,4 +55,18 @@ func TestNewLogWatcherBuffer(t *testing.T) {
 	w <- []byte("end")
 	time.Sleep(time.Second * 4)
 	pipe.Close()
+}
+
+func TestTimemd5(t *testing.T) {
+	t.Log(time.Now())
+	aa := time.Now().String()
+	ss := utils.MD5V([]byte(aa))
+	t.Log(ss)
+	go func() {
+		for {
+			t.Log("aaaa")
+			return
+		}
+	}()
+	t.Log("bbb")
 }

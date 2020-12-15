@@ -60,20 +60,6 @@ func GetOptions() ([]Group, error) {
 
 func GetConfInfo(sf model.SearchConf) *[]byte {
 
-	//	group, ok := BifrostGroups[sf.GroupId]
-	//	if ok {
-	//		host, ok := group.Hosts[sf.HostId]
-	//		if ok {
-	//			data, err := host.Client.ViewConfig(context.Background(), host.HmdrHost.Token, sf.SrvName)
-	//			if err != nil {
-	//				global.GVA_LOG.Error("Get Conf Failed", zap.String("err", err.Error()))
-	//			}
-	//			return &data
-	//		}
-	//		return nil
-	//	}
-	//	return nil
-	//}
 	if ok := SelectBifrostGroup(sf); ok {
 		data, err := BifrostGroups[sf.GroupId].Hosts[sf.HostId].Client.ViewConfig(context.Background(), BifrostGroups[sf.GroupId].Hosts[sf.HostId].HmdrHost.Token, sf.SrvName)
 		if err != nil {

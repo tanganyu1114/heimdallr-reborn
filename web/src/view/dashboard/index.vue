@@ -2,7 +2,7 @@
   <div>
     <template v-for="(item,i1) in group">
       <el-divider :key="i1" content-position="left">{{ item.name }}</el-divider>
-      <el-row :key="i1" :gutter="20">
+      <el-row :key="i1" :gutter="30">
         <template v-for="(val,i2) in item.hosts">
           <el-col :key="i2" :span="6">
             <el-card :key="String(i1)+String(i2)" class="card-box">
@@ -40,7 +40,6 @@
 
 <script>
 import { getAgentInfo } from '@/api/agent'
-
 export default {
   name: 'Dashboard',
   data() {
@@ -78,7 +77,8 @@ export default {
 
 <style scoped>
 .card-box {
-  width: 320px;
+  margin-bottom: 20px;
+  min-width: 234px;
 }
 .card-header {
   font-weight: bold;

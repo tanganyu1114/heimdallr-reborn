@@ -38,9 +38,10 @@
         </el-form>
       </el-row>
       <el-row class="btnClass">
-        <el-col :span="8">
+        <el-col :span="24">
           <el-button size="medium" type="primary" icon="el-icon-video-play" :disabled="!isActive" round @click="handleStartLogOn">开启日志监听</el-button>
           <el-button size="medium" type="danger" icon="el-icon-video-pause" :disabled="isActive" round @click="handleStartLogOff">关闭日志监听</el-button>
+          <el-button size="medium" type="warning" icon="el-icon-delete" round style="float:right;" @click="handleCleanLog">清空日志</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -68,6 +69,7 @@ export default {
       logs: '',
       path: process.env.VUE_APP_WS,
       socket: '',
+      healthCk: '',
       isActive: true,
       formData: {
         logName: 'access.log',
@@ -105,6 +107,7 @@ export default {
   destroyed() {
     // 销毁监听
     this.socket.onclose = this.close
+    clearInterval(this.healthCk)
   },
   methods: {
     async initOptions() {
@@ -114,6 +117,12 @@ export default {
         console.log(res.data)
       }
     },
+    healthCheck() {
+      this.healthCk = setInterval(() => {
+        this.socket.send('ping')
+        this.getMessage()
+      }, 10000)
+    },
     initWebSocket() {
       if (typeof (WebSocket) === 'undefined') {
         alert('您的浏览器不支持socket')
@@ -121,45 +130,61 @@ export default {
         // 实例化socket
         this.socket = new WebSocket(this.path)
         // 监听socket连接
-        this.socket.onopen = this.open
+        this.socket.onopen = this.onOpen
         // 监听socket错误信息
-        this.socket.onerror = this.error
+        this.socket.onerror = this.onError
         // 监听socket消息
         this.socket.onmessage = this.getMessage
         // 关闭socket时发生消息
-        this.socket.onclose = this.close
+        this.socket.onclose = this.onClose
       }
     },
     handleStartLogOn() {
       this.$refs['elForm'].validate(valid => {
         if (!valid) return
-        // TODO 提交表单
+        // 按钮取反
         this.isActive = !this.isActive
+        // 初始化websocket
         this.initWebSocket()
-        // this.send()
       })
     },
     handleStartLogOff() {
+      // 按钮取反
       this.isActive = !this.isActive
-      this.logs += '\n' + '关闭socket连接'
-      this.sendOff()
-      if (this.socket.bufferedAmount === 0) {
+      // 发送关闭信号
+      this.sendOffSignal()
+      /*      if (this.socket.bufferedAmount === 0) {
         this.socket.close()
-      }
+      }*/
     },
-    open: function() {
-      this.logs = 'socket连接成功'
+    handleCleanLog() {
+      this.logs = ''
+    },
+    onOpen: function() {
+      this.logs += 'socket连接成功'
       console.log('socket连接成功')
-      this.sendOn()
+      this.sendOnSignal()
+      // 心跳检查
+      this.healthCheck()
     },
-    error: function() {
+    onError: function() {
       console.log('连接错误')
     },
     getMessage: function(msg) {
       this.logs += '\n' + msg.data
+      if (msg.data === 'Close Done') {
+        this.socket.close()
+      }
       console.log(msg.data)
     },
-    sendOn: function() {
+    onClose: function(e) {
+      this.logs += '\n' + 'socket已经关闭'
+      this.logs += '\n' + 'websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean
+      console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
+      console.log('socket已经关闭')
+      clearInterval(this.healthCk)
+    },
+    sendOnSignal: function() {
       console.log(this.formData.logName)
       const sf = {
         group_id: this.formData.value[0],
@@ -173,8 +198,7 @@ export default {
       // this.socket.send(sf)
       this.socket.send(jsonsf)
     },
-    sendOff() {
-      console.log(this.formData.logName)
+    sendOffSignal() {
       const sf = {
         group_id: this.formData.value[0],
         host_id: this.formData.value[1],
@@ -183,12 +207,9 @@ export default {
         status: false
       }
       const jsonsf = JSON.stringify(sf)
-      this.logs += '\n' + '发送认证信息'
+      this.logs += '\n' + '发送关闭管道信息'
       // this.socket.send(sf)
       this.socket.send(jsonsf)
-    },
-    close: function() {
-      console.log('socket已经关闭')
     }
   }
 }

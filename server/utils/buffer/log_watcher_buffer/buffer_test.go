@@ -34,14 +34,30 @@ func TestNewLogWatcherBuffer(t *testing.T) {
 	}()
 	w <- []byte("test111")
 	w <- []byte("test222")
-	go func() {
-		for {
-			data := <-r1
-			t.Log("go fun", string(data))
-		}
-	}()
+	/*	go func() {
+			for {
+	 			data := <-r1
+				t.Log("go fun", string(data))
+			}
+		}()*/
 	t.Log(string(<-r1))
 	w <- []byte("11111")
 	time.Sleep(time.Second * 2)
 	t.Log(string(<-r2))
+}
+
+func TestChannel(t *testing.T) {
+	var tchan = make(chan int, 0)
+	go func() {
+		var data int
+		for {
+			t.Log("data")
+			data = <-tchan
+			t.Log(data)
+		}
+	}()
+	tchan <- 10
+	time.Sleep(time.Second * 1)
+	tchan <- 20
+	time.Sleep(time.Second * 2)
 }

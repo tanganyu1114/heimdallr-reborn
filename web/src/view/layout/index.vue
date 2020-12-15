@@ -1,11 +1,11 @@
 <template>
   <el-container class="layout-cont">
     <el-container :class="[isSider?'openside':'hideside',isMobile ? 'mobile': '']">
-      <el-row :class="[isShadowBg?'shadowBg':'']" @click.native="changeShadow()"></el-row>
+      <el-row :class="[isShadowBg?'shadowBg':'']" @click.native="changeShadow()" />
       <el-aside class="main-cont main-left">
         <div class="tilte">
-          <img alt class="logoimg" src="~@/assets/nav_logo.png" />
-          <h2 class="tit-text" v-if="isSider">Gin-Vue-Admin</h2>
+          <img alt class="logoimg" src="~@/assets/nav_logo.png">
+          <h2 v-if="isSider" class="tit-text">Gin-Vue-Admin</h2>
         </div>
         <Aside class="aside" />
       </el-aside>
@@ -17,34 +17,34 @@
             class="topfix"
           >
             <el-header class="header-cont">
-              <div @click="totalCollapse" class="menu-total">
-                <i class="el-icon-s-unfold" v-if="isCollapse"></i>
-                <i class="el-icon-s-fold" v-else></i>
+              <div class="menu-total" @click="totalCollapse">
+                <i v-if="isCollapse" class="el-icon-s-unfold" />
+                <i v-else class="el-icon-s-fold" />
               </div>
               <el-breadcrumb class="breadcrumb" separator-class="el-icon-arrow-right">
                 <el-breadcrumb-item
-                  :key="item.path"
                   v-for="item in matched.slice(1,matched.length)"
-                >{{item.meta.title}}</el-breadcrumb-item>
+                  :key="item.path"
+                >{{ item.meta.title }}</el-breadcrumb-item>
               </el-breadcrumb>
               <div class="fl-right right-box">
                 <Search />
-                <Screenfull class="screenfull"></Screenfull>
+                <Screenfull class="screenfull" />
                 <el-dropdown>
                   <span class="header-avatar">
-                   <CustomPic/>
-                    <span style="margin-left: 5px">{{userInfo.nickName}}</span>
-                    <i class="el-icon-arrow-down"></i>
+                    <CustomPic />
+                    <span style="margin-left: 5px">{{ userInfo.nickName }}</span>
+                    <i class="el-icon-arrow-down" />
                   </span>
-                  <el-dropdown-menu class="dropdown-group" slot="dropdown">
+                  <el-dropdown-menu slot="dropdown" class="dropdown-group">
                     <el-dropdown-item>
                       <span>
                         更多信息
                         <el-badge is-dot />
                       </span>
                     </el-dropdown-item>
-                    <el-dropdown-item @click.native="toPerson" icon="el-icon-s-custom">个人信息</el-dropdown-item>
-                    <el-dropdown-item @click.native="LoginOut" icon="el-icon-table-lamp">登 出</el-dropdown-item>
+                    <el-dropdown-item icon="el-icon-s-custom" @click.native="toPerson">个人信息</el-dropdown-item>
+                    <el-dropdown-item icon="el-icon-table-lamp" @click.native="LoginOut">登 出</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
               </div>
@@ -57,16 +57,16 @@
         </transition>
         <transition mode="out-in" name="el-fade-in-linear">
           <keep-alive>
-            <router-view  v-loading="loadingFlag"  element-loading-text="正在加载中" class="admin-box" v-if="$route.meta.keepAlive"></router-view>
+            <router-view v-if="$route.meta.keepAlive" v-loading="loadingFlag" element-loading-text="正在加载中" class="admin-box" />
           </keep-alive>
         </transition>
         <transition mode="out-in" name="el-fade-in-linear">
-          <router-view  v-loading="loadingFlag"  element-loading-text="正在加载中" class="admin-box" v-if="!$route.meta.keepAlive"></router-view>
+          <router-view v-if="!$route.meta.keepAlive" v-loading="loadingFlag" element-loading-text="正在加载中" class="admin-box" />
         </transition>
-       <BottomInfo />
+        <BottomInfo />
       </el-main>
     </el-container>
-   
+
   </el-container>
 </template>
 
@@ -80,18 +80,6 @@ import { mapGetters, mapActions } from 'vuex'
 import CustomPic from '@/components/customPic'
 export default {
   name: 'Layout',
-  data() {
-    return {
-      show: false,
-      isCollapse: false,
-      isSider: true,
-      isMobile: false,
-      isShadowBg: false,
-      loadingFlag:false,
-      
-      value: ''
-    }
-  },
   components: {
     Aside,
     HistoryComponent,
@@ -100,22 +88,17 @@ export default {
     BottomInfo,
     CustomPic
   },
-  methods: {
-    ...mapActions('user', ['LoginOut']),
-    totalCollapse() {
-      this.isCollapse = !this.isCollapse
-      this.isSider = !this.isCollapse
-      this.isShadowBg = !this.isCollapse
-      this.$bus.emit('collapse', this.isCollapse)
-    },
-    toPerson() {
-      this.$router.push({ name: 'person' })
-    },
-    changeShadow() {
-      this.isShadowBg = !this.isShadowBg
-      this.isSider = !!this.isCollapse
-      this.totalCollapse()
-    },
+  data() {
+    return {
+      show: false,
+      isCollapse: false,
+      isSider: true,
+      isMobile: false,
+      isShadowBg: false,
+      loadingFlag: false,
+
+      value: ''
+    }
   },
   computed: {
     ...mapGetters('user', ['userInfo']),
@@ -127,7 +110,7 @@ export default {
     }
   },
   mounted() {
-    let screenWidth = document.body.clientWidth
+    const screenWidth = document.body.clientWidth
     if (screenWidth < 1000) {
       this.isMobile = true
       this.isSider = false
@@ -143,15 +126,15 @@ export default {
     }
     this.$bus.emit('collapse', this.isCollapse)
     this.$bus.emit('mobile', this.isMobile)
-    this.$bus.on("showLoading",()=>{
+    this.$bus.on('showLoading', () => {
       this.loadingFlag = true
     })
-    this.$bus.on("closeLoading",()=>{
+    this.$bus.on('closeLoading', () => {
       this.loadingFlag = false
     })
     window.onresize = () => {
       return (() => {
-        let screenWidth = document.body.clientWidth
+        const screenWidth = document.body.clientWidth
         if (screenWidth < 1000) {
           this.isMobile = true
           this.isSider = false
@@ -168,6 +151,23 @@ export default {
         this.$bus.emit('collapse', this.isCollapse)
         this.$bus.emit('mobile', this.isMobile)
       })()
+    }
+  },
+  methods: {
+    ...mapActions('user', ['LoginOut']),
+    totalCollapse() {
+      this.isCollapse = !this.isCollapse
+      this.isSider = !this.isCollapse
+      this.isShadowBg = !this.isCollapse
+      this.$bus.emit('collapse', this.isCollapse)
+    },
+    toPerson() {
+      this.$router.push({ name: 'person' })
+    },
+    changeShadow() {
+      this.isShadowBg = !this.isShadowBg
+      this.isSider = !!this.isCollapse
+      this.totalCollapse()
     }
   }
 }
@@ -311,7 +311,6 @@ export default {
 //     vertical-align: middle;
 //   }
 // }
-
 
 // .screenfull {
 //   display: inline-block;

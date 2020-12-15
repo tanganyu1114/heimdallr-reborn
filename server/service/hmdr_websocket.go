@@ -53,6 +53,7 @@ func CreateLogWatcher(sc model.SocketControl) {
 }
 
 func CalcLogWatcherCount(sc model.SocketControl, count int) {
+
 	GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].Count += count
 	if GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].Count == 0 {
 		DeleteLogWater(sc)
