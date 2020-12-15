@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -50,9 +51,13 @@ func WebSocket(c *gin.Context) {
 	// 生成唯一码
 	ts := time.Now().String()
 	md5sc := utils.MD5V([]byte(ts))
+	wg := new(sync.WaitGroup)
+	defer wg.Wait()
 
 	// 后台读消息
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		var sc model.SocketControl
 		for {
 			_, message, err := ws.ReadMessage()
@@ -84,6 +89,8 @@ func WebSocket(c *gin.Context) {
 
 	// 后台写消息
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		for {
 			select {
 			// 从sc中获取到outerchannel然后输出数据信息
