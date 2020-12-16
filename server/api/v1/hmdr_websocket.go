@@ -83,6 +83,7 @@ func WebSocket(c *gin.Context) {
 			if err != nil {
 				global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
 			}
+
 		} else {
 			// 新增pipe
 			outerMap := make(map[string]chan<- []byte)
@@ -96,6 +97,16 @@ func WebSocket(c *gin.Context) {
 			// 初始化pipe后开始引流
 			LogPipe.Watching()
 		}
+
+		defer func() {
+			// 移除当前outerchannel
+			if service.SelectLogWatcher(sc) {
+				LogPipe = sc.GetLogPipe(service.GlobalSocketInfo)
+				LogPipe.Remove(md5sc)
+				// 移除logwater
+				service.CalcLogWatcherCount(sc, -1)
+			}
+		}()
 
 		// 处理输出管道数据及收集前端会话关闭请求
 		for {
