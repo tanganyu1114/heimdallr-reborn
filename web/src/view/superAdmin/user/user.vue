@@ -174,7 +174,7 @@ export default {
     },
     async deleteUser(row) {
       const res = await deleteUser({ id: row.ID })
-      if (res.code == 0) {
+      if (res.code === 0) {
         this.getTableData()
         row.visible = false
       }
@@ -183,7 +183,7 @@ export default {
       this.$refs.userForm.validate(async valid => {
         if (valid) {
           const res = await register(this.userInfo)
-          if (res.code == 0) {
+          if (res.code === 0) {
             this.$message({ type: 'success', message: '创建成功' })
           }
           await this.getTableData()
@@ -206,7 +206,7 @@ export default {
         uuid: row.uuid,
         authorityId: row.authority.authorityId
       })
-      if (res.code == 0) {
+      if (res.code === 0) {
         this.$message({ type: 'success', message: '角色设置成功' })
       }
     }

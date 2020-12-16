@@ -43,6 +43,7 @@
         "eslint-config-airbnb-base": "^14.2.1",
         "eslint-plugin-import": "^2.22.1",
         "eslint-plugin-vue": "^7.1.0",
+        "svg-sprite-loader": "^5.2.1",
         "vue-template-compiler": "^2.6.10"
     },
     "eslintConfig": {

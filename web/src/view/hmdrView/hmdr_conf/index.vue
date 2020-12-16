@@ -71,7 +71,6 @@ export default {
     async searchConfInfo() {
       this.$refs['elForm'].validate(async(valid) => {
         if (!valid) return
-        // TODO 提交表单
         const sf = {
           group_id: this.formData.value[0],
           host_id: this.formData.value[1],

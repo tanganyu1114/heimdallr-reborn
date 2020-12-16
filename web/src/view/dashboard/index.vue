@@ -1,5 +1,8 @@
 <template>
   <div>
+    <li class="list-group-item">
+      <svg-icon icon-class="user" />用户名称
+    </li>
     <template v-for="(item,i1) in group">
       <el-divider :key="i1" content-position="left">{{ item.name }}</el-divider>
       <el-row :key="i1" :gutter="30">
