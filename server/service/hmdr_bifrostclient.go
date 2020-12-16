@@ -58,6 +58,8 @@ func InitBifrostClient() {
 			}
 		}
 	}
+	// 调用查询客户端信息
+	CronAgentInfo()
 }
 
 func CreateBifrostGroup(group model.HmdrGroup) {

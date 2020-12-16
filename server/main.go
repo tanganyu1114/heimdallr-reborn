@@ -5,6 +5,8 @@ import (
 	"gin-vue-admin/global"
 	"gin-vue-admin/initialize"
 	"gin-vue-admin/service"
+	"github.com/robfig/cron/v3"
+	"go.uber.org/zap"
 )
 
 // @title Swagger Example API
@@ -32,5 +34,14 @@ func main() {
 			}
 		}
 	}()
+	// 定时任务
+	crontab := cron.New()
+	// cron 获取客户端信息
+	_, err := crontab.AddFunc("* * * * *", service.CronAgentInfo)
+	if err != nil {
+		global.GVA_LOG.Error("add crontab func err", zap.String("err", err.Error()))
+	}
+	crontab.Start()
+	defer crontab.Stop()
 	core.RunWindowsServer()
 }

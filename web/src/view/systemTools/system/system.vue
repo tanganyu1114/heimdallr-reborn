@@ -227,13 +227,13 @@
       <!--  dbType end  -->
 
       <!--  ossType start  -->
-      <template v-if="config.system.ossType == 'local'">
+      <template v-if="config.system.ossType === 'local'">
         <h2>本地上传配置</h2>
         <el-form-item label="本地文件路径">
           <el-input v-model="config.local.path" />
         </el-form-item>
       </template>
-      <template v-if="config.system.ossType == 'qiniu'">
+      <template v-if="config.system.ossType === 'qiniu'">
         <h2>qiniu上传配置</h2>
         <el-form-item label="存储区域">
           <el-input v-model="config.qiniu.zone" />
@@ -295,14 +295,14 @@ export default {
   methods: {
     async initForm() {
       const res = await getSystemConfig()
-      if (res.code == 0) {
+      if (res.code === 0) {
         this.config = res.data.config
       }
     },
     reload() {},
     async update() {
       const res = await setSystemConfig({ config: this.config })
-      if (res.code == 0) {
+      if (res.code === 0) {
         this.$message({
           type: 'success',
           message: '配置文件设置成功'
@@ -312,7 +312,7 @@ export default {
     },
     async email() {
       const res = await emailTest()
-      if (res.code == 0) {
+      if (res.code === 0) {
         this.$message({
           type: 'success',
           message: '邮件发送成功'

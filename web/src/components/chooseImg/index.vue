@@ -2,14 +2,14 @@
   <el-drawer title="媒体库" :visible.sync="drawer">
     <div style="display:flex;justify-content:space-around;flex-wrap:wrap;padding-top:40px">
       <el-image
-        class="header-img-box-list"
-        :src="item.url"
         v-for="(item,key) in picList"
         :key="key"
+        class="header-img-box-list"
+        :src="item.url"
         @click.native="chooseImg(item.url,target,targetKey)"
       >
         <div slot="error" class="header-img-box-list">
-          <i class="el-icon-picture-outline"></i>
+          <i class="el-icon-picture-outline" />
         </div>
       </el-image>
     </div>
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { getFileList } from "@/api/fileUploadAndDownload";
+import { getFileList } from '@/api/fileUploadAndDownload'
 export default {
   props: {
     target: [Object],
@@ -27,23 +27,23 @@ export default {
     return {
       drawer: false,
       picList: []
-    };
+    }
   },
   methods: {
     chooseImg(url, target, targetKey) {
-      if(target&&targetKey){
-        target[targetKey] = url;
+      if (target && targetKey) {
+        target[targetKey] = url
       }
-      this.$emit("enter-img", url);
-      this.drawer = false;
+      this.$emit('enter-img', url)
+      this.drawer = false
     },
     async open() {
-      const res = await getFileList({ page: 1, pageSize: 9999 });
-      this.picList = res.data.list;
-      this.drawer = true;
+      const res = await getFileList({ page: 1, pageSize: 9999 })
+      this.picList = res.data.list
+      this.drawer = true
     }
   }
-};
+}
 </script>
 
 <style lang="scss">

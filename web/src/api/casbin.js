@@ -10,13 +10,12 @@ import service from '@/utils/request'
 // @Router /casbin/UpdateCasbin [post]
 
 export const UpdateCasbin = (data) => {
-    return service({
-        url: "/casbin/updateCasbin",
-        method: 'post',
-        data
-    })
+  return service({
+    url: '/casbin/updateCasbin',
+    method: 'post',
+    data
+  })
 }
-
 
 // @Tags casbin
 // @Summary 获取权限列表
@@ -27,9 +26,9 @@ export const UpdateCasbin = (data) => {
 // @Success 200 {string} json "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /casbin/getPolicyPathByAuthorityId [post]
 export const getPolicyPathByAuthorityId = (data) => {
-    return service({
-        url: "/casbin/getPolicyPathByAuthorityId",
-        method: 'post',
-        data
-    })
+  return service({
+    url: '/casbin/getPolicyPathByAuthorityId',
+    method: 'post',
+    data
+  })
 }

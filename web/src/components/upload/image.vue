@@ -5,7 +5,6 @@
     已上传文件 {{ imageUrl }}
   </div>
 
-
 -->
 
 <template>
@@ -18,58 +17,58 @@
       :before-upload="beforeImageUpload"
       :multiple="false"
     >
-      <img v-if="imageUrl" :src="imageUrl" class="image" />
-      <i v-else class="el-icon-plus image-uploader-icon"></i>
+      <img v-if="imageUrl" :src="imageUrl" class="image">
+      <i v-else class="el-icon-plus image-uploader-icon" />
     </el-upload>
   </div>
 </template>
 <script>
-const path = process.env.VUE_APP_BASE_API;
-import ImageCompress from "@/utils/image.js";
+const path = process.env.VUE_APP_BASE_API
+import ImageCompress from '@/utils/image.js'
 export default {
-  name: "upload-image",
+  name: 'UploadImage',
   model: {
-    prop: "imageUrl",
-    event: "change",
+    prop: 'imageUrl',
+    event: 'change'
   },
   props: {
     imageUrl: {
       type: String,
-      default: "",
+      default: ''
     },
     fileSize: {
       type: Number,
-      default: 2048, // 2M 超出后执行压缩
+      default: 2048 // 2M 超出后执行压缩
     },
     maxWH: {
       type: Number,
-      default: 1920, // 图片长宽上限
-    },
+      default: 1920 // 图片长宽上限
+    }
   },
   data() {
     return {
-      path: path,
-    };
+      path: path
+    }
   },
   methods: {
     beforeImageUpload(file) {
-      let isRightSize = file.size / 1024 < this.fileSize;
+      const isRightSize = file.size / 1024 < this.fileSize
       if (!isRightSize) {
         // 压缩
-        let compress = new ImageCompress(file, this.fileSize, this.maxWH);
-        return compress.compress();
+        const compress = new ImageCompress(file, this.fileSize, this.maxWH)
+        return compress.compress()
       }
-      return isRightSize;
+      return isRightSize
     },
     handleImageSuccess(res) {
       // this.imageUrl = URL.createObjectURL(file.raw);
-      const {  data } = res;
+      const { data } = res
       if (data.file) {
-        this.$emit("change", data.file.url);
+        this.$emit('change', data.file.url)
       }
-    },
-  },
-};
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>

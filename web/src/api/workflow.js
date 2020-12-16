@@ -7,9 +7,9 @@ import service from '@/utils/request'
 // @Success 200 {string} json "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /authority/deleteAuthority [post]
 export const createWorkFlow = (data) => {
-    return service({
-        url: "/workflow/createWorkFlow",
-        method: 'post',
-        data
-    })
+  return service({
+    url: '/workflow/createWorkFlow',
+    method: 'post',
+    data
+  })
 }

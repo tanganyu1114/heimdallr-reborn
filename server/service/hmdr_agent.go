@@ -36,9 +36,14 @@ type NginxStatus struct {
 	Version string `json:"version"`
 }
 
+var GlobalAgentInfo = make([]Info, 0)
+
 // 获取dashboard页面展示信息数据
 func GetAgentInfo() (*[]Info, error) {
+	return &GlobalAgentInfo, nil
+}
 
+func CronAgentInfo() {
 	result := make([]Info, 0)
 	for _, group := range BifrostGroups {
 		tmpGroup := Info{
@@ -63,5 +68,5 @@ func GetAgentInfo() (*[]Info, error) {
 		}
 		result = append(result, tmpGroup)
 	}
-	return &result, nil
+	GlobalAgentInfo = result
 }
