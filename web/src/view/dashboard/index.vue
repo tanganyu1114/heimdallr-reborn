@@ -11,7 +11,7 @@
                   <div slot="content">描述: {{ val.descrip }}</div>
                   <span class="card-header">{{ val.name }}</span>
                 </el-tooltip>
-                <el-tag class="card-right" :type="val.status === false ? 'info' : val.status === true ? 'success' : 'danger'">{{ val.status === false ? '禁用' : val.status === true ? '正常' : '异常' }}</el-tag>
+                <el-tag class="card-right" :type="val.status === false ? 'info' : 'success' ">{{ val.status === false ? '禁用' : '启用' }}</el-tag>
               </div>
               <div>
                 <div class="card-line">IP地址: <span class="card-right">{{ val.ipaddr }}</span></div>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { getAgentInfo } from '@/api/agent'
+import { getAgentInfo } from '@/api/hmdr_agent'
 export default {
   name: 'Dashboard',
   data() {
