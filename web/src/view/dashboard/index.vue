@@ -1,8 +1,5 @@
 <template>
   <div>
-    <li class="list-group-item">
-      <svg-icon icon-class="user" />用户名称
-    </li>
     <template v-for="(item,i1) in group">
       <el-divider :key="i1" content-position="left">{{ item.name }}</el-divider>
       <el-row :key="i1" :gutter="30">
@@ -14,7 +11,11 @@
                   <div slot="content">描述: {{ val.descrip }}</div>
                   <span class="card-header">{{ val.name }}</span>
                 </el-tooltip>
-                <el-tag class="card-right" :type="val.status === false ? 'info' : 'success' ">{{ val.status === false ? '禁用' : '启用' }}</el-tag>
+                <el-tag class="card-right" :type="val.status === false ? 'info' : 'success' ">
+                  <svg-icon v-if="val.status" icon-class="open-wifi" class="svg-icon" />
+                  <svg-icon v-else icon-class="close-wifi" class="svg-icon" />
+                  {{ val.status === false ? '异常' : '正常' }}
+                </el-tag>
               </div>
               <div>
                 <div class="card-line">IP地址: <span class="card-right">{{ val.ipaddr }}</span></div>
@@ -99,6 +100,10 @@ div.el-card__body {
 }
 .card-right {
   float: right;
+  margin-right: 5px;
+}
+.svg-icon {
+  /*padding-left: 10px;*/
   margin-right: 5px;
 }
 </style>
