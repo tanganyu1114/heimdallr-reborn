@@ -11,7 +11,7 @@
                   <div slot="content">描述: {{ val.descrip }}</div>
                   <span class="card-header">{{ val.name }}</span>
                 </el-tooltip>
-                <el-tag class="card-right" :type="val.status === false ? 'info' : 'success' ">
+                <el-tag class="card-right" :type="val.status === false ? 'danger' : 'success' ">
                   <svg-icon v-if="val.status" icon-class="open-wifi" class="svg-icon" />
                   <svg-icon v-else icon-class="close-wifi" class="svg-icon" />
                   {{ val.status === false ? '异常' : '正常' }}
@@ -100,7 +100,7 @@ div.el-card__body {
 }
 .card-right {
   float: right;
-  margin-right: 5px;
+ /* margin-right: 5px;*/
 }
 .svg-icon {
   /*padding-left: 10px;*/

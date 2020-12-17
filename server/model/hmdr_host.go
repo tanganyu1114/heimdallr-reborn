@@ -15,6 +15,7 @@ type HmdrHost struct {
 	Ipaddr      string `json:"ipaddr" form:"ipaddr" gorm:"column:ipaddr;comment:;type:char;"`
 	Port        string `json:"port" form:"port" gorm:"column:port;comment:;type:char;"`
 	Token       string `json:"token" form:"token" gorm:"column:token;comment:;type:varchar(255);size:255;"`
+	Sequence    uint   `json:"sequence" form:"sequence" gorm:"column:sequence;comment:;type:bigint(20);size:20;"`
 }
 
 func (HmdrHost) TableName() string {

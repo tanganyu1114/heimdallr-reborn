@@ -18,13 +18,13 @@
             <div class="user-information">
               <ul>
                 <li>
-                  <i class="el-icon-user" />资深前端工程师
+                  <i class="el-icon-user" />运维工程师
                 </li>
                 <li>
-                  <i class="el-icon-data-analysis" />北京反转极光科技有限公司-技术部-前端事业群
+                  <i class="el-icon-data-analysis" />测试环境组
                 </li>
                 <li>
-                  <i class="el-icon-video-camera-solid" />中国·北京市·朝阳区
+                  <i class="el-icon-video-camera-solid" />中国·重庆·重庆
                 </li>
                 <li>
                   <i class="el-icon-medal-1" />goLang/JavaScript/Vue/Gorm
@@ -49,7 +49,7 @@
                 <li>
                   <p class="title">密保邮箱</p>
                   <p class="desc">
-                    已绑定邮箱：gin-vue-admin@google.com.cn
+                    已绑定邮箱：123456@789.com
                     <a href="#">立即修改</a>
                   </p>
                 </li>

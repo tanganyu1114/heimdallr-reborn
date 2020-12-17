@@ -29,8 +29,13 @@
       </el-row>
     </el-card>
     <el-card>
-      <!--      <el-scrollbar style="height: 100%">-->
-      <highlightjs language="nginx" :code="code" />
+
+      <!--<div style="height:600px;">
+        <el-scrollbar style="height:100%">
+          <highlightjs language="nginx" :code="code" />
+        </el-scrollbar>
+      </div>-->
+      <highlightjs language="nginx" :code="code" class="hljs" />
     </el-card>
   </div>
 </template>
@@ -105,5 +110,11 @@ export default {
 }
 .searchClass {
   padding-bottom: 0;
+}
+.hljs {
+  max-height: 600px;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden!important;
 }
 </style>

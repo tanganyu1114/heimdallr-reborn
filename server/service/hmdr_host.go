@@ -96,6 +96,6 @@ func GetHmdrHostInfoList(info request.HmdrHostSearch) (err error, list interface
 		db = db.Where("`group_id` = ?", info.GroupId)
 	}
 	err = db.Count(&total).Error
-	err = db.Limit(limit).Offset(offset).Find(&hmdrHosts).Error
+	err = db.Limit(limit).Offset(offset).Order("sequence").Find(&hmdrHosts).Error
 	return err, hmdrHosts, total
 }

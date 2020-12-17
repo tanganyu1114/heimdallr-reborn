@@ -50,9 +50,10 @@
       <el-input
         v-model="logs"
         type="textarea"
-        :rows="26"
+        :rows="22"
         :readonly="true"
         resize="none"
+        :autofocus="true"
       />
     </el-card>
   </div>

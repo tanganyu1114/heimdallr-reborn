@@ -42,7 +42,7 @@
           {{ filterDict(scope.row.groupId,"hmdr_group") }}
         </template>
       </el-table-column>
-
+      <el-table-column label="顺序" prop="sequence" width="120" />
       <el-table-column label="主机名" prop="name" width="120" />
 
       <el-table-column label="描述信息" prop="description" width="120" />
@@ -90,7 +90,9 @@
             <el-option v-for="(item,key) in hmdr_groupOptions" :key="key" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-
+        <el-form-item label="顺序:">
+          <el-input-number v-model="formData.sequence" :min="100" :max="1000" :precision="0" clearable placeholder="请输入" />
+        </el-form-item>
         <el-form-item label="主机名:">
           <el-input v-model="formData.name" clearable placeholder="请输入" />
         </el-form-item>
@@ -173,11 +175,11 @@ export default {
         groupId: 1,
         name: '',
         description: '',
-        status: Number(),
+        status: true,
         ipaddr: '',
         port: '',
-        token: ''
-
+        token: '',
+        sequence: 100
       }
     }
   },
@@ -245,11 +247,11 @@ export default {
         groupId: 1,
         name: '',
         description: '',
-        status: 1,
+        status: true,
         ipaddr: '',
         port: '',
-        token: ''
-
+        token: '',
+        sequence: 100
       }
     },
     async deleteHmdrHost(row) {

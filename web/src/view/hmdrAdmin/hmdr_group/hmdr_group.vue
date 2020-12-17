@@ -6,7 +6,7 @@
           <el-button type="primary" @click="onSubmit">查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="openDialog">新增hmdrGroup表</el-button>
+          <el-button type="primary" @click="openDialog">新增组别信息</el-button>
         </el-form-item>
         <el-form-item>
           <el-popover v-model="deleteVisible" placement="top" width="160">
@@ -33,10 +33,11 @@
       <el-table-column label="日期" width="180">
         <template slot-scope="scope">{{ scope.row.CreatedAt|formatDate }}</template>
       </el-table-column>
+      <el-table-column label="顺序" prop="sequence" width="200" />
 
-      <el-table-column label="name字段" prop="name" width="200" />
+      <el-table-column label="组名" prop="name" width="200" />
 
-      <el-table-column label="description字段" prop="description" width="600" />
+      <el-table-column label="描述信息" prop="description" width="600" />
 
       <el-table-column label="按钮组">
         <template slot-scope="scope">
@@ -66,11 +67,14 @@
 
     <el-dialog :before-close="closeDialog" :visible.sync="dialogFormVisible" title="弹窗操作">
       <el-form :model="formData" label-position="right" label-width="80px">
-        <el-form-item label="name字段:">
+        <el-form-item label="顺序:">
+          <el-input-number v-model="formData.sequence" :min="100" :max="1000" :precision="0" clearable placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="组名:">
           <el-input v-model="formData.name" clearable placeholder="请输入" />
         </el-form-item>
 
-        <el-form-item label="description字段:">
+        <el-form-item label="描述信息">
           <el-input v-model="formData.description" clearable placeholder="请输入" />
         </el-form-item>
       </el-form>
@@ -122,8 +126,8 @@ export default {
       deleteVisible: false,
       multipleSelection: [], formData: {
         name: '',
-        description: ''
-
+        description: '',
+        sequence: 100
       }
     }
   },
@@ -175,8 +179,8 @@ export default {
       this.dialogFormVisible = false
       this.formData = {
         name: '',
-        description: ''
-
+        description: '',
+        sequence: 100
       }
     },
     async deleteHmdrGroup(row) {
