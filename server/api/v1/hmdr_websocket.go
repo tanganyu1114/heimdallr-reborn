@@ -40,11 +40,12 @@ func WebSocket(c *gin.Context) {
 	// 生成唯一码
 	md5sc := utils.MD5V([]byte(time.Now().String()))
 	scCh := make(chan model.SocketControl, 0)
+	probCh := make(chan string, 0)
 
 	// 等待组
 	wg := new(sync.WaitGroup)
 	defer wg.Wait()
-	go func(ch chan<- model.SocketControl) {
+	go func(ch chan<- model.SocketControl, prob chan<- string) {
 		wg.Add(1)
 		defer wg.Done()
 		for {
@@ -52,6 +53,20 @@ func WebSocket(c *gin.Context) {
 			if err != nil {
 				global.GVA_LOG.Error("read message error", zap.Any("err", err))
 				return
+			}
+			if string(message) == "ping" {
+				select {
+				case prob <- "ping":
+				case <-time.After(time.Second * 5):
+					global.GVA_LOG.Error("prob error", zap.Any("err", "send prob time out"))
+					return
+				}
+				err := ws.WriteMessage(websocket.TextMessage, []byte("pong"))
+				if err != nil {
+					global.GVA_LOG.Error("read message error", zap.Any("err", err))
+					return
+				}
+				continue
 			}
 			sc := new(model.SocketControl)
 			err = json.Unmarshal(message, sc)
@@ -64,7 +79,7 @@ func WebSocket(c *gin.Context) {
 				return
 			}
 		}
-	}(scCh)
+	}(scCh, probCh)
 	sc := <-scCh
 	if sc.Status {
 		outerChannel := make(chan []byte, 0)
@@ -120,14 +135,17 @@ func WebSocket(c *gin.Context) {
 				}
 			case sc = <-scCh:
 				if !sc.Status {
-					err := ws.WriteMessage(websocket.TextMessage, []byte("Close Done"))
-					if err != nil {
-						global.GVA_LOG.Warn("write message err", zap.Any("err", err))
-						return
-					}
+					//err := ws.WriteMessage(websocket.TextMessage, []byte("Close Done"))
+					//if err != nil {
+					//	global.GVA_LOG.Warn("write message err", zap.Any("err", err))
+					//	return
+					//}
 					return
 				}
-
+			case <-probCh:
+				break
+			case <-time.After(time.Minute):
+				global.GVA_LOG.Warn("web socket client connect error", zap.Any("err", "connect time out"))
 			}
 
 		}
