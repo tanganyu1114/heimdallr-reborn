@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -39,117 +40,89 @@ func WebSocket(c *gin.Context) {
 
 	// 生成唯一码
 	md5sc := utils.MD5V([]byte(time.Now().String()))
-	scCh := make(chan model.SocketControl, 0)
-	probCh := make(chan string, 0)
+	wsChan := make(chan []byte, 0)
 
 	// 等待组
 	wg := new(sync.WaitGroup)
 	defer wg.Wait()
-	go func(ch chan<- model.SocketControl, prob chan<- string) {
+	go func(ch chan<- []byte) {
 		wg.Add(1)
 		defer wg.Done()
 		for {
 			_, message, err := ws.ReadMessage()
 			if err != nil {
 				global.GVA_LOG.Error("read message error", zap.Any("err", err))
+				wsChan <- []byte("stop")
 				return
 			}
-			if string(message) == "ping" {
-				select {
-				case prob <- "ping":
-					break
-				case <-time.After(time.Second * 5):
-					global.GVA_LOG.Error("prob error", zap.Any("err", "send prob time out"))
-					return
-				}
-				err := ws.WriteMessage(websocket.TextMessage, []byte("pong"))
-				if err != nil {
-					global.GVA_LOG.Error("read message error", zap.Any("err", err))
-					return
-				}
-				continue
-			}
-			sc := new(model.SocketControl)
-			err = json.Unmarshal(message, sc)
+			wsChan <- message
+		}
+	}(wsChan)
+
+	sc := new(model.SocketControl)
+	msg := <-wsChan
+	err = json.Unmarshal(msg, sc)
+	if err != nil {
+		global.GVA_LOG.Error("json covert failed", zap.Any("err", err))
+		return
+	}
+	outerChannel := make(chan []byte, 0)
+	if ok := service.SelectLogWatcher(*sc); ok {
+		// 加入LogWatcher
+		service.CalcLogWatcherCount(*sc, 1)
+	} else {
+		// 新增LogWatcher
+		service.CreateLogWatcher(*sc)
+	}
+	// 确认pipe
+	LogPipe := sc.GetLogPipe(service.GlobalSocketInfo)
+	if LogPipe != nil {
+		// 输出管道接入已有pipe
+		err := LogPipe.InsertOuterChannel(md5sc, outerChannel)
+		if err != nil {
+			global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
+		}
+
+	} else {
+		// 新增pipe
+		outerMap := make(map[string]chan<- []byte)
+		outerMap[md5sc] = outerChannel
+		innerChannel, _ := service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogWatcher.GetChannels()
+		LogPipe, err = log_watcher_pipe.NewLogWatcherPipe(innerChannel, outerMap)
+		if err != nil {
+			global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
+		}
+		service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogPipe = LogPipe
+		// 初始化pipe后开始引流
+		LogPipe.Watching()
+	}
+
+	defer func() {
+		// 移除当前outerchannel
+		if service.SelectLogWatcher(*sc) {
+			LogPipe = sc.GetLogPipe(service.GlobalSocketInfo)
+			LogPipe.Remove(md5sc)
+			// 移除logwater
+			service.CalcLogWatcherCount(*sc, -1)
+		}
+	}()
+
+	// 处理输出管道数据及收集前端会话关闭请求
+	for {
+		select {
+		// 从sc中获取到outerchannel然后输出数据信息
+		case data := <-outerChannel:
+			err := ws.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
-				global.GVA_LOG.Error("json covert faild", zap.Any("err", err))
+				global.GVA_LOG.Warn("write message err", zap.Any("err", err))
 				return
 			}
-			scCh <- *sc
-			if !sc.Status {
+		case msg = <-wsChan:
+			if strings.EqualFold(string(msg), "stop") {
 				return
 			}
 		}
-	}(scCh, probCh)
-	sc := <-scCh
-	if sc.Status {
-		outerChannel := make(chan []byte, 0)
-		if ok := service.SelectLogWatcher(sc); ok {
-			// 加入LogWatcher
-			service.CalcLogWatcherCount(sc, 1)
-		} else {
-			// 新增LogWatcher
-			service.CreateLogWatcher(sc)
-		}
-		// 确认pipe
-		LogPipe := sc.GetLogPipe(service.GlobalSocketInfo)
-		if LogPipe != nil {
-			// 输出管道接入已有pipe
-			err := LogPipe.InsertOuterChannel(md5sc, outerChannel)
-			if err != nil {
-				global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
-			}
 
-		} else {
-			// 新增pipe
-			outerMap := make(map[string]chan<- []byte)
-			outerMap[md5sc] = outerChannel
-			innerChannel, _ := service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogWatcher.GetChannels()
-			LogPipe, err = log_watcher_pipe.NewLogWatcherPipe(innerChannel, outerMap)
-			if err != nil {
-				global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
-			}
-			service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogPipe = LogPipe
-			// 初始化pipe后开始引流
-			LogPipe.Watching()
-		}
-
-		defer func() {
-			// 移除当前outerchannel
-			if service.SelectLogWatcher(sc) {
-				LogPipe = sc.GetLogPipe(service.GlobalSocketInfo)
-				LogPipe.Remove(md5sc)
-				// 移除logwater
-				service.CalcLogWatcherCount(sc, -1)
-			}
-		}()
-
-		// 处理输出管道数据及收集前端会话关闭请求
-		for {
-			select {
-			// 从sc中获取到outerchannel然后输出数据信息
-			case data := <-outerChannel:
-				err := ws.WriteMessage(websocket.TextMessage, data)
-				if err != nil {
-					global.GVA_LOG.Warn("write message err", zap.Any("err", err))
-					return
-				}
-			case sc = <-scCh:
-				if !sc.Status {
-					//err := ws.WriteMessage(websocket.TextMessage, []byte("Close Done"))
-					//if err != nil {
-					//	global.GVA_LOG.Warn("write message err", zap.Any("err", err))
-					//	return
-					//}
-					return
-				}
-			case <-probCh:
-				break
-			case <-time.After(time.Minute):
-				global.GVA_LOG.Warn("web socket client connect error", zap.Any("err", "connect time out"))
-			}
-
-		}
 	}
 }
 
