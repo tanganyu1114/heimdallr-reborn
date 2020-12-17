@@ -46,7 +46,7 @@ module.exports = {
     }
   },
   chainWebpack(config) {
-    // 配置icon
+    // 配置使用svg-icon
     config.module
       .rule('svg')
       .exclude.add(resolve('src/icons'))

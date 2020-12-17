@@ -3,9 +3,6 @@
     <div class="search-term">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">查询</el-button>
-        </el-form-item>
-        <el-form-item>
           <el-button type="primary" @click="openDialog">新增组别信息</el-button>
         </el-form-item>
         <el-form-item>

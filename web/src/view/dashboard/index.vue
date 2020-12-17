@@ -100,7 +100,7 @@ div.el-card__body {
 }
 .card-right {
   float: right;
- /* margin-right: 5px;*/
+  margin-right: 5px;
 }
 .svg-icon {
   /*padding-left: 10px;*/

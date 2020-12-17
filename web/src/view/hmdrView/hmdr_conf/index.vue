@@ -114,7 +114,8 @@ export default {
 .hljs {
   max-height: 600px;
   width: 100%;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden!important;
+  font-size: 16px;
 }
 </style>
