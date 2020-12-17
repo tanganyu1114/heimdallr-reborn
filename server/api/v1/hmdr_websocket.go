@@ -57,6 +57,7 @@ func WebSocket(c *gin.Context) {
 			if string(message) == "ping" {
 				select {
 				case prob <- "ping":
+					break
 				case <-time.After(time.Second * 5):
 					global.GVA_LOG.Error("prob error", zap.Any("err", "send prob time out"))
 					return

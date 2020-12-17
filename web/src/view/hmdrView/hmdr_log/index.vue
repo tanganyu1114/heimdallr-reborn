@@ -48,6 +48,7 @@
     <!--/**  显示日志的窗口  **/ -->
     <el-card>
       <el-input
+        id="log-box"
         v-model="logs"
         type="textarea"
         :rows="22"
@@ -70,7 +71,7 @@ export default {
       logs: '',
       path: process.env.VUE_APP_WS,
       socket: '',
-      healthCk: '',
+      healthId: Number(),
       isActive: true,
       formData: {
         logName: 'access.log',
@@ -107,8 +108,10 @@ export default {
   },
   destroyed() {
     // 销毁监听
-    this.socket.onclose = this.close
-    clearInterval(this.healthCk)
+    if (this.socket.readyState === 1) {
+      this.socket.close()
+      clearInterval(this.healthId)
+    }
   },
   methods: {
     async initOptions() {
@@ -119,10 +122,9 @@ export default {
       }
     },
     healthCheck() {
-      this.healthCk = setInterval(() => {
+      this.healthId = setInterval(() => {
         this.socket.send('ping')
-        this.getMessage()
-      }, 10000)
+      }, 20000)
     },
     initWebSocket() {
       if (typeof (WebSocket) === 'undefined') {
@@ -152,30 +154,26 @@ export default {
     handleStartLogOff() {
       // 按钮取反
       this.isActive = !this.isActive
-      // 发送关闭信号
-      this.sendOffSignal()
-      /*      if (this.socket.bufferedAmount === 0) {
-        this.socket.close()
-      }*/
+      // 关闭websocket
+      this.socket.close()
     },
     handleCleanLog() {
       this.logs = ''
     },
     onOpen: function() {
-      this.logs += 'socket连接成功'
+      this.logs += '\n' + 'socket连接成功'
       console.log('socket连接成功')
       this.sendOnSignal()
       // 心跳检查
-      this.healthCheck()
+      // this.healthCheck()
     },
-    onError: function() {
-      console.log('连接错误')
+    onError: function(e) {
+      this.logs += '\nsocket error :' + e
+      console.log('连接错误', e)
     },
     getMessage: function(msg) {
       this.logs += '\n' + msg.data
-      if (msg.data === 'Close Done') {
-        this.socket.close()
-      }
+      this.freshSrollBar()
       console.log(msg.data)
     },
     onClose: function(e) {
@@ -183,7 +181,7 @@ export default {
       this.logs += '\n' + 'websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean
       console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
       console.log('socket已经关闭')
-      clearInterval(this.healthCk)
+      clearInterval(this.healthId)
     },
     sendOnSignal: function() {
       console.log(this.formData.logName)
@@ -196,7 +194,6 @@ export default {
       }
       const jsonsf = JSON.stringify(sf)
       this.logs += '\n' + '发送认证信息'
-      // this.socket.send(sf)
       this.socket.send(jsonsf)
     },
     sendOffSignal() {
@@ -211,6 +208,14 @@ export default {
       this.logs += '\n' + '发送关闭管道信息'
       // this.socket.send(sf)
       this.socket.send(jsonsf)
+    },
+    freshSrollBar() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          const textarea = document.getElementById('log-box')
+          textarea.scrollTop = textarea.scrollHeight
+        }, 13)
+      })
     }
   }
 }
