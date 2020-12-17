@@ -89,6 +89,6 @@ func GetHmdrGroupInfoList(info request.HmdrGroupSearch) (err error, list interfa
 	var hmdrGroups []model.HmdrGroup
 	// 如果有条件搜索 下方会自动创建搜索语句
 	err = db.Count(&total).Error
-	err = db.Limit(limit).Offset(offset).Find(&hmdrGroups).Error
+	err = db.Limit(limit).Offset(offset).Order("sequence").Find(&hmdrGroups).Error
 	return err, hmdrGroups, total
 }

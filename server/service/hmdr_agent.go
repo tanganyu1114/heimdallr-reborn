@@ -52,16 +52,18 @@ func CronAgentInfo() {
 		}
 		for _, host := range (*group).Hosts {
 			var data AgentInfo
+			var status = true
 			bt, err := host.Client.Status(context.Background(), host.HmdrHost.Token)
 			if err != nil {
 				global.GVA_LOG.Error("access the client status failed", zap.String("err", err.Error()))
+				status = false
 			}
 			_ = json.Unmarshal(bt, &data)
 			tmpHost := HostInfo{
 				Name:      host.HmdrHost.Name,
 				Ipaddr:    host.HmdrHost.Ipaddr,
 				Descrip:   host.HmdrHost.Description,
-				Status:    true,
+				Status:    status,
 				AgentInfo: data,
 			}
 			tmpGroup.Hosts = append(tmpGroup.Hosts, tmpHost)

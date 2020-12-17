@@ -29,7 +29,7 @@ func InitBifrostClient() {
 	// 查询分组信息
 	db_group := global.GVA_DB.Model(&model.HmdrGroup{})
 	var hmdrGroups []model.HmdrGroup
-	res_group := db_group.Find(&hmdrGroups)
+	res_group := db_group.Order("sequence").Find(&hmdrGroups)
 	if res_group.Error != nil {
 		global.GVA_LOG.Error("select hmdr_group error", zap.String("err", res_group.Error.Error()))
 	}
@@ -43,7 +43,7 @@ func InitBifrostClient() {
 		// 查询主机信息h
 		db := global.GVA_DB.Model(&model.HmdrHost{})
 		var hmdrHost []model.HmdrHost
-		db.Where("group_id = ? and status = 1", group.ID).Find(&hmdrHost)
+		db.Where("group_id = ? and status = 1", group.ID).Order("sequence").Find(&hmdrHost)
 
 		// 初始化客户端
 		for _, host := range hmdrHost {
