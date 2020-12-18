@@ -4,6 +4,7 @@ import (
 	"gin-vue-admin/core"
 	"gin-vue-admin/global"
 	"gin-vue-admin/initialize"
+	"gin-vue-admin/model"
 	"gin-vue-admin/service"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -28,11 +29,22 @@ func main() {
 	service.InitBifrostClient()
 	// 关闭所有的bifrost客户端
 	defer func() {
-		for _, bg := range service.BifrostGroups {
-			for _, c := range (*bg).Hosts {
-				c.Client.Close()
-			}
+		closeHostFunc := func(k, v interface{}) bool {
+			host := v.(*model.BifrostHost)
+			host.Client.Close()
+			return true
 		}
+		closeGroupHostFunc := func(k, v interface{}) bool {
+			group := v.(*model.BifrostGroup)
+			group.Hosts.Range(closeHostFunc)
+			return true
+		}
+		//for _, bg := range service.BifrostGroups {
+		//	for _, c := range (*bg).Hosts {
+		//		c.Client.Close()
+		//	}
+		//}
+		service.BifrostGroups.Range(closeGroupHostFunc)
 	}()
 	// 定时任务
 	crontab := cron.New()

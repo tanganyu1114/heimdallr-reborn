@@ -26,13 +26,15 @@ type Srv struct {
 func GetOptions() ([]Group, error) {
 	reslut := make([]Group, 0)
 
-	for _, group := range BifrostGroups {
+	getOptFromGroup := func(k, v interface{}) bool {
+		group := v.(*model.BifrostGroup)
 		tmpGroup := Group{
 			Label:    group.HmdrGroup.Name,
 			Value:    group.HmdrGroup.ID,
 			Children: make([]Host, 0),
 		}
-		for _, host := range (*group).Hosts {
+		getOptFromHost := func(k, v interface{}) bool {
+			host := v.(*model.BifrostHost)
 			tmpHost := Host{
 				Label:    host.HmdrHost.Name,
 				Value:    host.HmdrHost.ID,
@@ -42,6 +44,7 @@ func GetOptions() ([]Group, error) {
 			bt, err := host.Client.Status(context.Background(), host.HmdrHost.Token)
 			if err != nil {
 				global.GVA_LOG.Error("Get SrvName Failed", zap.String("err", err.Error()))
+				return false
 			}
 			_ = json.Unmarshal(bt, &data)
 			for _, val := range data.StatusList {
@@ -52,16 +55,21 @@ func GetOptions() ([]Group, error) {
 				tmpHost.Children = append(tmpHost.Children, tmpSrv)
 			}
 			tmpGroup.Children = append(tmpGroup.Children, tmpHost)
+			return true
 		}
+		group.Hosts.Range(getOptFromHost)
 		reslut = append(reslut, tmpGroup)
+		return true
 	}
+	BifrostGroups.Range(getOptFromGroup)
 	return reslut, nil
 }
 
 func GetConfInfo(sf model.SearchConf) *[]byte {
 
-	if ok := SelectBifrostGroup(sf); ok {
-		data, err := BifrostGroups[sf.GroupId].Hosts[sf.HostId].Client.ViewConfig(context.Background(), BifrostGroups[sf.GroupId].Hosts[sf.HostId].HmdrHost.Token, sf.SrvName)
+	_, bHost := SelectBifrostGroup(sf)
+	if bHost != nil {
+		data, err := bHost.Client.ViewConfig(context.Background(), bHost.HmdrHost.Token, sf.SrvName)
 		if err != nil {
 			global.GVA_LOG.Error("Get Conf Failed", zap.String("err", err.Error()))
 			return nil

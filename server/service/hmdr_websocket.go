@@ -31,8 +31,9 @@ func SelectLogWatcher(sc model.SocketControl) bool {
 
 func CreateLogWatcher(sc model.SocketControl) {
 	// 判断客户端是否存在
-	if ok := SelectBifrostGroup(sc.SearchConf); ok {
-		logWatcher, err := BifrostGroups[sc.GroupId].Hosts[sc.HostId].Client.WatchLog(context.Background(), BifrostGroups[sc.GroupId].Hosts[sc.HostId].HmdrHost.Token, sc.SrvName, sc.LogName)
+	_, bHost := SelectBifrostGroup(sc.SearchConf)
+	if bHost != nil {
+		logWatcher, err := bHost.Client.WatchLog(context.Background(), bHost.HmdrHost.Token, sc.SrvName, sc.LogName)
 		if err != nil {
 			global.GVA_LOG.Error("init logwatcher failed", zap.Any("err", err))
 		}
