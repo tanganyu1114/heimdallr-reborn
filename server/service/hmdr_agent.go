@@ -45,6 +45,7 @@ func GetAgentInfo() (*[]Info, error) {
 
 func CronAgentInfo() {
 	result := make([]Info, 0)
+
 	for _, group := range BifrostGroups {
 		tmpGroup := Info{
 			GroupName: (*group).HmdrGroup.Name,
@@ -55,7 +56,7 @@ func CronAgentInfo() {
 			var status = true
 			bt, err := host.Client.Status(context.Background(), host.HmdrHost.Token)
 			if err != nil {
-				global.GVA_LOG.Error("access the client status failed", zap.String("err", err.Error()))
+				global.GVA_LOG.Error("access the client status failed, hostIp:"+host.HmdrHost.Ipaddr, zap.String("err", err.Error()))
 				status = false
 			}
 			_ = json.Unmarshal(bt, &data)

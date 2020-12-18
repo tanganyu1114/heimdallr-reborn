@@ -46,16 +46,11 @@
       </el-row>
     </el-card>
     <!--/**  显示日志的窗口  **/ -->
+    <!-- TODO: 显示框切换为ul li span 遍历data生成 -->
     <el-card>
-      <el-input
-        id="log-box"
-        v-model="logs"
-        type="textarea"
-        :rows="22"
-        :readonly="true"
-        resize="none"
-        :autofocus="true"
-      />
+      <ul id="log-box" class="logBox">
+        <li v-for="(item,index) in logs" :key="index"><span class="logLine">{{ item }}</span></li>
+      </ul>
     </el-card>
   </div>
 </template>
@@ -68,7 +63,7 @@ export default {
   data() {
     return {
       key: '',
-      logs: '',
+      logs: [],
       path: process.env.VUE_APP_WS,
       socket: '',
       healthId: Number(),
@@ -118,7 +113,6 @@ export default {
       const res = await getOptions()
       if (res.code === 0) {
         this.Options = res.data
-        console.log(res.data)
       }
     },
     healthCheck() {
@@ -137,7 +131,7 @@ export default {
         // 监听socket错误信息
         this.socket.onerror = this.onError
         // 监听socket消息
-        this.socket.onmessage = this.getMessage
+        this.socket.onmessage = this.onMessage
         // 关闭socket时发生消息
         this.socket.onclose = this.onClose
       }
@@ -158,55 +152,47 @@ export default {
       this.socket.close()
     },
     handleCleanLog() {
-      this.logs = ''
+      this.logs = []
     },
     onOpen: function() {
-      this.logs += '\n' + 'socket连接成功'
-      console.log('socket连接成功')
+      this.addLogs('socket连接成功')
       this.sendOnSignal()
       // 心跳检查
       // this.healthCheck()
     },
     onError: function(e) {
-      this.logs += '\nsocket error :' + e
-      console.log('连接错误', e)
+      this.addLogs('socket error :' + e)
     },
-    getMessage: function(msg) {
-      this.logs += '\n' + msg.data
+    onMessage(e) {
+      this.addLogs(e.data)
       this.freshSrollBar()
-      console.log(msg.data)
     },
-    onClose: function(e) {
-      this.logs += '\n' + 'socket已经关闭'
-      this.logs += '\n' + 'websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean
-      console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
-      console.log('socket已经关闭')
+    addLogs(msg) {
+      const arr = msg.split('\n')
+      // 去除空元素
+      const r = arr.filter(s => {
+        return s && s.trim()
+      })
+      // 添加到日志信息
+      r.forEach(item => {
+        this.logs.push(item)
+      })
+      // this.logs = this.logs.concat(arr)
+    },
+    onClose(e) {
+      this.addLogs('websocket已关闭')
+      this.addLogs('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
       clearInterval(this.healthId)
     },
     sendOnSignal: function() {
-      console.log(this.formData.logName)
       const sf = {
         group_id: this.formData.value[0],
         host_id: this.formData.value[1],
         srv_name: this.formData.value[2],
-        log_name: this.formData.logName,
-        status: true
+        log_name: this.formData.logName
       }
       const jsonsf = JSON.stringify(sf)
-      this.logs += '\n' + '发送认证信息'
-      this.socket.send(jsonsf)
-    },
-    sendOffSignal() {
-      const sf = {
-        group_id: this.formData.value[0],
-        host_id: this.formData.value[1],
-        srv_name: this.formData.value[2],
-        log_name: this.formData.logName,
-        status: false
-      }
-      const jsonsf = JSON.stringify(sf)
-      this.logs += '\n' + '发送关闭管道信息'
-      // this.socket.send(sf)
+      this.addLogs('开始获取日志信息')
       this.socket.send(jsonsf)
     },
     freshSrollBar() {
@@ -223,21 +209,19 @@ export default {
 </script>
 
 <style scoped>
-  /*.hljscss {*/
-  /*  height: 70%;*/
-  /*  position: relative;*/
-  /*  font-size: 18px;*/
-  /*  overflow-y: scroll;*/
-  /*}*/
-  .app {
-    height: 100%;
-    overflow: hidden;
-  }
-  .el-scrollbar__wrap {
-    overflow: visible;
-    overflow-x: hidden;
-  }
   .btnClass {
     padding-top: 0;
+  }
+  .logBox {
+    height: 500px;
+    background: #E4E7ED;
+    border: #DCDFE6 2px solid;
+    overflow-y: scroll;
+  }
+  .logLine {
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 16px;
+    color: #157a0c;
   }
 </style>

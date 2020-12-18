@@ -70,7 +70,6 @@ export default {
       const res = await getOptions()
       if (res.code === 0) {
         this.Options = res.data
-        console.log(res.data)
       }
     },
     async searchConfInfo() {
@@ -84,7 +83,6 @@ export default {
         const res = await getConfInfo(sf)
         if (res.code === 0) {
           this.code = res.data
-          console.log(res.data)
         }
       })
     }
@@ -100,14 +98,14 @@ export default {
 /*  font-size: 18px;*/
 /*  overflow-y: scroll;*/
 /*}*/
-.app {
+/*.app {
   height: 400px;
   overflow: hidden;
 }
 .el-scrollbar__wrap {
   overflow: visible;
   overflow-x: hidden;
-}
+}*/
 .searchClass {
   padding-bottom: 0;
 }

@@ -112,6 +112,7 @@ func WebSocket(c *gin.Context) {
 		select {
 		// 从sc中获取到outerchannel然后输出数据信息
 		case data := <-outerChannel:
+			fmt.Println(string(data))
 			err := ws.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				global.GVA_LOG.Warn("write message err", zap.Any("err", err))

@@ -8,7 +8,6 @@ import (
 type SocketControl struct {
 	SearchConf
 	LogName string `json:"log_name"`
-	Status  bool   `json:"status"`
 }
 
 type SocketGroup struct {

@@ -8,7 +8,7 @@
         <div class="header">
         </div>
       </div>
-      <div class="main" style="margin-top:40px">
+      <div class="main">
         <el-form
           ref="loginForm"
           :model="loginForm"
