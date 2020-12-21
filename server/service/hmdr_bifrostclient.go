@@ -37,7 +37,7 @@ func InitBifrostClient() {
 	}
 	for _, group := range hmdrGroups {
 		bGroup := model.NewBifrostGroup(group)
-		BifrostGroups.Insert(group.ID, bGroup)
+		BifrostGroups.Insert(&group, bGroup)
 		// 查询主机信息h
 		db := global.GVA_DB.Model(&model.HmdrHost{})
 		var hmdrHost []model.HmdrHost
@@ -51,7 +51,7 @@ func InitBifrostClient() {
 				continue
 			}
 
-			bGroup.Hosts.Insert(host.ID, &model.BifrostHost{
+			bGroup.Hosts.Insert(&host, &model.BifrostHost{
 				HmdrHost: host,
 				Client:   bifrostClient,
 			})
@@ -62,7 +62,7 @@ func InitBifrostClient() {
 }
 
 func CreateBifrostGroup(group model.HmdrGroup) {
-	BifrostGroups.Insert(group.ID, model.NewBifrostGroup(group))
+	BifrostGroups.Insert(&group, model.NewBifrostGroup(group))
 }
 
 func CreateBifrostHost(host model.HmdrHost) {
@@ -74,7 +74,7 @@ func CreateBifrostHost(host model.HmdrHost) {
 	if bGroup == nil {
 		return
 	}
-	bGroup.(*model.BifrostGroup).Hosts.Insert(host.ID, &model.BifrostHost{
+	bGroup.(*model.BifrostGroup).Hosts.Insert(&host, &model.BifrostHost{
 		HmdrHost: host,
 		Client:   bifrostClient,
 	})

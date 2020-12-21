@@ -8,24 +8,36 @@ import (
 	"go.uber.org/zap"
 )
 
+type keyer struct {
+	key   uint
+	order uint
+}
+
+func (k keyer) GetOrder() uint {
+	return k.order
+}
+
+func (k keyer) Key() interface{} {
+	return k.key
+}
+
+func NewKeyer(key, order uint) sort_map.Keyer {
+	return &keyer{
+		key:   key,
+		order: order,
+	}
+}
+
 type BifrostGroups struct {
 	dataMap   map[uint]*BifrostGroup
-	indexList []uint
+	indexList sort_map.MapIndexes
 }
 
 func NewBifrostGroups() sort_map.SortMap {
 	return &BifrostGroups{
 		dataMap:   make(map[uint]*BifrostGroup),
-		indexList: make([]uint, 0),
+		indexList: sort_map.NewMapIndexes(),
 	}
-}
-
-func (bgs BifrostGroups) checkKeyType(k interface{}) uint {
-	key, kOK := k.(uint)
-	if !kOK {
-		panic(fmt.Sprintf("key type(%T) is not uint", k))
-	}
-	return key
 }
 
 func (bgs BifrostGroups) checkValueType(v interface{}) *BifrostGroup {
@@ -37,23 +49,15 @@ func (bgs BifrostGroups) checkValueType(v interface{}) *BifrostGroup {
 }
 
 func (bgs *BifrostGroups) Insert(k, v interface{}) {
-	key := bgs.checkKeyType(k)
+	key := checkKeyer(k)
 	value := bgs.checkValueType(v)
-	//index, idxKey := uintBSearchFirstGE(bgs.indexList, key)
-	//if idxKey == key {
-	//	bgs.indexList[index] = key
-	//} else if idxKey < key {
-	//	panic("uintBSearchFirstGE functions result error")
-	//} else {
-	//	uintInsert(&bgs.indexList, index, key)
-	//}
-	//uintInsert(&bgs.indexList, index, key)
-	bgs.indexList = append(bgs.indexList, key)
-	bgs.dataMap[key] = value
+	newKey := NewKeyer(key.Key().(uint), key.GetOrder())
+	bgs.indexList.Insert(newKey)
+	bgs.dataMap[newKey.Key().(uint)] = value
 }
 
 func (bgs BifrostGroups) Get(k interface{}) (v interface{}) {
-	key := bgs.checkKeyType(k)
+	key := checkUINT(k)
 	if v, ok := bgs.dataMap[key]; ok {
 		return v
 	}
@@ -61,24 +65,34 @@ func (bgs BifrostGroups) Get(k interface{}) (v interface{}) {
 }
 
 func (bgs *BifrostGroups) Remove(k interface{}) {
-	key := bgs.checkKeyType(k)
+	key := checkUINT(k)
 	if _, ok := bgs.dataMap[key]; ok {
 		delete(bgs.dataMap, key)
 	}
 }
 
 func (bgs *BifrostGroups) Range(operate func(k, v interface{}) bool) {
-	for _, key := range bgs.indexList {
-		value, ok := bgs.dataMap[key]
+	idxRangeFunc := func(idx int, k sort_map.Keyer) bool {
+		value, ok := bgs.dataMap[k.Key().(uint)]
 		if !ok {
-			global.GVA_LOG.Error("BifrostGroups Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
-			bgs.Remove(key)
-			continue
+			global.GVA_LOG.Error("BifrostGroups Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", k.Key())))
+			bgs.Remove(k.Key().(uint))
+			return true
 		}
-		if !operate(key, value) {
-			return
-		}
+		return operate(k.Key(), value)
 	}
+	bgs.indexList.Range(idxRangeFunc)
+	//for _, key := range bgs.indexList {
+	//	value, ok := bgs.dataMap[key]
+	//	if !ok {
+	//		global.GVA_LOG.Error("BifrostGroups Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
+	//		bgs.Remove(key)
+	//		continue
+	//	}
+	//	if !operate(key, value) {
+	//		return
+	//	}
+	//}
 	//for key, value := range bgs.dataMap {
 	//	if !operate(key, value) {
 	//		return
@@ -88,22 +102,14 @@ func (bgs *BifrostGroups) Range(operate func(k, v interface{}) bool) {
 
 type BifrostHosts struct {
 	dataMap   map[uint]*BifrostHost
-	indexList []uint
+	indexList sort_map.MapIndexes
 }
 
 func NewBifrostHosts() sort_map.SortMap {
 	return &BifrostHosts{
 		dataMap:   make(map[uint]*BifrostHost),
-		indexList: make([]uint, 0),
+		indexList: sort_map.NewMapIndexes(),
 	}
-}
-
-func (bhs BifrostHosts) checkKeyType(k interface{}) uint {
-	key, kOK := k.(uint)
-	if !kOK {
-		panic(fmt.Sprintf("key type(%T) is not uint", k))
-	}
-	return key
 }
 
 func (bhs BifrostHosts) checkValueType(v interface{}) *BifrostHost {
@@ -115,23 +121,15 @@ func (bhs BifrostHosts) checkValueType(v interface{}) *BifrostHost {
 }
 
 func (bhs *BifrostHosts) Insert(k, v interface{}) {
-	key := bhs.checkKeyType(k)
+	key := checkKeyer(k)
 	value := bhs.checkValueType(v)
-	//index, idxKey := uintBSearchFirstGE(bhs.indexList, key)
-	//if idxKey == key {
-	//	bhs.indexList[index] = key
-	//} else if idxKey < key {
-	//	panic("uintBSearchFirstGE functions result error")
-	//} else {
-	//	uintInsert(&bhs.indexList, index, key)
-	//}
-	//uintInsert(&bhs.indexList, index, key)
-	bhs.indexList = append(bhs.indexList, key)
-	bhs.dataMap[key] = value
+	newKey := NewKeyer(key.Key().(uint), key.GetOrder())
+	bhs.indexList.Insert(newKey)
+	bhs.dataMap[newKey.Key().(uint)] = value
 }
 
 func (bhs BifrostHosts) Get(k interface{}) (v interface{}) {
-	key := bhs.checkKeyType(k)
+	key := checkUINT(k)
 	if v, ok := bhs.dataMap[key]; ok {
 		return v
 	}
@@ -139,24 +137,34 @@ func (bhs BifrostHosts) Get(k interface{}) (v interface{}) {
 }
 
 func (bhs *BifrostHosts) Remove(k interface{}) {
-	key := bhs.checkKeyType(k)
+	key := checkUINT(k)
 	if _, ok := bhs.dataMap[key]; ok {
 		delete(bhs.dataMap, key)
 	}
 }
 
 func (bhs *BifrostHosts) Range(operate func(k, v interface{}) bool) {
-	for _, key := range bhs.indexList {
-		value, ok := bhs.dataMap[key]
+	idxRangeFunc := func(idx int, k sort_map.Keyer) bool {
+		value, ok := bhs.dataMap[k.Key().(uint)]
 		if !ok {
-			global.GVA_LOG.Error("BifrostHosts Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
-			bhs.Remove(key)
-			continue
+			global.GVA_LOG.Error("BifrostHosts Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", k.Key())))
+			bhs.Remove(k.Key().(uint))
+			return true
 		}
-		if !operate(key, value) {
-			return
-		}
+		return operate(k.Key(), value)
 	}
+	bhs.indexList.Range(idxRangeFunc)
+	//for _, key := range bhs.indexList {
+	//	value, ok := bhs.dataMap[key]
+	//	if !ok {
+	//		global.GVA_LOG.Error("BifrostHosts Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
+	//		bhs.Remove(key)
+	//		continue
+	//	}
+	//	if !operate(key, value) {
+	//		return
+	//	}
+	//}
 	//for key, value := range bhs.dataMap {
 	//	if !operate(key, value) {
 	//		return
@@ -179,6 +187,22 @@ func NewBifrostGroup(group HmdrGroup) *BifrostGroup {
 type BifrostHost struct {
 	HmdrHost HmdrHost
 	Client   *bifrost.Client
+}
+
+func checkUINT(k interface{}) uint {
+	key, ok := k.(uint)
+	if !ok {
+		panic(fmt.Sprintf("k type(%T) is not uint", k))
+	}
+	return key
+}
+
+func checkKeyer(k interface{}) sort_map.Keyer {
+	key, kOK := k.(sort_map.Keyer)
+	if !kOK {
+		panic(fmt.Sprintf("k type(%T) is not Keyer", k))
+	}
+	return key
 }
 
 //func uintInsert(slice *[]uint, index int, key uint) {

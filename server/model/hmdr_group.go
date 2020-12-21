@@ -16,3 +16,11 @@ type HmdrGroup struct {
 func (HmdrGroup) TableName() string {
 	return "hmdr_group"
 }
+
+func (hg HmdrGroup) GetOrder() uint {
+	return hg.Sequence
+}
+
+func (hg HmdrGroup) Key() interface{} {
+	return hg.ID
+}

@@ -21,3 +21,11 @@ type HmdrHost struct {
 func (HmdrHost) TableName() string {
 	return "hmdr_host"
 }
+
+func (hh HmdrHost) GetOrder() uint {
+	return hh.Sequence
+}
+
+func (hh HmdrHost) Key() interface{} {
+	return hh.ID
+}
