@@ -2,8 +2,10 @@ package model
 
 import (
 	"fmt"
+	"gin-vue-admin/global"
 	"gin-vue-admin/pkg/sort_map"
 	"github.com/ClessLi/bifrost/pkg/client/bifrost"
+	"go.uber.org/zap"
 )
 
 type BifrostGroups struct {
@@ -66,11 +68,22 @@ func (bgs *BifrostGroups) Remove(k interface{}) {
 }
 
 func (bgs *BifrostGroups) Range(operate func(k, v interface{}) bool) {
-	for key, value := range bgs.dataMap {
+	for _, key := range bgs.indexList {
+		value, ok := bgs.dataMap[key]
+		if !ok {
+			global.GVA_LOG.Error("BifrostGroups Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
+			bgs.Remove(key)
+			continue
+		}
 		if !operate(key, value) {
 			return
 		}
 	}
+	//for key, value := range bgs.dataMap {
+	//	if !operate(key, value) {
+	//		return
+	//	}
+	//}
 }
 
 type BifrostHosts struct {
@@ -133,11 +146,22 @@ func (bhs *BifrostHosts) Remove(k interface{}) {
 }
 
 func (bhs *BifrostHosts) Range(operate func(k, v interface{}) bool) {
-	for key, value := range bhs.dataMap {
+	for _, key := range bhs.indexList {
+		value, ok := bhs.dataMap[key]
+		if !ok {
+			global.GVA_LOG.Error("BifrostHosts Range error", zap.String("err", fmt.Sprintf("index %d is not dataMap, and it will be removed", key)))
+			bhs.Remove(key)
+			continue
+		}
 		if !operate(key, value) {
 			return
 		}
 	}
+	//for key, value := range bhs.dataMap {
+	//	if !operate(key, value) {
+	//		return
+	//	}
+	//}
 }
 
 type BifrostGroup struct {
