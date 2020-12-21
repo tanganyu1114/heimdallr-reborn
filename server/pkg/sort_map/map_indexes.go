@@ -60,7 +60,7 @@ func (mi *mapIndexes) insert(index int, keyer Keyer) {
 	if index == -1 {
 		return
 	}
-	for i := n; i < index; i-- {
+	for i := n; i > index; i-- {
 		(*mi)[i] = (*mi)[i-1]
 	}
 	(*mi)[index] = keyer
