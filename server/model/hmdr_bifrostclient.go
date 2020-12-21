@@ -39,15 +39,16 @@ func (bgs BifrostGroups) checkValueType(v interface{}) *BifrostGroup {
 func (bgs *BifrostGroups) Insert(k, v interface{}) {
 	key := bgs.checkKeyType(k)
 	value := bgs.checkValueType(v)
-	index, idxKey := uintBSearchFirstGE(bgs.indexList, key)
-	if idxKey == key {
-		bgs.indexList[index] = key
-	} else if idxKey < key {
-		panic("uintBSearchFirstGE functions result error")
-	} else {
-		uintInsert(&bgs.indexList, index, key)
-	}
+	//index, idxKey := uintBSearchFirstGE(bgs.indexList, key)
+	//if idxKey == key {
+	//	bgs.indexList[index] = key
+	//} else if idxKey < key {
+	//	panic("uintBSearchFirstGE functions result error")
+	//} else {
+	//	uintInsert(&bgs.indexList, index, key)
+	//}
 	//uintInsert(&bgs.indexList, index, key)
+	bgs.indexList = append(bgs.indexList, key)
 	bgs.dataMap[key] = value
 }
 
@@ -116,15 +117,16 @@ func (bhs BifrostHosts) checkValueType(v interface{}) *BifrostHost {
 func (bhs *BifrostHosts) Insert(k, v interface{}) {
 	key := bhs.checkKeyType(k)
 	value := bhs.checkValueType(v)
-	index, idxKey := uintBSearchFirstGE(bhs.indexList, key)
-	if idxKey == key {
-		bhs.indexList[index] = key
-	} else if idxKey < key {
-		panic("uintBSearchFirstGE functions result error")
-	} else {
-		uintInsert(&bhs.indexList, index, key)
-	}
+	//index, idxKey := uintBSearchFirstGE(bhs.indexList, key)
+	//if idxKey == key {
+	//	bhs.indexList[index] = key
+	//} else if idxKey < key {
+	//	panic("uintBSearchFirstGE functions result error")
+	//} else {
+	//	uintInsert(&bhs.indexList, index, key)
+	//}
 	//uintInsert(&bhs.indexList, index, key)
+	bhs.indexList = append(bhs.indexList, key)
 	bhs.dataMap[key] = value
 }
 
@@ -179,37 +181,37 @@ type BifrostHost struct {
 	Client   *bifrost.Client
 }
 
-func uintInsert(slice *[]uint, index int, key uint) {
-	n := len(*slice)
-	*slice = append(*slice, key)
-	if index == -1 {
-		return
-	}
-	for i := n; i < index; i-- {
-		(*slice)[i] = (*slice)[i-1]
-	}
-	(*slice)[index] = key
-}
+//func uintInsert(slice *[]uint, index int, key uint) {
+//	n := len(*slice)
+//	*slice = append(*slice, key)
+//	if index == -1 {
+//		return
+//	}
+//	for i := n; i < index; i-- {
+//		(*slice)[i] = (*slice)[i-1]
+//	}
+//	(*slice)[index] = key
+//}
 
-func uintBSearchFirstGE(ints []uint, val uint) (int, uint) {
-	return uintBSearchFirstGEInternally(ints, 0, len(ints)-1, val)
-}
-
-func uintBSearchFirstGEInternally(ints []uint, low int, high int, val uint) (int, uint) {
-	if low > high {
-		return -1, 0
-	}
-
-	if ints[low] >= val {
-		return low, ints[low]
-	}
-	mid := low + ((high - low) >> 1)
-	if ints[mid] < val {
-		return uintBSearchFirstGEInternally(ints, mid+1, high, val)
-	} else {
-		return uintBSearchFirstGEInternally(ints, low, mid, val)
-	}
-}
+//func uintBSearchFirstGE(ints []uint, val uint) (int, uint) {
+//	return uintBSearchFirstGEInternally(ints, 0, len(ints)-1, val)
+//}
+//
+//func uintBSearchFirstGEInternally(ints []uint, low int, high int, val uint) (int, uint) {
+//	if low > high {
+//		return -1, 0
+//	}
+//
+//	if ints[low] >= val {
+//		return low, ints[low]
+//	}
+//	mid := low + ((high - low) >> 1)
+//	if ints[mid] < val {
+//		return uintBSearchFirstGEInternally(ints, mid+1, high, val)
+//	} else {
+//		return uintBSearchFirstGEInternally(ints, low, mid, val)
+//	}
+//}
 
 //func uintBSearchFirstGT(ints []uint, val uint) (int, uint) {
 //	return uintBSearchFirstGTInternally(ints, 0, len(ints)-1, val)
