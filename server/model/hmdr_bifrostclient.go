@@ -66,6 +66,7 @@ func (bgs BifrostGroups) Get(k interface{}) (v interface{}) {
 
 func (bgs *BifrostGroups) Remove(k interface{}) {
 	key := checkUINT(k)
+	bgs.indexList.Remove(NewKeyer(key, 0))
 	if _, ok := bgs.dataMap[key]; ok {
 		delete(bgs.dataMap, key)
 	}
@@ -138,6 +139,7 @@ func (bhs BifrostHosts) Get(k interface{}) (v interface{}) {
 
 func (bhs *BifrostHosts) Remove(k interface{}) {
 	key := checkUINT(k)
+	bhs.indexList.Remove(NewKeyer(key, 0))
 	if _, ok := bhs.dataMap[key]; ok {
 		delete(bhs.dataMap, key)
 	}
