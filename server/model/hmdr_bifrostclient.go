@@ -38,7 +38,9 @@ func (bgs *BifrostGroups) Insert(k, v interface{}) {
 	key := bgs.checkKeyType(k)
 	value := bgs.checkValueType(v)
 	index, idxKey := uintBSearchFirstGE(bgs.indexList, key)
-	if idxKey == key {
+	if index == -1 {
+		uintInsert(bgs.indexList, 0, key)
+	} else if idxKey == key {
 		bgs.indexList[index] = key
 	} else if idxKey > key {
 		uintInsert(bgs.indexList, index, key)
@@ -103,7 +105,9 @@ func (bhs *BifrostHosts) Insert(k, v interface{}) {
 	key := bhs.checkKeyType(k)
 	value := bhs.checkValueType(v)
 	index, idxKey := uintBSearchFirstGE(bhs.indexList, key)
-	if idxKey == key {
+	if index == -1 {
+		uintInsert(bhs.indexList, 0, key)
+	} else if idxKey == key {
 		bhs.indexList[index] = key
 	} else if idxKey > key {
 		uintInsert(bhs.indexList, index, key)
@@ -168,7 +172,7 @@ func uintBSearchFirstGE(ints []uint, val uint) (int, uint) {
 
 func uintBSearchFirstGEInternally(ints []uint, low int, high int, val uint) (int, uint) {
 	if low > high {
-		return -1, -1
+		return -1, 0
 	}
 
 	if ints[low] >= val {

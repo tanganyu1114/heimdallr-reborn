@@ -44,7 +44,7 @@ func GetOptions() ([]Group, error) {
 			bt, err := host.Client.Status(context.Background(), host.HmdrHost.Token)
 			if err != nil {
 				global.GVA_LOG.Error("Get SrvName Failed", zap.String("err", err.Error()))
-				return false
+				//return false  // 注意：如果报错，散列表后续元素将不被加载
 			}
 			_ = json.Unmarshal(bt, &data)
 			for _, val := range data.StatusList {
