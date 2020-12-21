@@ -43,7 +43,7 @@ func (bgs *BifrostGroups) Insert(k, v interface{}) {
 	if idxKey == key {
 		bgs.indexList[index] = key
 	} else if idxKey < key {
-		panic("uintBSearchFirstGT functions result error")
+		panic("uintBSearchFirstGE functions result error")
 	} else {
 		uintInsert(&bgs.indexList, index, key)
 	}
@@ -120,7 +120,7 @@ func (bhs *BifrostHosts) Insert(k, v interface{}) {
 	if idxKey == key {
 		bhs.indexList[index] = key
 	} else if idxKey < key {
-		panic("uintBSearchFirstGT functions result error")
+		panic("uintBSearchFirstGE functions result error")
 	} else {
 		uintInsert(&bhs.indexList, index, key)
 	}
