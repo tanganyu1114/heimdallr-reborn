@@ -41,11 +41,11 @@ func (bgs *BifrostGroups) Insert(k, v interface{}) {
 	value := bgs.checkValueType(v)
 	index, idxKey := uintBSearchFirstGE(bgs.indexList, key)
 	if index == -1 {
-		uintInsert(bgs.indexList, 0, key)
+		uintInsert(&bgs.indexList, 0, key)
 	} else if idxKey == key {
 		bgs.indexList[index] = key
 	} else if idxKey > key {
-		uintInsert(bgs.indexList, index, key)
+		uintInsert(&bgs.indexList, index, key)
 	} else {
 		panic("uintBSearchFirstGE functions result error")
 	}
@@ -119,11 +119,11 @@ func (bhs *BifrostHosts) Insert(k, v interface{}) {
 	value := bhs.checkValueType(v)
 	index, idxKey := uintBSearchFirstGE(bhs.indexList, key)
 	if index == -1 {
-		uintInsert(bhs.indexList, 0, key)
+		uintInsert(&bhs.indexList, 0, key)
 	} else if idxKey == key {
 		bhs.indexList[index] = key
 	} else if idxKey > key {
-		uintInsert(bhs.indexList, index, key)
+		uintInsert(&bhs.indexList, index, key)
 	} else {
 		panic("uintBSearchFirstGE functions result error")
 	}
@@ -181,13 +181,13 @@ type BifrostHost struct {
 	Client   *bifrost.Client
 }
 
-func uintInsert(slice []uint, index int, key uint) {
-	n := len(slice)
-	slice = append(slice, key)
+func uintInsert(slice *[]uint, index int, key uint) {
+	n := len(*slice)
+	*slice = append(*slice, key)
 	for i := n; i < index; i-- {
-		slice[i] = slice[i-1]
+		(*slice)[i] = (*slice)[i-1]
 	}
-	slice[index] = key
+	(*slice)[index] = key
 }
 
 func uintBSearchFirstGE(ints []uint, val uint) (int, uint) {
