@@ -182,6 +182,7 @@ export default {
     onClose(e) {
       this.addLogs('websocket已关闭')
       this.addLogs('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
+      this.freshSrollBar()
       clearInterval(this.healthId)
     },
     sendOnSignal: function() {
