@@ -3,7 +3,6 @@ package service
 import (
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
-	"gin-vue-admin/pkg/sort_map"
 	"github.com/ClessLi/bifrost/pkg/client/bifrost"
 	"go.uber.org/zap"
 )
@@ -14,15 +13,15 @@ import (
 var BifrostGroups = model.NewBifrostGroups()
 
 func SelectBifrostGroup(sf model.SearchConf) (*model.BifrostGroup, *model.BifrostHost) {
-	group := BifrostGroups.Get(sf.GroupId)
-	if group == nil {
+	group, ok := BifrostGroups.Get(sf.GroupId).(*model.BifrostGroup)
+	if !ok || group == nil {
 		return nil, nil
 	}
-	host := group.(sort_map.SortMap).Get(sf.HostId)
-	if host == nil {
-		return group.(*model.BifrostGroup), nil
+	host, ok2 := group.Hosts.Get(sf.HostId).(*model.BifrostHost)
+	if !ok2 || host == nil {
+		return group, nil
 	}
-	return group.(*model.BifrostGroup), host.(*model.BifrostHost)
+	return group, host
 }
 
 // 初始化bifrost客户端
@@ -70,37 +69,37 @@ func CreateBifrostHost(host model.HmdrHost) {
 	if initErr != nil {
 		global.GVA_LOG.Error("init bifrostClient Failed", zap.String("err", initErr.Error()))
 	}
-	bGroup := BifrostGroups.Get(host.GroupId)
-	if bGroup == nil {
+	bGroup, ok := BifrostGroups.Get(host.GroupId).(*model.BifrostGroup)
+	if !ok || bGroup == nil {
 		return
 	}
-	bGroup.(*model.BifrostGroup).Hosts.Insert(&host, &model.BifrostHost{
+	bGroup.Hosts.Insert(&host, &model.BifrostHost{
 		HmdrHost: host,
 		Client:   bifrostClient,
 	})
 }
 
 func DeleteBifrostHost(host model.HmdrHost) {
-	bGroup := BifrostGroups.Get(host.GroupId)
-	if bGroup != nil {
-		bHost := bGroup.(*model.BifrostGroup).Hosts.Get(host.ID)
-		if bHost != nil {
+	bGroup, ok := BifrostGroups.Get(host.GroupId).(*model.BifrostGroup)
+	if ok && bGroup != nil {
+		bHost, ok2 := bGroup.Hosts.Get(host.ID).(*model.BifrostHost)
+		if ok2 && bHost != nil {
 			// 关闭客户端
-			bHost.(*model.BifrostHost).Client.Close()
-			bGroup.(*model.BifrostGroup).Hosts.Remove(host.ID)
+			bHost.Client.Close()
+			bGroup.Hosts.Remove(host.ID)
 		}
 	}
 }
 
 func DeleteBifrostGroup(group model.HmdrGroup) {
-	bGroup := BifrostGroups.Get(group.ID)
+	bGroup, ok := BifrostGroups.Get(group.ID).(*model.BifrostGroup)
 
-	if bGroup != nil {
+	if ok && bGroup != nil {
 		closeGourp := func(k, v interface{}) bool {
 			key := k.(uint)
 			value := v.(*model.BifrostHost)
 			value.Client.Close()
-			bGroup.(*model.BifrostGroup).Hosts.Remove(key)
+			bGroup.Hosts.Remove(key)
 			return true
 		}
 		// 删除组之前 关闭清理所有组下的客户端
@@ -108,7 +107,7 @@ func DeleteBifrostGroup(group model.HmdrGroup) {
 		//	host.Client.Close()
 		//	delete(bgroup.Hosts, u)
 		//}
-		bGroup.(*model.BifrostGroup).Hosts.Range(closeGourp)
+		bGroup.Hosts.Range(closeGourp)
 		//delete(BifrostGroups, group.ID)
 		BifrostGroups.Remove(group.ID)
 	}
