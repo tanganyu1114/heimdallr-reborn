@@ -3,7 +3,7 @@ module gin-vue-admin
 go 1.14
 
 require (
-	github.com/ClessLi/bifrost v1.0.1-alpha.3
+	github.com/ClessLi/bifrost v1.0.2-alpha.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/casbin/casbin v1.9.1
 	github.com/casbin/casbin/v2 v2.11.0
