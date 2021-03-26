@@ -24,11 +24,11 @@ type SocketSrvName struct {
 
 type SocketInfo struct {
 	Count      int
-	LogWatcher bifrost.LogWatcher
+	LogWatcher bifrost.WatchClient
 	LogPipe    log_watcher_pipe.LogWatcherPipe
 }
 
-func (sc SocketControl) GetLogWatcher(globalSocketInfo map[uint]*SocketGroup) bifrost.LogWatcher {
+func (sc SocketControl) GetLogWatcher(globalSocketInfo map[uint]*SocketGroup) bifrost.WatchClient {
 	return globalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogWatcher
 }
 

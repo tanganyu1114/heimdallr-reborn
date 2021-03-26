@@ -87,7 +87,7 @@ func WebSocket(c *gin.Context) {
 		// 新增pipe
 		outerMap := make(map[string]chan<- []byte)
 		outerMap[md5sc] = outerChannel
-		innerChannel, _ := service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogWatcher.GetChannels()
+		innerChannel := service.GlobalSocketInfo[sc.GroupId].Host[sc.HostId].SrvName[sc.SrvName].LogName[sc.LogName].LogWatcher.GetDataChan()
 		LogPipe, err = log_watcher_pipe.NewLogWatcherPipe(innerChannel, outerMap)
 		if err != nil {
 			global.GVA_LOG.Error("log watch pipe error", zap.Any("err", err))
