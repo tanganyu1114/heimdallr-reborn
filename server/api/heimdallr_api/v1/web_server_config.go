@@ -1,18 +1,17 @@
 package v1
 
-type GroupOpts struct {
-	Label    string     `json:"label"`
-	Value    uint       `json:"value"`
-	Children []HostOpts `json:"children"`
+import metav1 "gin-vue-admin/internal/pkg/meta/v1"
+
+type WebSrvGroupMeta struct {
+	metav1.LabelMeta `json:",inline"`
+	Children         []*WebSrvHostMeta `json:"children"`
 }
 
-type HostOpts struct {
-	Label    string    `json:"label"`
-	Value    uint      `json:"value"`
-	Children []SrvOpts `json:"children"`
+type WebSrvHostMeta struct {
+	metav1.LabelMeta `json:",inline"`
+	Children         []*WebSrvMeta `json:"children"`
 }
 
-type SrvOpts struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+type WebSrvMeta struct {
+	metav1.LabelMeta `json:",inline"`
 }

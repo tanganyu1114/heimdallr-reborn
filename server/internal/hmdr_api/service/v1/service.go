@@ -5,5 +5,5 @@ type Service interface {
 	WebServerConfig() WebServerConfigSrv
 	Group() GroupSrv
 	Host() HostSrv
-	Websocket() WebsocketSrv
+	WebServerLogWatcher() WebServerLogWatcherSrv
 }
