@@ -17,7 +17,7 @@ func (h *HostController) Get(c *gin.Context) {
 		return
 	}
 
-	if host, err := h.svc.Host().Get(c, id); err != nil {
+	if host, err := h.svc.Hosts().Get(c, id); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
 		response.FailWithMessage("查询失败", c)
 	} else {

@@ -19,7 +19,7 @@ var upGrader = websocket.Upgrader{
 	},
 }
 
-func (w *WebServerLogWatcher) Watch(c *gin.Context) {
+func (w *WebServerLogWatcherController) Watch(c *gin.Context) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		global.GVA_LOG.Error("升级websocket失败", zap.Any("err", err))
@@ -62,12 +62,13 @@ func (w *WebServerLogWatcher) Watch(c *gin.Context) {
 		return
 	}
 
-	output, err := w.svc.WebServerLogWatcher().Watch(c, r)
+	output, cancel, err := w.svc.WebServerLogWatchers().Watch(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取Web服务器日志监看失败", zap.Any("err", err))
 
 		return
 	}
+	defer cancel()
 
 	for {
 		select {

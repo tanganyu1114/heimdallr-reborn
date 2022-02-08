@@ -17,7 +17,7 @@ func (g *GroupController) Get(c *gin.Context) {
 		return
 	}
 
-	if group, err := g.svc.Group().Get(c, id); err != nil {
+	if group, err := g.svc.Groups().Get(c, id); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
 		response.FailWithMessage("查询失败", c)
 	} else {

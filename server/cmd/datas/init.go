@@ -1,6 +1,7 @@
 package datas
 
 import (
+	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gookit/color"
@@ -45,6 +46,8 @@ func InitMysqlTables(db *gorm.DB) {
 		model.SysDictionaryDetail{},
 		model.SysBaseMenuParameter{},
 		model.ExaFileUploadAndDownload{},
+		v1.Group{},
+		v1.Host{},
 	)
 	if err != nil {
 		color.Warn.Printf("[Mysql]-->初始化数据表失败,err: %v\n", err)

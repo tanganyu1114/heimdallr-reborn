@@ -18,7 +18,7 @@ func (h *HostController) Create(c *gin.Context) {
 		return
 	}
 
-	if err = h.svc.Host().Create(c, r); err != nil {
+	if err = h.svc.Hosts().Create(c, r); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
 		response.FailWithMessage("创建失败", c)
 

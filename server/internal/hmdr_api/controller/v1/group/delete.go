@@ -17,7 +17,7 @@ func (g *GroupController) Delete(c *gin.Context) {
 		return
 	}
 
-	if err = g.svc.Group().Delete(c, id); err != nil {
+	if err = g.svc.Groups().Delete(c, id); err != nil {
 		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
 		response.FailWithMessage("删除失败", c)
 

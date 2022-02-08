@@ -28,7 +28,7 @@ func Routers() *gin.Engine {
 	{
 		router.InitBaseRouter(PublicGroup) // 注册基础功能路由 不做鉴权
 
-		router.InitHmdrWebSocketRouter(PublicGroup) // 初始化websocket接口 WebSocket
+		router.InitPublicHeimdallrApi(PublicGroup) // 初始化公开的海姆达尔api路由 包括：web server log watcher接口
 	}
 	PrivateGroup := Router.Group("")
 	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
@@ -49,11 +49,8 @@ func Routers() *gin.Engine {
 		router.InitSysOperationRecordRouter(PrivateGroup)    // 操作记录
 		router.InitSysDictionaryDetailRouter(PrivateGroup)   // 字典详情管理
 		router.InitFileUploadAndDownloadRouter(PrivateGroup) // 文件上传下载功能路由
-		// 添加heimdallr相关路由
-		router.InitHmdrAgentRouter(PrivateGroup) // 获取agent相关信息
-		router.InitHmdrGroupRouter(PrivateGroup) // 添加组信息
-		router.InitHmdrHostRouter(PrivateGroup)  // 添加主机agent信息
-		router.InitHmdrConfRouter(PrivateGroup)  // 获取选择参数信息
+
+		router.InitPrivateHeimdallrApi(PrivateGroup) // 海姆达尔api私有路由
 	}
 	global.GVA_LOG.Info("router register success")
 	return Router

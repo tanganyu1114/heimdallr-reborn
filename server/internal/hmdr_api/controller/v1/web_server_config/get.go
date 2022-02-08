@@ -9,7 +9,7 @@ import (
 )
 
 func (w *WebServerConfigController) GetOptions(c *gin.Context) {
-	if groups, err := w.svc.WebServerConfig().GetOptions(c); err != nil {
+	if groups, err := w.svc.WebServerConfigs().GetOptions(c); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 	} else {
@@ -27,7 +27,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	data, err := w.svc.WebServerConfig().GetConfig(c, r)
+	data, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!")
 		response.FailWithMessage("获取失败", c)

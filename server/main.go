@@ -1,11 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"gin-vue-admin/core"
 	"gin-vue-admin/global"
 	"gin-vue-admin/initialize"
-	"gin-vue-admin/model"
-	"gin-vue-admin/service"
+	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
+	"gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -24,33 +25,26 @@ func main() {
 	initialize.MysqlTables(global.GVA_DB) // 初始化表
 	// 程序结束前关闭数据库链接
 	db, _ := global.GVA_DB.DB()
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			global.GVA_LOG.Error("failed to close database connection", zap.String("err", err.Error()))
+		}
+	}(db)
 
-	// 初始化bifrost客户端
-	service.InitBifrostClient()
-	// 关闭所有的bifrost客户端
-	defer func() {
-		closeHostFunc := func(k, v interface{}) bool {
-			host := v.(*model.BifrostHost)
-			host.Client.Close()
-			return true
+	// 初始化bifrost客户端仓库
+	bifrostsStore := bifrosts.GetBifrostsStore()
+	// 结束进程前关闭bifrost客户端仓库
+	defer func(storeIns storev1.Factory) {
+		err := storeIns.Close()
+		if err != nil {
+			global.GVA_LOG.Error("failed to close bifrost store", zap.String("err", err.Error()))
 		}
-		closeGroupHostFunc := func(k, v interface{}) bool {
-			group := v.(*model.BifrostGroup)
-			group.Hosts.Range(closeHostFunc)
-			return true
-		}
-		//for _, bg := range service.BifrostGroups {
-		//	for _, c := range (*bg).Hosts {
-		//		c.Client.Close()
-		//	}
-		//}
-		service.BifrostGroups.Range(closeGroupHostFunc)
-	}()
+	}(bifrostsStore)
 	// 定时任务
 	crontab := cron.New()
-	// cron 获取客户端信息
-	_, err := crontab.AddFunc("* * * * *", service.CronAgentInfo)
+	// cron 定时同步客户端状态信息
+	_, err := crontab.AddFunc("* * * * *", bifrostsStore.AgentInfos().SyncAgentInfos)
 	if err != nil {
 		global.GVA_LOG.Error("add crontab func err", zap.String("err", err.Error()))
 	}

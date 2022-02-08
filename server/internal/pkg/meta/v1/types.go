@@ -18,15 +18,15 @@ type IDsOptions struct {
 	IDs []int `json:"ids" form:"ids"`
 }
 
-type LabelMeta struct {
+type ObjectMeta struct {
 	Label string `json:"label"`
-	Value string `json:"value"`
+	Value uint   `json:"value"`
 }
 
 type WebServerOptions struct {
-	GroupID    uint   `json:"group-id"`
-	HostID     uint   `json:"host-id"`
-	ServerName string `json:"server-name"`
+	GroupID    uint   `json:"group_id"`
+	HostID     uint   `json:"host_id"`
+	ServerName string `json:"srv_name"`
 }
 
 type WebServerLogOptions struct {

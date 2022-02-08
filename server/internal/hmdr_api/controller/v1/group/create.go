@@ -18,7 +18,7 @@ func (g *GroupController) Create(c *gin.Context) {
 		return
 	}
 
-	if err = g.svc.Group().Create(c, r); err != nil {
+	if err = g.svc.Groups().Create(c, r); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
 		response.FailWithMessage("创建失败", c)
 

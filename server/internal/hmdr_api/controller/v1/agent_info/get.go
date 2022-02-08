@@ -8,7 +8,7 @@ import (
 )
 
 func (a *AgentInfoController) Get(c *gin.Context) {
-	if groups, err := a.svc.AgentInfo().Get(c); err != nil {
+	if groups, err := a.svc.AgentInfos().Get(c); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 		return

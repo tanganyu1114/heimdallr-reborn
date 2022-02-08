@@ -1,9 +1,41 @@
 package v1
 
+import storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
+
 type Service interface {
-	AgentInfo() AgentInfoSrv
-	WebServerConfig() WebServerConfigSrv
-	Group() GroupSrv
-	Host() HostSrv
-	WebServerLogWatcher() WebServerLogWatcherSrv
+	AgentInfos() AgentInfoSrv
+	Groups() GroupSrv
+	Hosts() HostSrv
+	WebServerConfigs() WebServerConfigSrv
+	WebServerLogWatchers() WebServerLogWatcherSrv
+}
+
+type service struct {
+	store storev1.Factory
+}
+
+func NewService(store storev1.Factory) Service {
+	return &service{
+		store: store,
+	}
+}
+
+func (s *service) AgentInfos() AgentInfoSrv {
+	return newAgentInfos(s)
+}
+
+func (s *service) Groups() GroupSrv {
+	return newGroups(s)
+}
+
+func (s *service) Hosts() HostSrv {
+	return newHosts(s)
+}
+
+func (s *service) WebServerConfigs() WebServerConfigSrv {
+	return newWebServerConfigs(s)
+}
+
+func (s *service) WebServerLogWatchers() WebServerLogWatcherSrv {
+	return newWebServerLogWatchers(s)
 }

@@ -28,7 +28,7 @@ func (g *GroupController) Update(c *gin.Context) {
 	}
 
 	r.ID = id
-	if err = g.svc.Group().Update(c, r); err != nil {
+	if err = g.svc.Groups().Update(c, r); err != nil {
 		global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
 		response.FailWithMessage("更新失败", c)
 	}

@@ -18,7 +18,7 @@ func (g *GroupController) List(c *gin.Context) {
 		return
 	}
 
-	if list, err := g.svc.Group().List(c, r); err != nil {
+	if list, err := g.svc.Groups().List(c, r); err != nil {
 		global.GVA_LOG.Error("获取失败", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 	} else {

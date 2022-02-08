@@ -18,7 +18,7 @@ func (h *HostController) DeleteCollection(c *gin.Context) {
 		return
 	}
 
-	if err = h.svc.Host().DeleteCollection(c, r); err != nil {
+	if err = h.svc.Hosts().DeleteCollection(c, r); err != nil {
 		global.GVA_LOG.Error("批量删除失败!", zap.Any("err", err))
 		response.FailWithMessage("批量删除失败", c)
 

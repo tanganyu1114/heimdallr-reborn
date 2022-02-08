@@ -17,7 +17,7 @@ func (h *HostController) Delete(c *gin.Context) {
 		return
 	}
 
-	if err = h.svc.Host().Delete(c, id); err != nil {
+	if err = h.svc.Hosts().Delete(c, id); err != nil {
 		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
 		response.FailWithMessage("删除失败", c)
 

@@ -28,7 +28,7 @@ func (h *HostController) Update(c *gin.Context) {
 	}
 
 	r.ID = id
-	if err = h.svc.Host().Update(c, r); err != nil {
+	if err = h.svc.Hosts().Update(c, r); err != nil {
 		global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
 		response.FailWithMessage("更新失败", c)
 	}

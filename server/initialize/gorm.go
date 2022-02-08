@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
 	"go.uber.org/zap"
@@ -39,6 +40,8 @@ func MysqlTables(db *gorm.DB) {
 		model.ExaSimpleUploader{},
 		model.ExaCustomer{},
 		model.SysOperationRecord{},
+		v1.Group{},
+		v1.Host{},
 	)
 	if err != nil {
 		global.GVA_LOG.Error("register table failed", zap.Any("err", err))
