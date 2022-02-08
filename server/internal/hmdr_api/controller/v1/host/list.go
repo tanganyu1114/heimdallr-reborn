@@ -10,7 +10,7 @@ import (
 
 func (h *HostController) List(c *gin.Context) {
 	var r metav1.ListOptions
-	err := c.ShouldBindJSON(&r)
+	err := c.ShouldBindQuery(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
 		response.FailWithMessage("解析失败", c)
@@ -22,6 +22,11 @@ func (h *HostController) List(c *gin.Context) {
 		global.GVA_LOG.Error("获取失败", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 	} else {
-		response.OkWithDetailed(list, "获取成功", c)
+		response.OkWithDetailed(response.PageResult{
+			List:     list.Items,
+			Total:    list.TotalCount,
+			Page:     r.Page,
+			PageSize: r.PageSize,
+		}, "获取成功", c)
 	}
 }

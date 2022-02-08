@@ -7,6 +7,7 @@ import (
 	"gin-vue-admin/internal/pkg/bifrosts"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/pkg/sort_map"
+	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/configuration"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"sync"
@@ -26,7 +27,7 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 	getOptsFromGroupFunc := func(keyer sort_map.Keyer, v interface{}) bool {
 		group := v.(*bifrosts.Group)
 		tmpGroup := v1.BifrostGroupMeta{
-			ObjectMeta: metav1.ObjectMeta{
+			UintObjectMeta: metav1.UintObjectMeta{
 				Label: group.Meta.Name,
 				Value: group.Meta.ID,
 			},
@@ -36,7 +37,7 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 		getOptFromBifrostFunc := func(keyer sort_map.Keyer, v interface{}) bool {
 			bifrost := v.(*bifrosts.Bifrost)
 			tmpHost := v1.BifrostMeta{
-				ObjectMeta: metav1.ObjectMeta{
+				UintObjectMeta: metav1.UintObjectMeta{
 					Label: bifrost.Meta.Name,
 					Value: bifrost.Meta.ID,
 				},
@@ -51,9 +52,9 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 			for _, srvInfo := range metrics.StatusList {
 				tmpHost.Children = append(tmpHost.Children,
 					&v1.WebSrvMeta{
-						ObjectMeta: metav1.ObjectMeta{
+						StringObjectMeta: metav1.StringObjectMeta{
 							Label: srvInfo.Name,
-							Value: uint(srvInfo.Status),
+							Value: srvInfo.Name,
 						},
 					},
 				)
@@ -80,7 +81,11 @@ func (w webServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServ
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get web server config")
 	}
-	return data, nil
+	wbConf, err := configuration.NewConfigurationFromJsonBytes(data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse web server config")
+	}
+	return wbConf.View(), nil
 }
 
 func newWebServerConfigStore(store *bifrostsStore) *webServerConfigStore {

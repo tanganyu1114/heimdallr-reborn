@@ -18,9 +18,14 @@ type IDsOptions struct {
 	IDs []int `json:"ids" form:"ids"`
 }
 
-type ObjectMeta struct {
+type UintObjectMeta struct {
 	Label string `json:"label"`
 	Value uint   `json:"value"`
+}
+
+type StringObjectMeta struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 type WebServerOptions struct {

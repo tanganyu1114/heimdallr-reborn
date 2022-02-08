@@ -19,7 +19,7 @@ func (w *WebServerConfigController) GetOptions(c *gin.Context) {
 
 func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 	var r metav1.WebServerOptions
-	err := c.ShouldBindJSON(&r)
+	err := c.ShouldBind(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
 		response.FailWithMessage("解析失败", c)
