@@ -31,7 +31,11 @@ func (b *hostStore) Delete(ctx context.Context, hostid uint) error {
 	host := &v1.Host{
 		GVA_MODEL: global.GVA_MODEL{ID: hostid},
 	}
-	err := global.GVA_DB.Delete(host).Error
+	err := global.GVA_DB.Find(host).Error
+	if err != nil {
+		return err
+	}
+	err = global.GVA_DB.Delete(host).Error
 	if err != nil {
 		return err
 	}

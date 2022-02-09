@@ -28,14 +28,20 @@ func (g *groupStore) Create(ctx context.Context, group v1.Group) error {
 }
 
 func (g *groupStore) Delete(ctx context.Context, groupid uint) error {
-	group := &v1.Group{
-		GVA_MODEL: global.GVA_MODEL{ID: groupid},
-	}
-	err := global.GVA_DB.Delete(group).Error
+	err := global.GVA_DB.Delete(&[]v1.Host{}, "group_id = ?", groupid).Error
 	if err != nil {
 		return err
 	}
-	return g.bm.RemoveGroup(groupid)
+
+	group := &v1.Group{
+		GVA_MODEL: global.GVA_MODEL{ID: groupid},
+	}
+	err = global.GVA_DB.Delete(group).Error
+	if err != nil {
+		return err
+	}
+
+	return g.bm.RemoveGroupByID(groupid)
 }
 
 func (g *groupStore) DeleteCollections(ctx context.Context, ids metav1.IDsOptions) error {
@@ -45,7 +51,7 @@ func (g *groupStore) DeleteCollections(ctx context.Context, ids metav1.IDsOption
 	}
 	var errs []error
 	for _, id := range ids.IDs {
-		errs = append(errs, g.bm.RemoveGroup(uint(id)))
+		errs = append(errs, g.bm.RemoveGroupByID(uint(id)))
 	}
 	return errors.NewAggregate(errs)
 }

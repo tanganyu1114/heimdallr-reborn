@@ -22,7 +22,7 @@ type Manager interface {
 	GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client, error)
 
 	RemoveAll() error
-	RemoveGroup(groupid uint) error
+	RemoveGroupByID(groupid uint) error
 	RemoveHost(host v1.Host) error
 
 	UpdateGroup(old, new v1.Group) error
@@ -129,7 +129,7 @@ func (m *manager) InsertHost(host v1.Host) error {
 }
 
 func (m manager) GetGroup(groupid uint) (*Group, error) {
-	g, ok := m.bgs.Get(groupid)
+	g, ok := m.bgs.GetByKey(groupid)
 	if !ok {
 		return nil, errors.Errorf("there is no group %d", groupid)
 	}
@@ -141,7 +141,7 @@ func (m manager) GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client
 	if err != nil {
 		return nil, err
 	}
-	b, ok := g.Bifrosts.Get(opts.HostID)
+	b, ok := g.Bifrosts.GetByKey(opts.HostID)
 	if !ok {
 		return nil, errors.Errorf("there is no bifrost %d in group %d", opts.HostID, opts.GroupID)
 	}
@@ -155,14 +155,14 @@ func (m *manager) RemoveAll() error {
 
 	var errs []error
 	m.bgs.Range(func(keyer sort_map.Keyer, v interface{}) bool {
-		errs = append(errs, m.bgs.Remove(keyer))
+		errs = append(errs, m.bgs.RemoveByKey(keyer.Key()))
 		return true
 	})
 	return errors.NewAggregate(errs)
 }
 
-func (m *manager) RemoveGroup(groupid uint) error {
-	return m.bgs.Remove(groupid)
+func (m *manager) RemoveGroupByID(groupid uint) error {
+	return m.bgs.RemoveByKey(groupid)
 }
 
 func (m *manager) RemoveHost(host v1.Host) error {
@@ -171,7 +171,7 @@ func (m *manager) RemoveHost(host v1.Host) error {
 		return err
 	}
 
-	return g.Bifrosts.Remove(host)
+	return g.Bifrosts.RemoveByKey(host.Key())
 }
 
 func (m *manager) UpdateHost(old, new v1.Host) error {

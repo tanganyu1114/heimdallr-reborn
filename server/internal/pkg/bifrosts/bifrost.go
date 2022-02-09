@@ -67,13 +67,13 @@ func (bs *Bifrosts) Insert(keyer sort_map.Keyer, v interface{}) error {
 	return nil
 }
 
-func (bs Bifrosts) Get(key interface{}) (v interface{}, ok bool) {
+func (bs Bifrosts) GetByKey(key interface{}) (v interface{}, ok bool) {
 	bs.mu.RLock()
 	defer bs.mu.RUnlock()
 
 	ukey, err := uintKey(key)
 	if err != nil {
-		global.GVA_LOG.Warn("call Bifrots.Get() params error", zap.String("err", err.Error()))
+		global.GVA_LOG.Warn("call Bifrots.GetByKey() params error", zap.String("err", err.Error()))
 		return nil, false
 	}
 	if v, ok = bs.dataMap[ukey]; ok {
@@ -82,7 +82,7 @@ func (bs Bifrosts) Get(key interface{}) (v interface{}, ok bool) {
 	return nil, false
 }
 
-func (bs *Bifrosts) Remove(key interface{}) error {
+func (bs *Bifrosts) RemoveByKey(key interface{}) error {
 	bs.mu.Lock()
 	defer bs.mu.Unlock()
 
@@ -100,12 +100,12 @@ func (bs *Bifrosts) Remove(key interface{}) error {
 
 func (bs *Bifrosts) Range(operate func(keyer sort_map.Keyer, v interface{}) bool) {
 	idxRangeFunc := func(idx int, keyer sort_map.Keyer) bool {
-		value, ok := bs.Get(keyer.Key())
+		value, ok := bs.GetByKey(keyer.Key())
 		if !ok {
 			global.GVA_LOG.Error("Bifrosts Range error", zap.String("err", fmt.Sprintf("faied to get value with index `%v` in dataMap, and it will be removed", keyer.Key())))
-			err := bs.Remove(keyer.Key())
+			err := bs.RemoveByKey(keyer.Key())
 			if err != nil {
-				global.GVA_LOG.Warn("Bifrosts.Remove() error", zap.String("err", err.Error()))
+				global.GVA_LOG.Warn("Bifrosts.RemoveByKey() error", zap.String("err", err.Error()))
 			}
 			return true
 		}

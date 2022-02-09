@@ -61,13 +61,13 @@ func (gs *Groups) Insert(keyer sort_map.Keyer, v interface{}) error {
 	return nil
 }
 
-func (gs Groups) Get(key interface{}) (v interface{}, ok bool) {
+func (gs Groups) GetByKey(key interface{}) (v interface{}, ok bool) {
 	gs.mu.RLock()
 	defer gs.mu.RUnlock()
 
 	ukey, err := uintKey(key)
 	if err != nil {
-		global.GVA_LOG.Warn("call Groups.Get() params error", zap.String("err", err.Error()))
+		global.GVA_LOG.Warn("call Groups.GetByKey() params error", zap.String("err", err.Error()))
 		return nil, false
 	}
 	if v, ok := gs.dataMap[ukey]; ok {
@@ -76,7 +76,7 @@ func (gs Groups) Get(key interface{}) (v interface{}, ok bool) {
 	return nil, false
 }
 
-func (gs *Groups) Remove(key interface{}) error {
+func (gs *Groups) RemoveByKey(key interface{}) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
@@ -88,7 +88,7 @@ func (gs *Groups) Remove(key interface{}) error {
 	var errs []error
 	if g, ok := gs.dataMap[ukey]; ok {
 		g.Bifrosts.Range(func(keyer sort_map.Keyer, v interface{}) bool {
-			errs = append(errs, g.Bifrosts.Remove(keyer))
+			errs = append(errs, g.Bifrosts.RemoveByKey(keyer.Key()))
 			return true
 		})
 		delete(gs.dataMap, ukey)
@@ -98,12 +98,12 @@ func (gs *Groups) Remove(key interface{}) error {
 
 func (gs *Groups) Range(operate func(keyer sort_map.Keyer, v interface{}) bool) {
 	idxRangeFunc := func(idx int, keyer sort_map.Keyer) bool {
-		value, ok := gs.Get(keyer.Key())
+		value, ok := gs.GetByKey(keyer.Key())
 		if !ok {
 			global.GVA_LOG.Error("Groups Range error", zap.String("err", fmt.Sprintf("faied to get value with index `%v` in dataMap, and it will be removed", keyer.Key())))
-			err := gs.Remove(keyer.Key())
+			err := gs.RemoveByKey(keyer.Key())
 			if err != nil {
-				global.GVA_LOG.Error("Groups.Remove() error", zap.String("err", err.Error()))
+				global.GVA_LOG.Error("Groups.RemoveByKey() error", zap.String("err", err.Error()))
 			}
 			return true
 		}

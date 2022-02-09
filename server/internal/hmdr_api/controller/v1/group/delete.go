@@ -1,15 +1,16 @@
 package group
 
 import (
+	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/global"
-	ctlv1 "gin-vue-admin/internal/hmdr_api/controller/v1"
 	"gin-vue-admin/model/response"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 func (g *GroupController) Delete(c *gin.Context) {
-	id, err := ctlv1.ParseID(c)
+	var r v1.Group
+	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("参数异常!", zap.Any("err", err))
 		response.FailWithMessage("参数异常", c)
@@ -17,7 +18,7 @@ func (g *GroupController) Delete(c *gin.Context) {
 		return
 	}
 
-	if err = g.svc.Groups().Delete(c, id); err != nil {
+	if err = g.svc.Groups().Delete(c, r.ID); err != nil {
 		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
 		response.FailWithMessage("删除失败", c)
 
