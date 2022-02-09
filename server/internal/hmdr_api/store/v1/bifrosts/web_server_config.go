@@ -48,6 +48,7 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 			if err != nil {
 				global.GVA_LOG.Error("failed to get web server status", zap.String("err", err.Error()))
 				//return false  // 注意：如果报错，散列表后续元素将不被加载
+				return true
 			}
 			for _, srvInfo := range metrics.StatusList {
 				tmpHost.Children = append(tmpHost.Children,

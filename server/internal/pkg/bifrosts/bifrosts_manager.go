@@ -62,6 +62,7 @@ func (m *manager) SyncServersStatus() {
 				global.GVA_LOG.Error("access the client status failed, hostIp:"+b.Meta.Ipaddr, zap.String("err", err.Error()))
 				status = false
 				//return false  // 注意：如果报错，散列表后续元素将不被加载
+				return true
 			}
 
 			for _, info := range metrics.StatusList {
