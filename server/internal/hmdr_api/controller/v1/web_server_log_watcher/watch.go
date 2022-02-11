@@ -77,7 +77,7 @@ func (w *WebServerLogWatcherController) Watch(c *gin.Context) {
 				global.GVA_LOG.Info("log watcher 中断", zap.Any("meta", r))
 				return
 			}
-			fmt.Println(string(data))
+			global.GVA_LOG.Debug(fmt.Sprintf("watching log(%s)", r.LogName), zap.String("raw", string(data)))
 			err := ws.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				global.GVA_LOG.Warn("反馈websocket信息失败", zap.Any("err", err))
