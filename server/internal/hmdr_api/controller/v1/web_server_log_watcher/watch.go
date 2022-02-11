@@ -73,6 +73,10 @@ func (w *WebServerLogWatcherController) Watch(c *gin.Context) {
 	for {
 		select {
 		case data := <-output:
+			if data == nil {
+				global.GVA_LOG.Info("log watcher 中断", zap.Any("meta", r))
+				return
+			}
 			fmt.Println(string(data))
 			err := ws.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
