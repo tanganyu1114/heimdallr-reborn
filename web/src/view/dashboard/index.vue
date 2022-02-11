@@ -28,8 +28,8 @@
                   <template v-for="(ng,i3) in val.agent.status_list">
                     <el-tooltip :key="String(i1)+String(i2)+String(i3)" placement="top">
                       <div slot="content">应用名称: {{ ng.name }}<br>{{ ng.version }}</div>
-                      <!-- /**  应用状态代码：0 未知;  1  禁用; 2 异常; 3  正常;  **/ -->
-                      <el-tag class="card-right" :type="ng.status === 0 ? 'info' : ng.status === 3 ? 'success' : 'danger'">{{ ng.status === 0 ? '未知' : ng.status === 3 ? '正常' : '异常' }}</el-tag>
+                      <!-- /**  应用状态代码：0 未知;  1 禁用; 2 初始化; 3 异常; 4 正常;  **/ -->
+                      <el-tag class="card-right" :type="ng.status === 0 ? 'info' : ng.status === 2 ? 'info' : ng.status === 4 ? 'success' : 'danger'">{{ ng.status === 0 ? '未知' : ng.status === 1 ? '禁用' : ng.status === 2 ? '初始化' : ng.status === 4 ? '正常' : '异常' }}</el-tag>
                     </el-tooltip>
                   </template>
                 </div>
