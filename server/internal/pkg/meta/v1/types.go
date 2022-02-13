@@ -36,5 +36,5 @@ type WebServerOptions struct {
 
 type WebServerLogOptions struct {
 	WebServerOptions `json:",inline"`
-	LogName          string `json:"log-name"`
+	LogName          string `json:"log_name"`
 }

@@ -62,6 +62,12 @@ func (w *WebServerLogWatcherController) Watch(c *gin.Context) {
 		return
 	}
 
+	if len(strings.TrimSpace(r.LogName)) == 0 {
+		global.GVA_LOG.Error("解析websocket请求失败，解析日志名为空", zap.Any("LogName", r.LogName))
+
+		return
+	}
+
 	output, cancel, err := w.svc.WebServerLogWatchers().Watch(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取Web服务器日志监看失败", zap.Any("err", err))
