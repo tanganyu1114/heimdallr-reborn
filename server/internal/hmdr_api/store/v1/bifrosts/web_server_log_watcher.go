@@ -24,9 +24,9 @@ func (w *webServerLogWatcherStore) Watch(ctx context.Context, opts metav1.WebSer
 		return nil, nil, err
 	}
 	dataC, cancel, err := bc.WebServerLogWatcher().Watch(&bifrostapiv1.WebServerLogWatchRequest{
-		ServerName: &bifrostapiv1.ServerName{Name: opts.ServerName},
-		LogName:    opts.LogName,
-		//FilteringRegexpRule: opts.FilteringRegexpRule,  // TODO: filtering regexp rule
+		ServerName:          &bifrostapiv1.ServerName{Name: opts.ServerName},
+		LogName:             opts.LogName,
+		FilteringRegexpRule: opts.FilteringRegexpRule,
 	})
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to get watcher of server(%s)'s log(%s)", opts.ServerName, opts.LogName)

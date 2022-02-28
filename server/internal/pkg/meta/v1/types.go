@@ -35,6 +35,7 @@ type WebServerOptions struct {
 }
 
 type WebServerLogOptions struct {
-	WebServerOptions `json:",inline"`
-	LogName          string `json:"log_name"`
+	WebServerOptions    `json:",inline"`
+	LogName             string `json:"log_name"`
+	FilteringRegexpRule string `json:"filtering_regexp_rule"`
 }

@@ -10,31 +10,41 @@
           label-width="100px"
           label-position="left"
         >
-          <el-col :span="12">
-            <el-form-item label-width="120px" prop="value" label="应用服务器选择">
-              <el-cascader
-                v-model="formData.value"
-                :options="Options"
-                :props="{ expandTrigger: 'hover' }"
-                :style="{width: '100%'}"
-                placeholder="请选择环境以及主机信息应用服务器选择"
-                clearable
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="4">
-            <el-form-item label-width="80px" label="日志名字" prop="logName">
-              <el-select v-model="formData.logName" placeholder="请选择日志名字" :style="{width: '100%'}">
-                <el-option
-                  v-for="(item, index) in logNameOptions"
-                  :key="index"
-                  :label="item.label"
-                  :value="item.value"
-                  :disabled="item.disabled"
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label-width="120px" prop="value" label="应用服务器选择">
+                <el-cascader
+                  v-model="formData.value"
+                  :options="Options"
+                  :props="{ expandTrigger: 'hover' }"
+                  :style="{width: '100%'}"
+                  placeholder="请选择环境以及主机信息应用服务器选择"
+                  clearable
                 />
-              </el-select>
-            </el-form-item>
-          </el-col>
+              </el-form-item>
+            </el-col>
+            <el-col :span="4">
+              <el-form-item label-width="80px" label="日志名字" prop="logName">
+                <el-select v-model="formData.logName" placeholder="请选择日志名字" :style="{width: '100%'}">
+                  <el-option
+                    v-for="(item, index) in logNameOptions"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.value"
+                    :disabled="item.disabled"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label-width="120px" label="日志记录匹配规则" prop="filterRegexpRule">
+                <el-input v-model="formData.filterRegexpRule" :disabled="!isActive" placeholder="请输入日志记录匹配规则" :style="{width: '100%'}">
+                </el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form>
       </el-row>
       <el-row class="btnClass">
@@ -70,6 +80,7 @@ export default {
       isActive: true,
       formData: {
         logName: 'access.log',
+        filterRegexpRule: '',
         value: []
       },
       rules: {
@@ -78,6 +89,10 @@ export default {
           message: '请选择日志名字',
           trigger: 'change'
         }],
+        filterRegexpRule: {
+          required: false,
+          message: '请输入日志记录匹配规则'
+        },
         value: [{
           required: true,
           type: 'array',
@@ -190,7 +205,8 @@ export default {
         group_id: this.formData.value[0],
         host_id: this.formData.value[1],
         srv_name: this.formData.value[2],
-        log_name: this.formData.logName
+        log_name: this.formData.logName,
+        filtering_regexp_rule: this.formData.filterRegexpRule
       }
       const jsonsf = JSON.stringify(sf)
       this.addLogs('开始获取日志信息')
