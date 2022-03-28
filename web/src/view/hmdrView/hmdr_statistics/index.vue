@@ -33,15 +33,15 @@
         :data="proxySvcInfos"
         border
         stripe
-        :style="{width: '100%'}"
+        height="600"
         tooltip-effect="dark"
-        :default-sort="{prop: 'port', order: 'descending'}"
+        :default-sort="{prop: 'port'}"
       >
-        <el-table-column fixed sortable label="代理类型" prop="proxy-type" width="120" />
-        <el-table-column sortable label="服务名" prop="server-name" width="180" />
+        <el-table-column sortable label="代理类型" prop="proxy-type" width="120" />
+        <el-table-column sortable label="服务名" prop="server-name" />
         <el-table-column sortable label="服务侦听端口" prop="port" width="140" />
-        <el-table-column label="服务路径" prop="location" width="180" />
-        <el-table-column sortable label="代理地址" prop="proxy-address" width="250" />
+        <el-table-column label="服务路径" prop="location" />
+        <el-table-column sortable label="代理地址" prop="proxy-address" />
       </el-table>
     </el-card>
   </div>
