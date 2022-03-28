@@ -6,5 +6,6 @@ type Factory interface {
 	Hosts() HostStore
 	WebServerConfigs() WebServerConfigStore
 	WebServerLogWatchers() WebServerLogWatcherStore
+	WebServerStatistics() WebServerStatisticsStore
 	Close() error
 }

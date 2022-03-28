@@ -8,6 +8,7 @@ type Service interface {
 	Hosts() HostSrv
 	WebServerConfigs() WebServerConfigSrv
 	WebServerLogWatchers() WebServerLogWatcherSrv
+	WebServerStatistics() WebServerStatisticsSrv
 }
 
 type service struct {
@@ -38,4 +39,8 @@ func (s *service) WebServerConfigs() WebServerConfigSrv {
 
 func (s *service) WebServerLogWatchers() WebServerLogWatcherSrv {
 	return newWebServerLogWatchers(s)
+}
+
+func (s *service) WebServerStatistics() WebServerStatisticsSrv {
+	return newWebServerStatistics(s)
 }

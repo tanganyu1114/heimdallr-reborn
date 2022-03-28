@@ -6,6 +6,7 @@ import (
 	"gin-vue-admin/internal/hmdr_api/controller/v1/host"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_config"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_log_watcher"
+	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_statistics"
 	"gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	"gin-vue-admin/middleware"
 	"github.com/gin-gonic/gin"
@@ -60,5 +61,12 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 
 		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions)  // 获取options选择参数信息
 		webSrvConfRoutes.POST("getConfInfo", webSrvConfController.GetConfig) // 获取配置文件信息
+	}
+
+	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.OperationRecord())
+	{
+		webSrvStatisticsController := web_server_statistics.NewController(storeIns)
+
+		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
 	}
 }
