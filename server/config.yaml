@@ -17,7 +17,7 @@ jwt:
 local:
   path: uploads/file
 mysql:
-  path: 192.168.43.151:3306
+  path: 192.168.220.11:3306
   config: charset=utf8mb4&parseTime=True&loc=Local
   db-name: qmPlus
   username: root

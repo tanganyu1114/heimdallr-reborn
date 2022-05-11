@@ -3,7 +3,7 @@ module gin-vue-admin
 go 1.14
 
 require (
-	github.com/ClessLi/bifrost v1.0.6
+	github.com/ClessLi/bifrost v1.0.7
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/casbin/casbin v1.9.1
 	github.com/casbin/casbin/v2 v2.11.0
@@ -42,6 +42,7 @@ require (
 )
 
 replace (
+	github.com/ClessLi/bifrost => github.com/ClessLi/bifrost v1.0.8-0.20220511061302-192174cd668b
 	github.com/casbin/gorm-adapter/v3 => github.com/casbin/gorm-adapter/v3 v3.0.2
 	github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.6.3

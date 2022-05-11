@@ -9,6 +9,7 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/configuration"
 	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/configuration/parser"
+	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/parser_type"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"regexp"
@@ -81,10 +82,30 @@ func getStreamSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServic
 		// get listening port
 		port := configuration.Port(streamsrv)
 
-		proxyKey, err := streamsrv.Query(`key:sep: :reg: ^proxy_pass\s+`)
+		proxyKeyWords, err := parser.NewKeyWords(parser_type.TypeKey, true, `^proxy_pass\s+`)
 		if err != nil {
+			global.GVA_LOG.Warn("生成proxy_pass检索关键字异常", zap.Any("err", err))
 			continue
 		}
+		proxyKeyWords.SetCascaded(false)
+		srvCtx, ok := streamsrv.Self().(parser.Context)
+		if !ok {
+			global.GVA_LOG.Warn("断言stream.server为parser.Context错误", zap.Any("object", streamsrv))
+			continue
+		}
+
+		ctx, idx := srvCtx.Query(proxyKeyWords)
+		if ctx == nil {
+			global.GVA_LOG.Warn("检索proxy_pass键异常", zap.Any("stream.server-context", srvCtx), zap.Any("keywords", proxyKeyWords))
+			continue
+		}
+
+		proxyKey, err := configuration.NewQuerier(ctx, idx)
+		if err != nil {
+			global.GVA_LOG.Warn("获取proxy_pass键异常", zap.Any("err", err))
+			continue
+		}
+
 		proxyAddrs := getProxyAddresses(stream, proxyKey)
 		if len(proxyAddrs) == 0 {
 			global.GVA_LOG.Warn("获取steam server反向代理配置异常", zap.Any("listen_port", port), zap.Any("proxy_pass_value", proxyKey.Self().GetValue()))
@@ -139,8 +160,27 @@ func getHttpSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServiceI
 			continue
 		}
 		for _, location := range locations {
-			proxyKey, err := location.Query(`key:sep: :reg: ^proxy_pass\s+`)
+			proxyKeyWords, err := parser.NewKeyWords(parser_type.TypeKey, true, `^proxy_pass\s+`)
 			if err != nil {
+				global.GVA_LOG.Warn("生成proxy_pass检索关键字异常", zap.Any("err", err))
+				continue
+			}
+			proxyKeyWords.SetCascaded(false)
+			locCtx, ok := location.Self().(parser.Context)
+			if !ok {
+				global.GVA_LOG.Warn("断言location为parser.Context错误", zap.Any("object", location))
+				continue
+			}
+
+			ctx, idx := locCtx.Query(proxyKeyWords)
+			if ctx == nil {
+				global.GVA_LOG.Warn("检索proxy_pass键异常", zap.Any("location-context", locCtx), zap.Any("keywords", proxyKeyWords))
+				continue
+			}
+
+			proxyKey, err := configuration.NewQuerier(ctx, idx)
+			if err != nil {
+				global.GVA_LOG.Warn("获取proxy_pass键异常", zap.Any("err", err))
 				continue
 			}
 
