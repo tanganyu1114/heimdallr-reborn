@@ -19,7 +19,7 @@ func (w *WebServerConfigController) GetOptions(c *gin.Context) {
 
 func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 	var r metav1.WebServerOptions
-	err := c.ShouldBind(&r)
+	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
 		response.FailWithMessage("解析失败", c)
@@ -35,5 +35,5 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	response.OkWithDetailed(string(data), "获取成功", c)
+	response.OkWithDetailed(data, "获取成功", c)
 }

@@ -12,6 +12,8 @@ import (
 	"sync"
 )
 
+//go:generate mockgen -self_package=gin-vue-admin/internal/pkg/bifrosts -destination mock_bifrosts_manager.go -package bifrosts gin-vue-admin/internal/pkg/bifrosts Manager
+
 type Manager interface {
 	SyncServersStatus()
 

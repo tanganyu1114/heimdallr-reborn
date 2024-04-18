@@ -9,7 +9,7 @@ import service from '@/utils/request'
 export const getProxyServiceInfo = (data) => {
   return service({
     url: '/hmdr-statistics/proxy-svc-brief',
-    method: 'post',
+    method: 'get',
     data
   })
 }

@@ -7,33 +7,36 @@ import (
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_config"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_log_watcher"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_statistics"
-	"gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
+	bifrostssvc "gin-vue-admin/internal/hmdr_api/service/v1/bifrosts"
+	bifrostsstore "gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	"gin-vue-admin/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func InitPublicHeimdallrApi(rg *gin.RouterGroup) {
-	storeIns := bifrosts.GetBifrostsStore()
+	storeIns := bifrostsstore.GetBifrostsStore()
+	svcIns := bifrostssvc.NewService(storeIns)
 	webSrvLogWatcherRoutes := rg.Group("hmdrWebSocket").Use(middleware.OperationRecord())
 	{
-		webSrvLogWatcherController := web_server_log_watcher.NewController(storeIns)
+		webSrvLogWatcherController := web_server_log_watcher.NewController(svcIns)
 
 		webSrvLogWatcherRoutes.GET("ws", webSrvLogWatcherController.Watch)
 	}
 }
 
 func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
-	storeIns := bifrosts.GetBifrostsStore()
+	storeIns := bifrostsstore.GetBifrostsStore()
+	svcIns := bifrostssvc.NewService(storeIns)
 	agentRoutes := rg.Group("agent").Use(middleware.OperationRecord())
 	{
-		agentController := agent_info.NewController(storeIns)
+		agentController := agent_info.NewController(svcIns)
 
 		agentRoutes.GET("getAgentInfo", agentController.Get)
 	}
 
 	groupRoutes := rg.Group("hmdrGroup").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
 	{
-		groupController := group.NewController(storeIns)
+		groupController := group.NewController(svcIns)
 
 		groupRoutes.POST("createHmdrGroup", groupController.Create)                   // 新建HmdrGroup
 		groupRoutes.DELETE("deleteHmdrGroup", groupController.Delete)                 // 删除HmdrGroup
@@ -45,7 +48,7 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 
 	hostRoutes := rg.Group("hmdrHost").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
 	{
-		hostController := host.NewController(storeIns)
+		hostController := host.NewController(svcIns)
 
 		hostRoutes.POST("createHmdrHost", hostController.Create)                  // 新建HmdrHost
 		hostRoutes.DELETE("deleteHmdrHost", hostController.Delete)                // 删除HmdrHost
@@ -57,16 +60,21 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 
 	webSrvConfRoutes := rg.Group("conf").Use(middleware.OperationRecord())
 	{
-		webSrvConfController := web_server_config.NewController(storeIns)
+		webSrvConfController := web_server_config.NewController(svcIns)
 
-		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions)  // 获取options选择参数信息
-		webSrvConfRoutes.POST("getConfInfo", webSrvConfController.GetConfig) // 获取配置文件信息
+		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions) // 获取options选择参数信息
+		webSrvConfRoutes.GET("getConfInfo", webSrvConfController.GetConfig) // 获取配置文件信息
+		webSrvConfRoutes.POST("insert-clone-ctx", webSrvConfController.InsertWithClone)
+		webSrvConfRoutes.POST("insert-new-ctx", webSrvConfController.InsertWithNew)
+		webSrvConfRoutes.DELETE("remove-ctx", webSrvConfController.Remove)
+		webSrvConfRoutes.POST("modify-clone-ctx", webSrvConfController.ModifyWithClone)
+		webSrvConfRoutes.POST("modify-new-ctx", webSrvConfController.ModifyWithNew)
 	}
 
 	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.OperationRecord())
 	{
-		webSrvStatisticsController := web_server_statistics.NewController(storeIns)
+		webSrvStatisticsController := web_server_statistics.NewController(svcIns)
 
-		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
+		webSrvStatisticsRoutes.GET("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
 	}
 }

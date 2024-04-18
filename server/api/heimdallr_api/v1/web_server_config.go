@@ -1,6 +1,8 @@
 package v1
 
-import metav1 "gin-vue-admin/internal/pkg/meta/v1"
+import (
+	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+)
 
 type BifrostGroupMeta struct {
 	metav1.UintObjectMeta `json:",inline"`

@@ -7,9 +7,10 @@ import (
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	"gin-vue-admin/internal/pkg/bifrosts"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/configuration"
-	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/configuration/parser"
-	"github.com/ClessLi/bifrost/pkg/resolv/V2/nginx/parser_type"
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"regexp"
@@ -20,15 +21,15 @@ var (
 	wssOnce           = new(sync.Once)
 	singletonWSSStore *webServerStatisticsStore
 
-	regProxyPassValue = regexp.MustCompile(`^proxy_pass\s+(.+)$`)
-	regHttpURL        = regexp.MustCompile(`^http://([^/]+)(/\S*)?$`)
-	regHttpsURL       = regexp.MustCompile(`^https://([^/]+)(/\S*)?$`)
-	regOtherURL       = regexp.MustCompile(`^\S+://([^/]+)(/\S*)?$`)
-	regUpstream       = regexp.MustCompile(`^([^/:]+)(/\S*)?$`)
-	regAddrWithPort   = regexp.MustCompile(`^(\S+):(\d+)`)
-	regIPAddr         = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
+	regexpProxyPassValue = regexp.MustCompile(`^proxy_pass\s+(.+)$`)
+	regexpHttpURL        = regexp.MustCompile(`^http://([^/]+)(/\S*)?$`)
+	regexpHttpsURL       = regexp.MustCompile(`^https://([^/]+)(/\S*)?$`)
+	regexpOtherURL       = regexp.MustCompile(`^\S+://([^/]+)(/\S*)?$`)
+	regexpUpstream       = regexp.MustCompile(`^([^/:]+)(/\S*)?$`)
+	regexpAddrWithPort   = regexp.MustCompile(`^(\S+):(\d+)`)
+	regexpIPAddr         = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
 
-	regUpstreamSrvKey = regexp.MustCompile(`^server\s+(\S+)`)
+	regexpUpstreamSrvDirective = regexp.MustCompile(`^server\s+(\S+)`)
 )
 
 type webServerStatisticsStore struct {
@@ -44,7 +45,7 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts
 	if err != nil {
 		return nil, err
 	}
-	conf, err := configuration.NewConfigurationFromJsonBytes(confData)
+	conf, err := configuration.NewNginxConfigFromJsonBytes(confData)
 	if err != nil {
 		return nil, err
 	}
@@ -67,48 +68,30 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts
 	return proxySvcInfos, nil
 }
 
-func getStreamSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServiceInfo, error) {
+func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
 	var streamSrvsProxyBrief []v1.ProxyServiceInfo
-	stream, err := conf.Query("stream")
-	if err != nil {
-		return nil, err
-	}
-	streamsrvs, err := stream.QueryAll("server")
-	if err != nil {
-		return nil, err
-	}
+	stream := conf.Main().QueryByKeyWords(nginx_context.NewKeyWords(context_type.TypeStream)).Target()
 
-	for _, streamsrv := range streamsrvs {
+	for _, pos := range stream.QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeServer)) {
 		// get listening port
-		port := configuration.Port(streamsrv)
+		port := configuration.Port(pos.Target())
 
-		proxyKeyWords, err := parser.NewKeyWords(parser_type.TypeKey, true, `^proxy_pass\s+`)
-		if err != nil {
-			global.GVA_LOG.Warn("生成proxy_pass检索关键字异常", zap.Any("err", err))
-			continue
-		}
-		proxyKeyWords.SetCascaded(false)
-		srvCtx, ok := streamsrv.Self().(parser.Context)
-		if !ok {
-			global.GVA_LOG.Warn("断言stream.server为parser.Context错误", zap.Any("object", streamsrv))
-			continue
-		}
+		proxyPass := pos.Target().QueryByKeyWords(
+			nginx_context.NewKeyWords(context_type.TypeDirective).
+				SetRegexpMatchingValue(`^proxy_pass\s+`).
+				SetCascaded(false),
+		).Target()
 
-		ctx, idx := srvCtx.Query(proxyKeyWords)
-		if ctx == nil {
-			global.GVA_LOG.Warn("检索proxy_pass键异常", zap.Any("stream.server-context", srvCtx), zap.Any("keywords", proxyKeyWords))
+		if err := proxyPass.Error(); err != nil {
+			if !errors.Is(err, nginx_context.NullPos().Target().Error()) {
+				global.GVA_LOG.Warn("检索proxy_pass配置项异常", zap.Any("err", err))
+			}
 			continue
 		}
 
-		proxyKey, err := configuration.NewQuerier(ctx, idx)
-		if err != nil {
-			global.GVA_LOG.Warn("获取proxy_pass键异常", zap.Any("err", err))
-			continue
-		}
-
-		proxyAddrs := getProxyAddresses(stream, proxyKey)
+		proxyAddrs := getProxyAddresses(stream, proxyPass)
 		if len(proxyAddrs) == 0 {
-			global.GVA_LOG.Warn("获取steam server反向代理配置异常", zap.Any("listen_port", port), zap.Any("proxy_pass_value", proxyKey.Self().GetValue()))
+			global.GVA_LOG.Warn("获取Stream Server反向代理配置异常", zap.Any("listen_port", port), zap.Any("proxy_pass_value", proxyPass.Value()))
 			continue
 		}
 
@@ -125,68 +108,51 @@ func getStreamSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServic
 	return streamSrvsProxyBrief, nil
 }
 
-func getHttpSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServiceInfo, error) {
+func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
 	var httpSrvsProxyBrief []v1.ProxyServiceInfo
-	http, err := conf.Query("http")
-	if err != nil {
-		return nil, err
-	}
-	httpsrvs, err := http.QueryAll("server")
-	if err != nil {
-		return nil, err
-	}
-	for _, httpsrv := range httpsrvs {
+	http := conf.Main().QueryByKeyWords(nginx_context.NewKeyWords(context_type.TypeHttp)).Target()
+	for _, serverPos := range http.QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeServer)) {
 		// get server name
-		var srvname string
-		srvnameKey, err := httpsrv.Query(`key:sep: :reg: ^server_name\s+`)
-		if err != nil {
-			if !errors.IsCode(err, 110007) {
-				global.GVA_LOG.Warn("获取http server server_name key失败", zap.Any("err", err))
-				continue
+		srvnameDirective := serverPos.Target().QueryByKeyWords(
+			nginx_context.NewKeyWords(context_type.TypeDirective).
+				SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
+				SetCascaded(false),
+		).Target()
+		if err := srvnameDirective.Error(); err != nil {
+			if !errors.Is(err, nginx_context.NullPos().Target().Error()) {
+				global.GVA_LOG.Warn("未检索到Http Server的server_name配置项")
+			} else {
+				global.GVA_LOG.Warn("检索Http Server的server_name配置项失败", zap.Any("err", err))
 			}
-		} else if configuration.RegServerNameValue.MatchString(srvnameKey.Self().GetValue()) {
-			srvname = configuration.RegServerNameValue.FindStringSubmatch(srvnameKey.Self().GetValue())[1]
-		} else {
-			global.GVA_LOG.Warn("解析http server server_name key失败", zap.Any("server_name_value", srvnameKey.Self().GetValue()))
 			continue
 		}
+		srvname := srvnameDirective.(*local.Directive).Params
 
 		// get listening port
-		port := configuration.Port(httpsrv)
+		port := configuration.Port(serverPos.Target())
 
-		locations, err := httpsrv.QueryAll(`location:sep: :reg: .*`)
-		if err != nil {
-			global.GVA_LOG.Warn("获取http server location失败", zap.Any("err", err))
-			continue
-		}
-		for _, location := range locations {
-			proxyKeyWords, err := parser.NewKeyWords(parser_type.TypeKey, true, `^proxy_pass\s+`)
-			if err != nil {
-				global.GVA_LOG.Warn("生成proxy_pass检索关键字异常", zap.Any("err", err))
-				continue
-			}
-			proxyKeyWords.SetCascaded(false)
-			locCtx, ok := location.Self().(parser.Context)
-			if !ok {
-				global.GVA_LOG.Warn("断言location为parser.Context错误", zap.Any("object", location))
-				continue
-			}
+		for _, locationPos := range serverPos.Target().QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeLocation)) {
+			proxyPass := locationPos.Target().QueryByKeyWords(
+				nginx_context.NewKeyWords(context_type.TypeDirective).
+					SetRegexpMatchingValue(`^proxy_pass\s+`).
+					SetCascaded(false),
+			).Target()
 
-			ctx, idx := locCtx.Query(proxyKeyWords)
-			if ctx == nil {
-				global.GVA_LOG.Warn("检索proxy_pass键异常", zap.Any("location-context", locCtx), zap.Any("keywords", proxyKeyWords))
+			if err := proxyPass.Error(); err != nil {
+				if a, ok := err.(errors.Aggregate); ok {
+					if len(a.Errors()) == 1 {
+						err = a.Errors()[0]
+					}
+				}
+				if !errors.IsCode(err, 110017) {
+					global.GVA_LOG.Warn("获取proxy_pass配置项异常", zap.Any("err", err))
+				}
 				continue
 			}
 
-			proxyKey, err := configuration.NewQuerier(ctx, idx)
-			if err != nil {
-				global.GVA_LOG.Warn("获取proxy_pass键异常", zap.Any("err", err))
-				continue
-			}
-
-			proxyAddrs := getProxyAddresses(http, proxyKey)
+			proxyAddrs := getProxyAddresses(http, proxyPass)
 			if len(proxyAddrs) == 0 {
-				global.GVA_LOG.Warn("获取location反向代理配置异常", zap.Any("location", location.Self().GetValue()), zap.Any("proxy_pass_value", proxyKey.Self().GetValue()))
+				global.GVA_LOG.Warn("获取location反向代理配置异常", zap.Any("location", locationPos.Target().Value()), zap.Any("proxy_pass_value", proxyPass.Value()))
 				continue
 			}
 
@@ -195,7 +161,7 @@ func getHttpSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServiceI
 					ProxyType:    "HTTP",
 					ServerName:   srvname,
 					Port:         port,
-					Location:     location.Self().GetValue(),
+					Location:     locationPos.Target().Value(),
 					ProxyAddress: proxyAddr,
 				})
 
@@ -206,10 +172,10 @@ func getHttpSrvsProxyBrief(conf configuration.Configuration) ([]v1.ProxyServiceI
 	return httpSrvsProxyBrief, nil
 }
 
-func getProxyAddresses(httpOrStream, proxyKey configuration.Querier) []string {
+func getProxyAddresses(httpOrStream, proxypass nginx_context.Context) []string {
 	var url string
-	if regProxyPassValue.MatchString(proxyKey.Self().GetValue()) {
-		url = regProxyPassValue.FindStringSubmatch(proxyKey.Self().GetValue())[1]
+	if regexpProxyPassValue.MatchString(proxypass.Value()) {
+		url = regexpProxyPassValue.FindStringSubmatch(proxypass.Value())[1]
 	} else {
 		return nil
 	}
@@ -217,9 +183,9 @@ func getProxyAddresses(httpOrStream, proxyKey configuration.Querier) []string {
 	return parseAddresses(httpOrStream, url)
 }
 
-func parseAddresses(httpOrStream configuration.Querier, url string) []string {
-	switch httpOrStream.Self().(type) {
-	case *parser.Http, *parser.Stream:
+func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
+	switch httpOrStream.(type) {
+	case *local.Http, *local.Stream:
 	default:
 		global.GVA_LOG.Warn("解析代理地址异常！入参httpOrStream非http或stream上下文")
 		return nil
@@ -233,56 +199,60 @@ func parseAddresses(httpOrStream configuration.Querier, url string) []string {
 	var upstreamName string
 	// get default port, address and upstream name
 	switch {
-	case regHttpsURL.MatchString(url):
+	case regexpHttpsURL.MatchString(url):
 		defaultPort = "443"
-		address = regHttpsURL.FindStringSubmatch(url)[1]
-	case regHttpURL.MatchString(url):
+		address = regexpHttpsURL.FindStringSubmatch(url)[1]
+	case regexpHttpURL.MatchString(url):
 		defaultPort = "80"
-		address = regHttpURL.FindStringSubmatch(url)[1]
-	case regOtherURL.MatchString(url):
+		address = regexpHttpURL.FindStringSubmatch(url)[1]
+	case regexpOtherURL.MatchString(url):
 		defaultPort = "unknown_port"
-		address = regOtherURL.FindStringSubmatch(url)[1]
-	case regAddrWithPort.MatchString(url):
-		address = regAddrWithPort.FindStringSubmatch(url)[1] + ":" + regAddrWithPort.FindStringSubmatch(url)[2]
-	case regUpstream.MatchString(url):
-		upstreamName = regUpstream.FindStringSubmatch(url)[1]
+		address = regexpOtherURL.FindStringSubmatch(url)[1]
+	case regexpAddrWithPort.MatchString(url):
+		address = regexpAddrWithPort.FindStringSubmatch(url)[1] + ":" + regexpAddrWithPort.FindStringSubmatch(url)[2]
+	case regexpUpstream.MatchString(url):
+		upstreamName = regexpUpstream.FindStringSubmatch(url)[1]
 	default:
 		return nil
 	}
 
 	if upstreamName == "" {
-		if regAddrWithPort.MatchString(address) {
-			port = regAddrWithPort.FindStringSubmatch(address)[2]
-			address = regAddrWithPort.FindStringSubmatch(address)[1]
+		if regexpAddrWithPort.MatchString(address) {
+			port = regexpAddrWithPort.FindStringSubmatch(address)[2]
+			address = regexpAddrWithPort.FindStringSubmatch(address)[1]
 		} else {
 			port = defaultPort
 		}
 
-		if regIPAddr.MatchString(address) {
+		if regexpIPAddr.MatchString(address) {
 			addrs = append(addrs, address+":"+port)
 			return addrs
 		}
 		upstreamName = address
 	}
 
-	upstream, err := httpOrStream.Query(`upstream:sep: ` + upstreamName)
-	if err != nil || upstream == nil {
+	upstream := httpOrStream.QueryByKeyWords(
+		nginx_context.NewKeyWords(context_type.TypeUpstream).
+			SetStringMatchingValue(upstreamName),
+	).Target()
+	if upstream == nginx_context.NullPos().Target() {
 		addrs = append(addrs, upstreamName+":"+port)
 		return addrs
 	}
 
-	upstreamSrvKeys, err := upstream.QueryAll(`key:sep: :reg: ^server\s+`)
-	if err != nil {
-		return nil
-	}
-
-	for _, srvKey := range upstreamSrvKeys {
-		if regUpstreamSrvKey.MatchString(srvKey.Self().GetValue()) {
-			srvAddr := regUpstreamSrvKey.FindStringSubmatch(srvKey.Self().GetValue())[1]
+	for _, pos := range upstream.QueryAllByKeyWords(
+		nginx_context.NewKeyWords(context_type.TypeDirective).
+			SetRegexpMatchingValue(`^server\s+`),
+	) {
+		if regexpUpstreamSrvDirective.MatchString(pos.Target().Value()) {
+			srvAddr := regexpUpstreamSrvDirective.FindStringSubmatch(pos.Target().Value())[1]
 			//addrs = append(addrs, parseAddresses(httpOrStream, srvAddr)...)  // upstream 不能嵌套调用
 			addrs = append(addrs, srvAddr)
+			return addrs
 		}
 	}
+
+	addrs = append(addrs, address)
 	return addrs
 }
 

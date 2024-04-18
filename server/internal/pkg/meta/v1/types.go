@@ -1,5 +1,7 @@
 package v1
 
+import "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
+
 type ListMeta struct {
 	TotalCount int64 `json:"totalCount,omitempty"`
 }
@@ -38,4 +40,37 @@ type WebServerLogOptions struct {
 	WebServerOptions    `json:",inline"`
 	LogName             string `json:"log_name"`
 	FilteringRegexpRule string `json:"filtering_regexp_rule"`
+}
+
+type WebServerConfigContextDeleteOptions struct {
+	WebServerOptions
+	ConfigContextPos
+}
+
+type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
+	WebServerOptions                              `json:"web_server_options"`
+	TargetConfigContextOptions[TargetContextMeta] `json:"target_config_context_options"`
+}
+
+type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
+	Position      ConfigContextPos  `json:"position"`
+	TargetContext TargetContextMeta `json:"target_context"`
+}
+
+type ConfigContextPos struct {
+	Config         string `json:"config"`
+	ContextPosPath []int  `json:"context-pos-path"`
+}
+
+type ConfigContextMeta interface {
+	NewConfigContextMeta | CloneConfigContextMeta
+}
+
+type NewConfigContextMeta struct {
+	ContextType  context_type.ContextType `json:"context-type"`
+	ContextValue string                   `json:"context-value"`
+}
+
+type CloneConfigContextMeta struct {
+	ConfigContextPos `json:"clone-context-pos"`
 }
