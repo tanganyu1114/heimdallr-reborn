@@ -42,19 +42,19 @@ type WebServerLogOptions struct {
 	FilteringRegexpRule string `json:"filtering_regexp_rule"`
 }
 
-type WebServerConfigContextDeleteOptions struct {
-	WebServerOptions
-	ConfigContextPos
+type WebServerConfigTargetContextOptions struct {
+	WebServerOptions `json:",inline"`
+	ConfigContextPos `json:",inline"`
 }
 
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
-	WebServerOptions                              `json:"web_server_options"`
-	TargetConfigContextOptions[TargetContextMeta] `json:"target_config_context_options"`
+	WebServerOptions                              `json:"web-server-options"`
+	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options"`
 }
 
 type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
 	Position      ConfigContextPos  `json:"position"`
-	TargetContext TargetContextMeta `json:"target_context"`
+	TargetContext TargetContextMeta `json:"target-context"`
 }
 
 type ConfigContextPos struct {
@@ -62,13 +62,10 @@ type ConfigContextPos struct {
 	ContextPosPath []int  `json:"context-pos-path"`
 }
 
-type ConfigContextMeta interface {
-	NewConfigContextMeta | CloneConfigContextMeta
-}
-
 type NewConfigContextMeta struct {
-	ContextType  context_type.ContextType `json:"context-type"`
-	ContextValue string                   `json:"context-value"`
+	ContextType         context_type.ContextType `json:"context-type"`
+	ContextValue        string                   `json:"context-value"`
+	ChildrenContextMeta []NewConfigContextMeta   `json:"children-context-meta"`
 }
 
 type CloneConfigContextMeta struct {

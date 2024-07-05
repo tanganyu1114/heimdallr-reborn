@@ -10,7 +10,6 @@ import (
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
-	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"sync"
@@ -77,19 +76,27 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 }
 
 func (w *webServerConfigStore) getConfig(opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
+	data, err := w.getConfigJSON(opts)
+	if err != nil {
+		return nil, err
+	}
+	nginxConfig, err := configuration.NewNginxConfigFromJsonBytes(data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse web server config(%s)", opts.ServerName)
+	}
+	return nginxConfig, nil
+}
+
+func (w *webServerConfigStore) getConfigJSON(opts metav1.WebServerOptions) ([]byte, error) {
 	client, err := w.bm.GetBifrostClient(opts)
 	if err != nil {
 		return nil, err
 	}
 	data, err := client.WebServerConfig().Get(opts.ServerName)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get web server config")
+		return nil, errors.Wrapf(err, "failed to get web server config(%s)", opts.ServerName)
 	}
-	nginxConfig, err := configuration.NewNginxConfigFromJsonBytes(data)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse web server config")
-	}
-	return nginxConfig, nil
+	return data, nil
 }
 
 func (w *webServerConfigStore) updateConfig(opts metav1.WebServerOptions, data []byte) error {
@@ -103,12 +110,8 @@ func (w *webServerConfigStore) updateConfig(opts metav1.WebServerOptions, data [
 	return client.WebServerConfig().Update(opts.ServerName, data)
 }
 
-func (w *webServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) ([]string, error) {
-	nginxConfig, err := w.getConfig(opts)
-	if err != nil {
-		return nil, err
-	}
-	return nginxConfig.TextLines(), nil
+func (w *webServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
+	return w.getConfig(opts)
 }
 
 func (w *webServerConfigStore) parseContextPos(nginxconfig configuration.NginxConfig, pos metav1.ConfigContextPos) (nginx_context.Pos, error) {
@@ -116,8 +119,12 @@ func (w *webServerConfigStore) parseContextPos(nginxconfig configuration.NginxCo
 		return nginx_context.NullPos(), errors.New("nginx config context pos path is null")
 	}
 
+	posConfigPath, err := nginx_context.NewRelConfigPath(nginxconfig.Main().MainConfig().BaseDir(), pos.Config)
+	if err != nil {
+		return nginx_context.NullPos(), errors.Errorf("failed to parse nginx config path(%s), cased by: %s", pos.Config, err)
+	}
 	nextFather := nginx_context.NullContext()
-	nextFather, err := nginxconfig.Main().GetConfig(pos.Config)
+	nextFather, err = nginxconfig.Main().GetConfig(posConfigPath.FullPath())
 	if err != nil {
 		return nginx_context.NullPos(), err
 	}
@@ -221,6 +228,42 @@ func (w *webServerConfigStore) ModifyWithNew(_ context.Context, opts metav1.WebS
 	return w.updateConfig(opts, nginxConfig.Json())
 }
 
+func (w *webServerConfigStore) Move(_ context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+	nginxConfig, err := w.getConfig(opts)
+	if err != nil {
+		return err
+	}
+	targetPos, err := w.parseContextPos(nginxConfig, ctxmeta.Position)
+	if err != nil {
+		return errors.Errorf("failed to parse target position: %v", err)
+	}
+	targetFather, targetIdx := targetPos.Position()
+	toBeMovedPos, err := w.parseContextPos(nginxConfig, ctxmeta.TargetContext.ConfigContextPos)
+	if err != nil {
+		return errors.Errorf("failed to parse context posision to be moved: %v", err)
+	}
+	toBeMovedCtx := toBeMovedPos.Target()
+	if err = toBeMovedCtx.Error(); err != nil {
+		return errors.Errorf("failed to parse context posision to be moved: %v", err)
+	}
+	toBeMovedFather, toBeMovedIdx := toBeMovedPos.Position()
+	maybeAfterTarget := toBeMovedIdx < targetIdx
+	if !maybeAfterTarget {
+		if err = toBeMovedFather.Remove(toBeMovedIdx).Error(); err != nil {
+			return errors.Errorf("failed to removed context to be moved: %v", err)
+		}
+	}
+	if err = targetFather.Insert(toBeMovedCtx, targetIdx).Error(); err != nil {
+		return errors.Errorf("failed to insert context to be moved: %v", err)
+	}
+	if maybeAfterTarget {
+		if err = toBeMovedFather.Remove(toBeMovedIdx).Error(); err != nil {
+			return errors.Errorf("failed to removed context to be moved: %v", err)
+		}
+	}
+	return w.updateConfig(opts, nginxConfig.Json())
+}
+
 func newWebServerConfigStore(store *bifrostsStore) *webServerConfigStore {
 	wscOnce.Do(func() {
 		if singletonWSCStore == nil {
@@ -235,20 +278,10 @@ func newWebServerConfigStore(store *bifrostsStore) *webServerConfigStore {
 	return singletonWSCStore
 }
 
-func newConfigContext(meta metav1.NewConfigContextMeta) (ctx nginx_context.Context) {
-	switch meta.ContextType {
-	case context_type.TypeDirective:
-		ctx = local.NewDirective("", "")
-		err := ctx.SetValue(meta.ContextValue)
-		if err != nil {
-			return nginx_context.ErrContext(err)
-		}
-	case context_type.TypeComment:
-		ctx = local.NewComment(meta.ContextValue, false)
-	case context_type.TypeInlineComment:
-		ctx = local.NewComment(meta.ContextValue, true)
-	default:
-		ctx = local.NewContext(meta.ContextType, meta.ContextValue)
+func newConfigContext(meta metav1.NewConfigContextMeta) nginx_context.Context {
+	ctx := local.NewContext(meta.ContextType, meta.ContextValue)
+	for idx, childMeta := range meta.ChildrenContextMeta {
+		ctx = ctx.Insert(newConfigContext(childMeta), idx)
 	}
-	return
+	return ctx
 }

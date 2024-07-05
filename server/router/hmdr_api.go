@@ -8,6 +8,7 @@ import (
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_log_watcher"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_statistics"
 	bifrostssvc "gin-vue-admin/internal/hmdr_api/service/v1/bifrosts"
+	loggingsvc "gin-vue-admin/internal/hmdr_api/service/v1/logging"
 	bifrostsstore "gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	"gin-vue-admin/middleware"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ func InitPublicHeimdallrApi(rg *gin.RouterGroup) {
 
 func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 	storeIns := bifrostsstore.GetBifrostsStore()
-	svcIns := bifrostssvc.NewService(storeIns)
+	svcIns := loggingsvc.NewService(bifrostssvc.NewService(storeIns))
 	agentRoutes := rg.Group("agent").Use(middleware.OperationRecord())
 	{
 		agentController := agent_info.NewController(svcIns)
@@ -62,19 +63,21 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 	{
 		webSrvConfController := web_server_config.NewController(svcIns)
 
-		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions) // 获取options选择参数信息
-		webSrvConfRoutes.GET("getConfInfo", webSrvConfController.GetConfig) // 获取配置文件信息
+		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions)           // 获取options选择参数信息
+		webSrvConfRoutes.POST("getConfInfo", webSrvConfController.GetConfigTextLines) // 获取配置文件信息
+		webSrvConfRoutes.POST("get-conf-struct", webSrvConfController.GetConfig)      // 获取配置文件JSON数据
 		webSrvConfRoutes.POST("insert-clone-ctx", webSrvConfController.InsertWithClone)
 		webSrvConfRoutes.POST("insert-new-ctx", webSrvConfController.InsertWithNew)
 		webSrvConfRoutes.DELETE("remove-ctx", webSrvConfController.Remove)
 		webSrvConfRoutes.POST("modify-clone-ctx", webSrvConfController.ModifyWithClone)
 		webSrvConfRoutes.POST("modify-new-ctx", webSrvConfController.ModifyWithNew)
+		webSrvConfRoutes.POST("move-ctx", webSrvConfController.Move)
 	}
 
 	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.OperationRecord())
 	{
 		webSrvStatisticsController := web_server_statistics.NewController(svcIns)
 
-		webSrvStatisticsRoutes.GET("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
+		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
 	}
 }

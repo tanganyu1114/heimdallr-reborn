@@ -15,6 +15,7 @@ import (
 	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	reflect "reflect"
 
+	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,10 +43,10 @@ func (m *MockWebServerConfigSrv) EXPECT() *MockWebServerConfigSrvMockRecorder {
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServerOptions) ([]string, error) {
+func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServerOptions) (configuration.NginxConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", ctx, opts)
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].(configuration.NginxConfig)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -125,6 +126,20 @@ func (m *MockWebServerConfigSrv) ModifyWithNew(ctx context.Context, opts v10.Web
 func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithNew(ctx, opts, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyWithNew), ctx, opts, ctxmeta)
+}
+
+// Move mocks base method.
+func (m *MockWebServerConfigSrv) Move(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Move", ctx, opts, ctxmeta)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Move indicates an expected call of Move.
+func (mr *MockWebServerConfigSrvMockRecorder) Move(ctx, opts, ctxmeta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Move), ctx, opts, ctxmeta)
 }
 
 // Remove mocks base method.

@@ -3,7 +3,7 @@ module gin-vue-admin
 go 1.21
 
 require (
-	github.com/ClessLi/bifrost v1.0.11
+	github.com/ClessLi/bifrost v1.0.12
 	github.com/ClessLi/component-base v1.0.6
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/casbin/casbin v1.9.1
@@ -32,6 +32,7 @@ require (
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
 	github.com/unrolled/secure v1.0.7
+	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.26.0
 	google.golang.org/grpc v1.62.1
 	gorm.io/driver/mysql v1.1.2
@@ -100,12 +101,10 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/image v0.13.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

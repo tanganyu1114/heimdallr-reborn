@@ -6,6 +6,7 @@ import (
 	"gin-vue-admin/model/response"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"strings"
 )
 
 func (w *WebServerConfigController) GetOptions(c *gin.Context) {
@@ -15,6 +16,27 @@ func (w *WebServerConfigController) GetOptions(c *gin.Context) {
 	} else {
 		response.OkWithDetailed(groups, "获取成功", c)
 	}
+}
+
+func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
+	// TODO: 新增支持指定配置上下文对象文本格式获取的功能
+	var r metav1.WebServerOptions
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+
+	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
+	if err != nil {
+		global.GVA_LOG.Error("获取失败!")
+		response.FailWithMessage("获取失败", c)
+
+		return
+	}
+	response.OkWithDetailed(strings.Join(config.TextLines(), "\n"), "获取成功", c)
 }
 
 func (w *WebServerConfigController) GetConfig(c *gin.Context) {
@@ -27,7 +49,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	data, err := w.svc.WebServerConfigs().GetConfig(c, r)
+	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!")
 		response.FailWithMessage("获取失败", c)
@@ -35,5 +57,5 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	response.OkWithDetailed(data, "获取成功", c)
+	response.OkWithDetailed(config.Main(), "获取成功", c)
 }

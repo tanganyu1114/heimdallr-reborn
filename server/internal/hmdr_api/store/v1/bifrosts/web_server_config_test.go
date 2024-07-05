@@ -69,17 +69,17 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 		opts metav1.WebServerOptions
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []string
-		wantErr bool
+		name                string
+		fields              fields
+		args                args
+		wantConfigTextLines []string
+		wantErr             bool
 	}{
 		{
 			name:   "normal test",
 			fields: fields{bm: mockBifrostsManager},
 			args:   args{opts: webSrvOpts},
-			want: []string{
+			wantConfigTextLines: []string{
 				`# user  nobody;`,
 				`worker_processes 1;`,
 				`# error_log  logs/error.log;`,
@@ -211,11 +211,11 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`    # keepalive_timeout  0;`,
 				`    keepalive_timeout 65;`,
 				`    # gzip  on;`,
-				`    # include <== conf.d\test*.com.conf`,
+				`    # include <== ./conf.d/test*.com.conf`,
 				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
 				`        listen 80;`,
 				`        server_name test1.com;`,
-				`        # include <== conf.d\location.conf`,
+				`        # include <== ./conf.d/location.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -232,7 +232,7 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`    server {`,
 				`        listen 80;`,
 				`        server_name test2.com;`,
-				`        # include <== conf.d\location.conf`,
+				`        # include <== ./conf.d/location.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -246,11 +246,11 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`            proxy_pass upstream.test.1;`,
 				`        }`,
 				`    }`,
-				`    # include <== conf.d\server_test*.conf`,
+				`    # include <== ./conf.d/server_test*.conf`,
 				`    server {`,
 				`        listen 80;`,
 				`        server_name test1.com;`,
-				`        # include <== conf.d\location*.conf`,
+				`        # include <== ./conf.d/location*.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -292,7 +292,19 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test1.com;`,
-				`        # include <== conf.d\location*.conf`,
+				`        # include <== ./conf.d/location*.conf`,
+				`        location /test {`,
+				`            root html/test;`,
+				`            index index.html index.htm;`,
+				`        }`,
+				`        # include location.conf;`,
+				`        upstream upstream.test.1 {`,
+				`            server 10.1.1.1:443;`,
+				`            server 10.1.1.2:443;`,
+				`        }`,
+				`        location /test_proxy {`,
+				`            proxy_pass upstream.test.1;`,
+				`        }`,
 				`        location /test2 {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -318,23 +330,11 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`        location /test_proxy4 {`,
 				`            proxy_pass http://10.1.1.2:333/test1;`,
 				`        }`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # include location.conf;`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
 				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test2.com;`,
-				`        # include <== conf.d\location*.conf`,
+				`        # include <== ./conf.d/location*.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -382,7 +382,7 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`            root html;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include <== conf.d\location.conf`,
+				`        # include <== ./conf.d/location.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -432,7 +432,7 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`            root html;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include <== conf.d\location.conf`,
+				`        # include <== ./conf.d/location.conf`,
 				`        location /test {`,
 				`            root html/test;`,
 				`            index index.html index.htm;`,
@@ -488,8 +488,8 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				t.Errorf("GetConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetConfig() got = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got.TextLines(), tt.wantConfigTextLines) {
+				t.Errorf("GetConfig() got.TextLines() = %v, want %v", got.TextLines(), tt.wantConfigTextLines)
 			}
 		})
 	}
@@ -772,6 +772,76 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 			}
 			if err := w.Remove(tt.args.ctx, tt.args.opts, tt.args.pos); (err != nil) != tt.wantErr {
 				t.Errorf("Remove() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigStore_Move(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
+	mockBifrostsManager.EXPECT().GetBifrostClient(webSrvOpts).AnyTimes().Return(&bifrostclinetv1.Client{Factory: new(fake.ServiceClient)}, nil)
+	type fields struct {
+		bm bifrosts.Manager
+	}
+	type args struct {
+		in0     context.Context
+		opts    metav1.WebServerOptions
+		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "normal test",
+			fields: fields{bm: mockBifrostsManager},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\nginx.conf",
+						ContextPosPath: []int{8, 13, 4},
+					},
+					TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location2.conf",
+						ContextPosPath: []int{4},
+					}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:   "index of context to be moved, is out of range",
+			fields: fields{bm: mockBifrostsManager},
+			args: args{
+				in0:  nil,
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\nginx.conf",
+						ContextPosPath: []int{8, 13, 4},
+					},
+					TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location2.conf",
+						ContextPosPath: []int{8},
+					}},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigStore{
+				bm: tt.fields.bm,
+			}
+			if err := w.Move(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+				t.Errorf("Move() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 func (w *WebServerConfigController) Remove(c *gin.Context) {
-	var r metav1.WebServerConfigContextDeleteOptions
+	var r metav1.WebServerConfigTargetContextOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))

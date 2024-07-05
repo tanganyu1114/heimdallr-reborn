@@ -94,3 +94,30 @@ func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
 
 	response.OkWithMessage("修改成功", c)
 }
+
+// @Tags conf
+// @Summary 移动指定配置上下文
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"修改成功"}"
+// @Router /conf/move-ctx [post]
+func (w *WebServerConfigController) Move(c *gin.Context) {
+	var r metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+	err = w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.TargetConfigContextOptions)
+	if err != nil {
+		global.GVA_LOG.Error("修改失败!")
+		response.FailWithMessage("修改失败", c)
+
+		return
+	}
+
+	response.OkWithMessage("修改成功", c)
+}

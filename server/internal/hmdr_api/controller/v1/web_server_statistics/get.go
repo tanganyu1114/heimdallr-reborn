@@ -10,7 +10,7 @@ import (
 
 func (w *WebServerStatisticsController) GetProxyServiceInfo(c *gin.Context) {
 	var r metav1.WebServerOptions
-	err := c.ShouldBind(&r)
+	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
 		response.FailWithMessage("解析失败", c)

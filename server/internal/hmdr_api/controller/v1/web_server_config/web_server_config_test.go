@@ -41,7 +41,7 @@ func TestNewController(t *testing.T) {
 	}
 }
 
-func TestWebServerConfigController_GetConfig(t *testing.T) {
+func TestWebServerConfigController_GetConfigTextLines(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
@@ -73,7 +73,58 @@ func TestWebServerConfigController_GetConfig(t *testing.T) {
 		args   args
 	}{
 		{
-			name:   "http method error",
+			name:   "normal test",
+			fields: fields{svc: svc},
+			args: args{
+				c:    getRequestCtx,
+				resp: getResponse,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &WebServerConfigController{
+				svc: tt.fields.svc,
+			}
+			w.GetConfigTextLines(tt.args.c)
+			t.Logf("Code: %d, Body: %s", tt.args.resp.Code, tt.args.resp.Body)
+		})
+	}
+}
+
+func TestWebServerConfigController_GetConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	svc := svcv1.NewMockFactory(ctrl)
+	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	getResponse := httptest.NewRecorder()
+	serverOpts := metav1.WebServerOptions{
+		GroupID:    0,
+		HostID:     0,
+		ServerName: "test-bifrost",
+	}
+	b, err := json.Marshal(serverOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	getBody := bytes.NewBuffer(b)
+	getRequest := httptest.NewRequest("GET", "/api/conf/get-conf-struct", getBody)
+	getRequestCtx, _ := gin.CreateTestContext(getResponse)
+	getRequestCtx.Request = getRequest
+	type fields struct {
+		svc svcv1.Factory
+	}
+	type args struct {
+		c    *gin.Context
+		resp *httptest.ResponseRecorder
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name:   "normal test",
 			fields: fields{svc: svc},
 			args: args{
 				c:    getRequestCtx,
@@ -494,7 +545,7 @@ func TestWebServerConfigController_Remove(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
-	validMeta := metav1.WebServerConfigContextDeleteOptions{
+	validMeta := metav1.WebServerConfigTargetContextOptions{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
@@ -505,7 +556,7 @@ func TestWebServerConfigController_Remove(t *testing.T) {
 			ContextPosPath: []int{8, 13, 4},
 		},
 	}
-	invalidMeta := metav1.WebServerConfigContextDeleteOptions{}
+	invalidMeta := metav1.WebServerConfigTargetContextOptions{}
 	type fields struct {
 		svc svcv1.Factory
 	}
@@ -548,6 +599,99 @@ func TestWebServerConfigController_Remove(t *testing.T) {
 			c, _ := gin.CreateTestContext(resp)
 			c.Request = httptest.NewRequest("DELETE", "/api/conf/remove-ctx", bytes.NewBuffer(reqBodyBytes))
 			w.Remove(c)
+			var respBody response.Response
+			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+				t.Fatal(err)
+			}
+			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
+		})
+	}
+}
+
+func TestWebServerConfigController_Move(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	svc := svcv1.NewMockFactory(ctrl)
+	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\nginx.conf",
+				ContextPosPath: []int{8, 13, 4},
+			},
+			TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{4},
+			}},
+		},
+	}
+	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{2},
+			},
+			TargetContext: metav1.NewConfigContextMeta{
+				ContextType:  "location",
+				ContextValue: "~ /normal-test",
+			},
+		},
+	}
+	type fields struct {
+		svc svcv1.Factory
+	}
+	type args struct {
+		requestMeta any
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "valid request body",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: validMeta,
+			},
+			wantErr: false,
+		},
+		{
+			name:   "invalid request body",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: invalidMeta,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &WebServerConfigController{
+				svc: tt.fields.svc,
+			}
+			reqBodyBytes, err := json.Marshal(tt.args.requestMeta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(resp)
+			c.Request = httptest.NewRequest("POST", "/api/conf/move-ctx", bytes.NewBuffer(reqBodyBytes))
+			w.Move(c)
 			var respBody response.Response
 			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
 				t.Fatal(err)

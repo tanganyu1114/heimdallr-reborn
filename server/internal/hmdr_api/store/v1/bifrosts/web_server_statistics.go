@@ -184,8 +184,8 @@ func getProxyAddresses(httpOrStream, proxypass nginx_context.Context) []string {
 }
 
 func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
-	switch httpOrStream.(type) {
-	case *local.Http, *local.Stream:
+	switch httpOrStream.Type() {
+	case context_type.TypeHttp, context_type.TypeStream:
 	default:
 		global.GVA_LOG.Warn("解析代理地址异常！入参httpOrStream非http或stream上下文")
 		return nil
