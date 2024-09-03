@@ -44,6 +44,21 @@ export const getConfStruct = (data) => {
 }
 
 // @Tags conf
+// @Summary 插入需新增的配置上下文
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"新增成功"}"
+// @Router /conf/insert-new-ctx [post]
+export const insertNewCtx = (data) => {
+  return service({
+    url: '/conf/insert-new-ctx',
+    method: 'post',
+    data
+  })
+}
+
+// @Tags conf
 // @Summary 插入需被克隆的配置上下文
 // @Security ApiKeyAuth
 // @accept application/json

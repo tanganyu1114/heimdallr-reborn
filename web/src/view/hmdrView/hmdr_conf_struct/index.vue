@@ -43,17 +43,22 @@
           </el-radio-group>
         </el-card>
       </el-col>
-      <el-col :span="18">
-        <el-card class="configStructureClass">
-
-          <!--<div style="height:600px;">
-            <el-scrollbar style="height:100%">
-              <highlightjs language="nginx" :code="code" />
-            </el-scrollbar>
-          </div>-->
-          <!--          <highlightjs language="nginx" :code="code" class="hljs" />-->
-          <!--            @node-drag-start="backupTreeNodeDrag"-->
+      <el-col :span="18" style="height: 610px; max-height: 610px; overflow: hidden">
+        <el-card-collapse ref="ctxCreatorsCard" :is-collapse="ctxCreatorsCardIsCollapse" @click-event="handleCtxCreatorsCardClickEvent">
+          <div slot="header" class="flex-between">
+            <el-button style="display: none; padding: 3px 0; margin-right: 10px;" type="text">操作按钮</el-button>
+          </div>
+          <location-creator
+            ref="locationCreator"
+            @form-commit-event="handleNewCtxCommitEvent"
+            @node-drag-start="handleCtxCreatorDragStart"
+            @node-drag-end="handleCtxCreatorDragEnd"
+            @dialog-before-close-event="resetUpdateRequest"
+          />
+        </el-card-collapse>
+        <el-card ref="configStructCard" class="configStructureClass">
           <el-tree
+            ref="configTree"
             :data="currentConfStruct"
             :props="defaultProps"
             :default-expanded-keys="currentTreeExpandedKeysMap[currentConfig]"
@@ -67,9 +72,9 @@
             @node-collapse="(data)=>handleTreeNodeCollapse(data)"
             @node-drop="handleTreeNodeDrop"
           />
-          <el-dialog title="拖拽确认" width="25%" :visible.sync="dragDialogVisible">
+          <el-dialog title="拖拽确认" width="25%" :visible.sync="dragTreeNodeDialogVisible">
             <p>请选择拖拽操作定义选项:</p>
-            <el-radio-group v-model="dragRadio" size="mini">
+            <el-radio-group v-model="dragTreeNodeRadio" size="mini">
               <el-radio label="mv">移动</el-radio>
               <el-radio label="cp">复制</el-radio>
             </el-radio-group>
@@ -177,10 +182,16 @@ class LocationCtx extends ContextStruct {
   }
 }
 
-import { getOptions, getConfStruct, moveCtx, insertCloneCtx } from '@/api/hmdr_conf.js'
+import { getOptions, getConfStruct, moveCtx, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
+import LocationCreator from '@/view/hmdrView/hmdr_conf_struct/component/locationCreator.vue'
+import ElCardCollapse from '@/components/ElCardCollapse.vue'
 
 export default {
   name: 'HmdrConfStruct',
+  components: {
+    LocationCreator,
+    ElCardCollapse
+  },
   data() {
     return {
       currentConfig: '',
@@ -191,9 +202,11 @@ export default {
         mainConfig: '',
         configs: {}
       },
-      // code: [],
       formData: {
         value: []
+      },
+      ctxCreateDialogVisibleMap: {
+        location: false
       },
       rules: {
         value: [{
@@ -208,13 +221,19 @@ export default {
         label: this.toTreeLabel,
         isLeaf: this.isTreeLeaf
       },
-      dragRadio: '',
-      dragDialogVisible: false,
-      isConfirmingDrag: false
+      dragTreeNodeRadio: '',
+      dragTreeNodeDialogVisible: false,
+      isConfirmingDrag: false,
+      ctxCreatorsCardIsCollapse: true
     }
   },
   created() {
     this.initOptions()
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.setConfigStructCardHeight()
+    })
   },
   methods: {
     async initOptions() {
@@ -243,6 +262,7 @@ export default {
       this.$refs['elForm'].validate(async(valid) => {
         if (!valid) return
         if (await this.refreshConfStruct()) {
+          this.currentTreeExpandedKeysMap = {}
           await this.changeConfStructTo(this.configsData.mainConfig)
         }
       })
@@ -329,15 +349,9 @@ export default {
     treeRenderContent(h, { data, node, store }) {
       var el = new ContextStructBuilder().build(data).genExtendLabel()
       if (node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include') {
-        // var includeConfName = node.parent.label
         // console.log(node.label)
         var includeConfCheckOut = <span> <el-button size='mini' type='info' icon='el-icon-position' on-click = { () => this.changeConfStructTo(node.label) }>跳转至该配置< /el-button></span>
       }
-      // return (
-      //   <span class='custom-tree-node'>
-      //     <span>{node.label}</span><span v-if="el !== ''" style='color: darkseagreen'> {el}</span>
-      //   </span>
-      // )
       if (el === undefined || el === '') {
         return (
           <span class='custom-tree-node'>
@@ -368,7 +382,8 @@ export default {
       }
     },
     handleTreeNodeDrop(draggingNode, dropNode, dropType, ev) {
-      var draggingPos = draggingNode.data.pos
+      // console.log('draggingNode.data: ' + JSON.stringify(draggingNode.data))
+      if (draggingNode.data === undefined) return
       var targetPos = dropNode.data.pos
       switch (dropType) {
         case 'before': {
@@ -391,6 +406,7 @@ export default {
           return
         }
       }
+
       this.updateRequestData = {
         'web-server-options': {
           group_id: this.formData.value[0],
@@ -401,21 +417,31 @@ export default {
           position: {
             config: this.currentConfig,
             'context-pos-path': targetPos
-          },
-          'target-context': {
+          }
+        }
+      }
+
+      switch (draggingNode.data.dragType) {
+        case 'create': {
+          this.$refs[draggingNode.data.ctxType + 'Creator'].openDialog()
+          break
+        }
+        default: {
+          var draggingPos = draggingNode.data.pos
+          this.updateRequestData['target-config-context-options']['target-context'] = {
             'clone-context-pos': {
               config: this.currentConfig,
               'context-pos-path': draggingPos
             }
           }
+          this.dragTreeNodeRadio = 'mv'
+          this.dragTreeNodeDialogVisible = true
         }
       }
-      this.dragRadio = 'mv'
-      this.dragDialogVisible = true
     },
     cancelDragDialog() {
       this.changeConfStructTo(this.currentConfig)
-      this.dragDialogVisible = false
+      this.dragTreeNodeDialogVisible = false
       this.isConfirmingDrag = false
     },
     async confirmDragDialog() {
@@ -426,7 +452,7 @@ export default {
         msg: '放弃拖拽操作并离开页面'
       }
       var currentConfName = this.currentConfig
-      switch (this.dragRadio) {
+      switch (this.dragTreeNodeRadio) {
         case 'mv': {
           res = await moveCtx(this.updateRequestData)
           break
@@ -454,8 +480,57 @@ export default {
         // console.log('change config struct to current config')
         await this.changeConfStructTo(currentConfName)
       }
-      this.dragDialogVisible = false
+      this.dragTreeNodeDialogVisible = false
       this.isConfirmingDrag = false
+    },
+    getCtxBuildersCardHeight() {
+      return this.$refs.ctxCreatorsCard.$el.scrollHeight
+    },
+    setConfigStructCardHeight() {
+      var configStructCardHeight = 600 - this.getCtxBuildersCardHeight()
+      this.$refs.configStructCard.$el.style.height = `${configStructCardHeight}px`
+      // console.log("set config struct card's height to " + `${configStructCardHeight}px`)
+    },
+    handleCtxCreatorsCardClickEvent(eventCb) {
+      eventCb()
+      this.$nextTick(() => {
+        this.setConfigStructCardHeight()
+      })
+    },
+    handleCtxCreatorDragStart(draggingNode, event) {
+      // console.log('handle context creator drag start')
+      this.$refs.configTree.$emit('tree-node-drag-start', event, draggingNode)
+    },
+    handleCtxCreatorDragEnd(draggingNode, endNode, position, event) {
+      // console.log('handle context creator drag end')
+      this.$refs.configTree.$emit('tree-node-drag-end', event)
+    },
+    async handleNewCtxCommitEvent(newCtxOpts, cb) {
+      this.updateRequestData['target-config-context-options']['target-context'] = JSON.parse(JSON.stringify(newCtxOpts))
+      // console.log(this.updateRequestData)
+      var res = await insertNewCtx(this.updateRequestData)
+      if (res.code !== 0) {
+        await this.$nextTick(() => {
+          this.$message({
+            showClose: true,
+            message: '提交新建上下文异常：' + JSON.stringify(res),
+            type: 'error'
+          })
+        })
+        await cb(false)
+        return
+      }
+      var currentConfName = this.currentConfig
+      if (await this.refreshConfStruct()) {
+        // 置空当前配置树节点展开状态
+        this.currentTreeExpandedKeysMap[currentConfName] = []
+        this.changeConfStructTo(currentConfName)
+      }
+      cb(true)
+    },
+    resetUpdateRequest() {
+      this.updateRequestData = {}
+      this.changeCurrentConfStruct()
     }
   }
 }
@@ -463,50 +538,26 @@ export default {
 </script>
 
 <style scoped>
-/*.hljscss {*/
-/*  height: 70%;*/
-/*  position: relative;*/
-/*  font-size: 18px;*/
-/*  overflow-y: scroll;*/
-/*}*/
-/*.app {
-  height: 400px;
-  overflow: hidden;
-}
-.el-scrollbar__wrap {
-  overflow: visible;
-  overflow-x: hidden;
-}*/
 .searchClass {
   padding-bottom: 0;
 }
 .configListClass {
   height: 600px;
   width: 100%;
-  overflow-y: scroll;
-  overflow-x: hidden!important;
+  overflow-y: auto;
+  overflow-x: auto;
   font-size: 16px;
 }
 .configStructureClass {
-  height: 600px;
+  margin-bottom: 20px;
   width: 100%;
-  overflow-y: scroll;
-  overflow-x: hidden!important;
+  overflow-y: auto;
+  overflow-x: auto;
   font-size: 16px;
-  //background-color: #DCDFE6;
 }
 .radio-messagebox .el-message-box__content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-/*.grayColor {
-  color: darkseagreen;
-}*/
-/*.auto-wrap {
-  width: 100%;         !* 设置容器宽度 *!
-  word-wrap: break-word; !* 允许在长单词或URL中间进行换行 *!
-  white-space: normal;   !* 允许自动换行 *!
-  overflow-wrap: break-word; !* 确保旧版浏览器中的换行行为 *!
-}*/
 </style>
