@@ -630,6 +630,75 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 	}
 }
 
+func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
+	mockBifrostsManager.EXPECT().GetBifrostClient(webSrvOpts).AnyTimes().Return(&bifrostclinetv1.Client{Factory: new(fake.ServiceClient)}, nil)
+	type fields struct {
+		bm bifrosts.Manager
+	}
+	type args struct {
+		ctx     context.Context
+		opts    metav1.WebServerOptions
+		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "normal test",
+			fields: fields{bm: mockBifrostsManager},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location2.conf",
+						ContextPosPath: []int{0},
+					},
+					TargetContext: metav1.NewConfigContextMeta{
+						ContextType:  "location",
+						ContextValue: "~ /normal-test",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:   "unmatched context type",
+			fields: fields{bm: mockBifrostsManager},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location2.conf",
+						ContextPosPath: []int{2},
+					},
+					TargetContext: metav1.NewConfigContextMeta{
+						ContextType:  "location",
+						ContextValue: "~ /normal-test",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigStore{
+				bm: tt.fields.bm,
+			}
+			if err := w.ModifyContextValue(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+				t.Errorf("ModifyContextValue() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
 	ctrl := gomock.NewController(t)

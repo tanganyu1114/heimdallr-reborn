@@ -95,6 +95,26 @@ func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
 	response.OkWithMessage("修改成功", c)
 }
 
+func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
+	var r metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+	err = w.svc.WebServerConfigs().ModifyContextValue(c, r.WebServerOptions, r.TargetConfigContextOptions)
+	if err != nil {
+		global.GVA_LOG.Error("修改失败!")
+		response.FailWithMessage("修改失败", c)
+
+		return
+	}
+
+	response.OkWithMessage("修改成功", c)
+}
+
 // @Tags conf
 // @Summary 移动指定配置上下文
 // @Security ApiKeyAuth

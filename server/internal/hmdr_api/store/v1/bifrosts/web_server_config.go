@@ -228,6 +228,25 @@ func (w *webServerConfigStore) ModifyWithNew(_ context.Context, opts metav1.WebS
 	return w.updateConfig(opts, nginxConfig.Json())
 }
 
+func (w *webServerConfigStore) ModifyContextValue(_ context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	nginxConfig, err := w.getConfig(opts)
+	if err != nil {
+		return err
+	}
+	targetPos, err := w.parseContextPos(nginxConfig, ctxmeta.Position)
+	if err != nil {
+		return errors.Errorf("failed to parse target position: %v", err)
+	}
+	if ctxmeta.TargetContext.ContextType != targetPos.Target().Type() {
+		return errors.Errorf("the target context type for modification is inconsistent. the target context type: %s, the modified context type: %s.", targetPos.Target().Type(), ctxmeta.TargetContext.ContextType)
+	}
+	err = targetPos.Target().SetValue(ctxmeta.TargetContext.ContextValue)
+	if err != nil {
+		return errors.Errorf("failed to set value for target context: %v", err)
+	}
+	return w.updateConfig(opts, nginxConfig.Json())
+}
+
 func (w *webServerConfigStore) Move(_ context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	nginxConfig, err := w.getConfig(opts)
 	if err != nil {

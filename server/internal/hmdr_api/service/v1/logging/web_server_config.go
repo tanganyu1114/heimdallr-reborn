@@ -92,6 +92,17 @@ func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.
 	return w.svc.WebServerConfigs().ModifyWithNew(ctx, opts, ctxmeta)
 }
 
+func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) (err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.ErrorLevel
+		}
+		log(level, "修改指定上下文的参数值", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
+	}()
+	return w.svc.WebServerConfigs().ModifyContextValue(ctx, opts, ctxmeta)
+}
+
 func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel

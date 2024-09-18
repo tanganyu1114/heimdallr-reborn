@@ -84,6 +84,25 @@ func (f WebServerConfigStore) parseContextPos(nginxconfig configuration.NginxCon
 	return nginx_context.SetPos(nextFather, targetIdx), nil
 }
 
+func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	ngconf, err := f.GetConfig(ctx, opts)
+	if err != nil {
+		return err
+	}
+	targetPos, err := f.parseContextPos(ngconf, ctxmeta.Position)
+	if err != nil {
+		return errors.Errorf("failed to parse target position: %v", err)
+	}
+	if ctxmeta.TargetContext.ContextType != targetPos.Target().Type() {
+		return errors.Errorf("the target context type for modification is inconsistent. the target context type: %s, the modified context type: %s.", targetPos.Target().Type(), ctxmeta.TargetContext.ContextType)
+	}
+	err = targetPos.Target().SetValue(ctxmeta.TargetContext.ContextValue)
+	if err != nil {
+		return errors.Errorf("failed to set value for target context: %v", err)
+	}
+	return new(fake.ServiceClient).WebServerConfig().Update(opts.ServerName, ngconf.Json())
+}
+
 func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	ngconf, err := f.GetConfig(ctx, opts)
 	if err != nil {

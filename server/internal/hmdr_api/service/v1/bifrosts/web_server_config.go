@@ -43,6 +43,10 @@ func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.
 	return w.store.WebServerConfigs().ModifyWithNew(ctx, opts, ctxmeta)
 }
 
+func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	return w.store.WebServerConfigs().ModifyContextValue(ctx, opts, ctxmeta)
+}
+
 func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	return w.store.WebServerConfigs().Move(ctx, opts, ctxmeta)
 }

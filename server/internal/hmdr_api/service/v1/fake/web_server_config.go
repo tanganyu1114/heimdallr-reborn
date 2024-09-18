@@ -40,6 +40,10 @@ func (w WebServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.W
 	return new(storefake.WebServerConfigStore).ModifyWithNew(ctx, opts, ctxmeta)
 }
 
+func (w WebServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).ModifyContextValue(ctx, opts, ctxmeta)
+}
+
 func (w WebServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	return new(storefake.WebServerConfigStore).Move(ctx, opts, ctxmeta)
 }

@@ -353,6 +353,124 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 	}
 }
 
+func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	svc := svcv1.NewMockFactory(ctrl)
+	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\nginx.conf",
+				ContextPosPath: []int{8, 13, 4},
+			},
+			TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{4},
+			}},
+		},
+	}
+	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{0},
+			},
+			TargetContext: metav1.NewConfigContextMeta{
+				ContextType:  "location",
+				ContextValue: "~ /normal-test",
+			},
+		},
+	}
+	unmatchedTypeMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{2},
+			},
+			TargetContext: metav1.NewConfigContextMeta{
+				ContextType:  "location",
+				ContextValue: "~ /normal-test",
+			},
+		},
+	}
+	type fields struct {
+		svc svcv1.Factory
+	}
+	type args struct {
+		requestMeta any
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "valid request body",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: validMeta,
+			},
+			wantErr: false,
+		},
+		{
+			name:   "invalid request body",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: invalidMeta,
+			},
+			wantErr: true,
+		},
+		{
+			name:   "unmatched context type",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: unmatchedTypeMeta,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &WebServerConfigController{
+				svc: tt.fields.svc,
+			}
+			reqBodyBytes, err := json.Marshal(tt.args.requestMeta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(resp)
+			c.Request = httptest.NewRequest("POST", "/api/conf/modify-ctx-value", bytes.NewBuffer(reqBodyBytes))
+			w.ModifyContextValue(c)
+			var respBody response.Response
+			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+				t.Fatal(err)
+			}
+			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
+		})
+	}
+}
+
 func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 	global.GVA_LOG = log.ZapLogger()
 	ctrl := gomock.NewController(t)

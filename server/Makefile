@@ -1,6 +1,6 @@
 .PHONY: all build run gotool clean help
 
-BINARY="server"
+BINARY="heimdallr-reborn"
 GVA = "gva"
 
 all: check gva initdb run
@@ -12,7 +12,7 @@ initdb:
 	@if [ -f ${GVA} ] ; then ./gva initdb && rm ${GVA} ; fi
 
 linux-build:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}
 
 windows-build:
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ${BINARY}.exe

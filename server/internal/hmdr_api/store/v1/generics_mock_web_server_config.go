@@ -100,6 +100,20 @@ func (mr *MockWebServerConfigStoreMockRecorder) InsertWithNew(ctx, opts, ctxmeta
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigStore)(nil).InsertWithNew), ctx, opts, ctxmeta)
 }
 
+// ModifyContextValue mocks base method.
+func (m *MockWebServerConfigStore) ModifyContextValue(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ModifyContextValue", ctx, opts, ctxmeta)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ModifyContextValue indicates an expected call of ModifyContextValue.
+func (mr *MockWebServerConfigStoreMockRecorder) ModifyContextValue(ctx, opts, ctxmeta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyContextValue", reflect.TypeOf((*MockWebServerConfigStore)(nil).ModifyContextValue), ctx, opts, ctxmeta)
+}
+
 // ModifyWithClone mocks base method.
 func (m *MockWebServerConfigStore) ModifyWithClone(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
