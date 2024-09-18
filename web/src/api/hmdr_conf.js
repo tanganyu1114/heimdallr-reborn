@@ -44,6 +44,36 @@ export const getConfStruct = (data) => {
 }
 
 // @Tags conf
+// @Summary 删除指定配置上下文
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"删除成功"}"
+// @Router /conf/remove-ctx [delete]
+export const removeCtx = (data) => {
+  return service({
+    url: '/conf/remove-ctx',
+    method: 'delete',
+    data
+  })
+}
+
+// @Tags conf
+// @Summary 修改指定配置上下文配置参数值
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"修改成功"}"
+// @Router /conf/modify-ctx-value [post]
+export const modifyCtxValue = (data) => {
+  return service({
+    url: '/conf/modify-ctx-value',
+    method: 'post',
+    data
+  })
+}
+
+// @Tags conf
 // @Summary 插入需新增的配置上下文
 // @Security ApiKeyAuth
 // @accept application/json

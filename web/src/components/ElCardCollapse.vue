@@ -18,6 +18,7 @@ export default {
     handleClick() {
       this.$emit('click-event', () => {
         this.isCollapseSelf = !this.isCollapseSelf
+        return this.isCollapseSelf
       })
     }
   }

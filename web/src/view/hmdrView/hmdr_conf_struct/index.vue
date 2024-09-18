@@ -44,17 +44,27 @@
         </el-card>
       </el-col>
       <el-col :span="18" style="height: 610px; max-height: 610px; overflow: hidden">
-        <el-card-collapse ref="ctxCreatorsCard" :is-collapse="ctxCreatorsCardIsCollapse" @click-event="handleCtxCreatorsCardClickEvent">
+        <el-card-collapse v-show="configStructEditable" ref="ctxCreatorsCard" :is-collapse="ctxCreatorsCardIsCollapse" @click-event="handleCtxCreatorsCardClickEvent">
           <div slot="header" class="flex-between">
-            <el-button style="display: none; padding: 3px 0; margin-right: 10px;" type="text">操作按钮</el-button>
+            <transition name="el-fade-in">
+              <el-button v-show="ctxCreatorsCardIsCollapse" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);padding: 3px 0; margin-right: 10px;" type="text">上下文新建模块</el-button>
+            </transition>
           </div>
-          <location-creator
-            ref="locationCreator"
-            @form-commit-event="handleNewCtxCommitEvent"
-            @node-drag-start="handleCtxCreatorDragStart"
-            @node-drag-end="handleCtxCreatorDragEnd"
-            @dialog-before-close-event="resetUpdateRequest"
-          />
+          <el-row>
+            <template v-for="creator in ctxCreatorCompMetaList">
+              <el-col :key="creator.key" :span="2.5">
+                <component
+                  :is="creator.comp"
+                  :ref="creator.refName"
+                  :editable="configStructEditable"
+                  @form-commit-event="handleNewCtxCommitEvent"
+                  @node-drag-start="handleCtxCreatorDragStart"
+                  @node-drag-end="handleCtxCreatorDragEnd"
+                  @dialog-before-close-event="resetUpdateRequest"
+                />
+              </el-col>
+            </template>
+          </el-row>
         </el-card-collapse>
         <el-card ref="configStructCard" class="configStructureClass">
           <el-tree
@@ -63,15 +73,28 @@
             :props="defaultProps"
             :default-expanded-keys="currentTreeExpandedKeysMap[currentConfig]"
             node-key="id"
-            draggable
+            :draggable="configStructEditable"
             highlight-current
             :allow-drop="allowTreeDrop"
             :allow-drag="allowTreeDrag"
-            :render-content="treeRenderContent"
             @node-expand="(data)=>handleTreeNodeExpand(data)"
             @node-collapse="(data)=>handleTreeNodeCollapse(data)"
             @node-drop="handleTreeNodeDrop"
-          />
+          >
+            <span
+              slot-scope="{ node, data }"
+              class="custom-tree-node"
+              @mouseleave="() => handleTreeNodeMouseLeave(node)"
+              @mouseenter="() => handleTreeNodeMouseEnter(node)"
+            >
+              <span>{{ node.label }}</span> <span v-if="extendTreeNodeLabel(node)" style="color: darkseagreen">{{ node.data.extendLabel }}</span> <span v-if="node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include'">
+                <el-button size="mini" type="info" icon="el-icon-position" @click="() => changeConfStructTo(node.label)">跳转至该配置</el-button>
+              </span><span v-else v-show="node.data.delButtonShow && configStructEditable">
+                <el-button v-show="isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
+                <el-button size="mini" type="danger" icon="el-icon-delete" circle @click="() => handleTreeNodeDelete(node, data)" />
+              </span>
+            </span>
+          </el-tree>
           <el-dialog title="拖拽确认" width="25%" :visible.sync="dragTreeNodeDialogVisible">
             <p>请选择拖拽操作定义选项:</p>
             <el-radio-group v-model="dragTreeNodeRadio" size="mini">
@@ -81,6 +104,29 @@
             <span slot="footer" class="dialog-footer">
               <el-button @click="cancelDragDialog">取 消</el-button>
               <el-button type="primary" :loading="isConfirmingDrag" @click.stop="confirmDragDialog">确 定</el-button>
+            </span>
+          </el-dialog>
+          <el-dialog title="修改上下文" width="25%" :visible.sync="modifyTreeNodeDialogVisible">
+            <el-form
+              v-if="updateRequestData['target-config-context-options'] !== undefined && updateRequestData['target-config-context-options']['target-context'] !== undefined"
+              :model="updateRequestData['target-config-context-options']['target-context']"
+              label-width="100px"
+              label-position="left"
+            >
+              <el-form-item prop="context-value" label="上下文参数值">
+                <el-input v-model="updateRequestData['target-config-context-options']['target-context']['context-value']" placeholder="请输入内容" />
+              </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="cancelModifyDialog">取 消</el-button>
+              <el-button type="primary" :loading="isConfirmingModify" @click.stop="confirmModifyDialog">确 定</el-button>
+            </span>
+          </el-dialog>
+          <el-dialog title="删除确认" width="25%" :visible.sync="delTreeNodeDialogVisible">
+            <p>请确认是否要删除该上下文[{{ delTreeNodeLabel }}]</p>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="cancelDelDialog">取 消</el-button>
+              <el-button type="primary" :loading="isConfirmingDel" @click.stop="confirmDelDialog">确 定</el-button>
             </span>
           </el-dialog>
         </el-card>
@@ -182,21 +228,44 @@ class LocationCtx extends ContextStruct {
   }
 }
 
-import { getOptions, getConfStruct, moveCtx, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
+import { getOptions, getConfStruct, removeCtx, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
+import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
+import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
+import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
+import HttpCreator from '@/view/hmdrView/hmdr_conf_struct/component/httpCreator.vue'
+import IfCreator from '@/view/hmdrView/hmdr_conf_struct/component/ifCreator.vue'
 import LocationCreator from '@/view/hmdrView/hmdr_conf_struct/component/locationCreator.vue'
+import ServerCreator from '@/view/hmdrView/hmdr_conf_struct/component/serverCreator.vue'
+import StreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/streamCreator.vue'
+import UpstreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/upstreamCreator.vue'
 import ElCardCollapse from '@/components/ElCardCollapse.vue'
 
 export default {
   name: 'HmdrConfStruct',
   components: {
+    CommentCreator,
+    DirectiveCreator,
+    EventsCreator,
+    HttpCreator,
+    IfCreator,
     LocationCreator,
+    ServerCreator,
+    StreamCreator,
+    UpstreamCreator,
     ElCardCollapse
+  },
+  props: {
+    configStructEditable: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
       currentConfig: '',
       currentConfStruct: [],
       currentTreeExpandedKeysMap: {},
+      deleteRequestData: {},
       updateRequestData: {},
       configsData: {
         mainConfig: '',
@@ -204,9 +273,6 @@ export default {
       },
       formData: {
         value: []
-      },
-      ctxCreateDialogVisibleMap: {
-        location: false
       },
       rules: {
         value: [{
@@ -221,10 +287,17 @@ export default {
         label: this.toTreeLabel,
         isLeaf: this.isTreeLeaf
       },
+      modifyTreeNodeLabel: '未知上下文',
+      modifyTreeNodeDialogVisible: false,
+      isConfirmingModify: false,
+      delTreeNodeLabel: '未知上下文',
+      delTreeNodeDialogVisible: false,
+      isConfirmingDel: false,
       dragTreeNodeRadio: '',
       dragTreeNodeDialogVisible: false,
       isConfirmingDrag: false,
-      ctxCreatorsCardIsCollapse: true
+      ctxCreatorsCardIsCollapse: true,
+      ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta()
     }
   },
   created() {
@@ -287,7 +360,9 @@ export default {
           value: contextNode['value'],
           pos: pos,
           id: pos.toString(),
-          children: []
+          children: [],
+          delButtonShow: false,
+          extendLabel: ''
         }
         formattedContext.label = this.toTreeLabel(formattedContext)
         formattedContext.isLeaf = this.isTreeLeaf(formattedContext)
@@ -346,24 +421,22 @@ export default {
       }
       return 'Error Context!'
     },
-    treeRenderContent(h, { data, node, store }) {
-      var el = new ContextStructBuilder().build(data).genExtendLabel()
-      if (node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include') {
-        // console.log(node.label)
-        var includeConfCheckOut = <span> <el-button size='mini' type='info' icon='el-icon-position' on-click = { () => this.changeConfStructTo(node.label) }>跳转至该配置< /el-button></span>
-      }
-      if (el === undefined || el === '') {
-        return (
-          <span class='custom-tree-node'>
-            <span>{node.label}</span>{includeConfCheckOut}
-          </span>)
+    extendTreeNodeLabel(node) {
+      var el = new ContextStructBuilder().build(node.data).genExtendLabel()
+      if (el !== undefined && el !== '') {
+        node.data.extendLabel = el
+        return true
       } else {
-        return (
-          <span class='custom-tree-node'>
-            <span>{node.label}</span>{includeConfCheckOut} <span style='color: darkseagreen'>{el}</span>
-          </span>
-        )
+        return false
       }
+    },
+    handleTreeNodeMouseEnter(node) {
+      // this.$set(node.data, 'delButtonShow', true)
+      node.data.delButtonShow = true
+    },
+    handleTreeNodeMouseLeave(node) {
+      // this.$set(node.data, 'delButtonShow', false)
+      node.data.delButtonShow = false
     },
     handleTreeNodeExpand(data) {
       if (this.currentTreeExpandedKeysMap[this.currentConfig] === undefined) this.currentTreeExpandedKeysMap[this.currentConfig] = []
@@ -380,6 +453,40 @@ export default {
           this.currentTreeExpandedKeysMap[this.currentConfig].splice(index, 1)
         }
       }
+    },
+    handleTreeNodeModify(node, data) {
+      if (data === undefined) return
+      this.updateRequestData = {
+        'web-server-options': {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2]
+        },
+        'target-config-context-options': {
+          position: {
+            config: this.currentConfig,
+            'context-pos-path': data.pos
+          },
+          'target-context': {
+            'context-type': data.ctxType,
+            'context-value': data.value
+          }
+        }
+      }
+      this.modifyTreeNodeLabel = data.label
+      this.modifyTreeNodeDialogVisible = true
+    },
+    handleTreeNodeDelete(node, data) {
+      if (data === undefined) return
+      this.deleteRequestData = {
+        group_id: this.formData.value[0],
+        host_id: this.formData.value[1],
+        srv_name: this.formData.value[2],
+        config: this.currentConfig,
+        'context-pos-path': data.pos
+      }
+      this.delTreeNodeLabel = data.label
+      this.delTreeNodeDialogVisible = true
     },
     handleTreeNodeDrop(draggingNode, dropNode, dropType, ev) {
       // console.log('draggingNode.data: ' + JSON.stringify(draggingNode.data))
@@ -422,8 +529,11 @@ export default {
       }
 
       switch (draggingNode.data.dragType) {
-        case 'create': {
-          this.$refs[draggingNode.data.ctxType + 'Creator'].openDialog()
+        case 'create': { // 新建上下文
+          // this.$refs[draggingNode.data.ctxType + 'Creator'].openDialog()
+          // component组件动态注入的组件，动态生成的ref是list
+          this.$refs[draggingNode.data.ctxType + 'Creator'][0].$refs.creator.initFormDataWithTargetNode(dropNode, dropType) // 初始化注入目标节点信息
+          this.$refs[draggingNode.data.ctxType + 'Creator'][0].$refs.creator.openDialog() // 打开对话框
           break
         }
         default: {
@@ -438,6 +548,70 @@ export default {
           this.dragTreeNodeDialogVisible = true
         }
       }
+    },
+    isCtxWithValue(data) {
+      const reg = /^(events|http|include|server|stream|types)$/
+      return !reg.test(data.ctxType.toLowerCase())
+    },
+    cancelModifyDialog() {
+      this.changeConfStructTo(this.currentConfig)
+      this.modifyTreeNodeDialogVisible = false
+      this.isConfirmingModify = false
+    },
+    async confirmModifyDialog() {
+      if (this.isConfirmingModify) return
+      this.isConfirmingModify = true
+      var res = {
+        code: 7,
+        msg: '放弃删除操作并离开页面'
+      }
+      var currentConfName = this.currentConfig
+      res = await modifyCtxValue(this.updateRequestData)
+      if (res.code !== 0) {
+        // TODO: 错误提示框
+        // console.log('cancel dialog')
+        this.cancelModifyDialog()
+        return
+      }
+      // console.log('search config struct')
+      if (await this.refreshConfStruct()) {
+        // 置空当前配置树节点展开状态
+        this.currentTreeExpandedKeysMap[currentConfName] = []
+        // console.log('change config struct to current config')
+        await this.changeConfStructTo(currentConfName)
+      }
+      this.modifyTreeNodeDialogVisible = false
+      this.isConfirmingModify = false
+    },
+    cancelDelDialog() {
+      this.changeConfStructTo(this.currentConfig)
+      this.delTreeNodeDialogVisible = false
+      this.isConfirmingDel = false
+    },
+    async confirmDelDialog() {
+      if (this.isConfirmingDel) return
+      this.isConfirmingDel = true
+      var res = {
+        code: 7,
+        msg: '放弃删除操作并离开页面'
+      }
+      var currentConfName = this.currentConfig
+      res = await removeCtx(this.deleteRequestData)
+      if (res.code !== 0) {
+        // TODO: 错误提示框
+        // console.log('cancel dialog')
+        this.cancelDelDialog()
+        return
+      }
+      // console.log('search config struct')
+      if (await this.refreshConfStruct()) {
+        // 置空当前配置树节点展开状态
+        this.currentTreeExpandedKeysMap[currentConfName] = []
+        // console.log('change config struct to current config')
+        await this.changeConfStructTo(currentConfName)
+      }
+      this.delTreeNodeDialogVisible = false
+      this.isConfirmingDel = false
     },
     cancelDragDialog() {
       this.changeConfStructTo(this.currentConfig)
@@ -483,6 +657,20 @@ export default {
       this.dragTreeNodeDialogVisible = false
       this.isConfirmingDrag = false
     },
+    ctxCreatorComponentsMeta() {
+      var meta = []
+      var regExp = /^(\S+)Creator$/
+      for (const name of Object.keys(this.$options.components).filter(comp => regExp.test(comp))) {
+        var ctxName = regExp.exec(name)[1]
+        ctxName = ctxName.charAt(0).toLowerCase() + ctxName.slice(1)
+        meta.push({
+          comp: name,
+          refName: ctxName + 'Creator',
+          key: ctxName + '-creator'
+        })
+      }
+      return meta
+    },
     getCtxBuildersCardHeight() {
       return this.$refs.ctxCreatorsCard.$el.scrollHeight
     },
@@ -492,7 +680,7 @@ export default {
       // console.log("set config struct card's height to " + `${configStructCardHeight}px`)
     },
     handleCtxCreatorsCardClickEvent(eventCb) {
-      eventCb()
+      this.ctxCreatorsCardIsCollapse = eventCb()
       this.$nextTick(() => {
         this.setConfigStructCardHeight()
       })
