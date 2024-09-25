@@ -31,7 +31,7 @@
     <el-row>
       <el-col :span="6">
         <el-card class="configListClass">
-          <el-radio-group v-model="currentConfig" vertical @change="changeCurrentConfStruct">
+          <el-radio-group v-model="currentConfig" vertical @change="() => changeConfStructTo(currentConfig)">
             <el-radio v-if="configsData.mainConfig" :key="0" :style="{ fontWeight: 'bold'}" :label="configsData.mainConfig">
               主配置：{{ configsData.mainConfig }}
             </el-radio>
@@ -95,6 +95,24 @@
               </span>
             </span>
           </el-tree>
+          <div class="floating-button-container">
+            <el-button
+              v-show="configsData.stackCursor > 0"
+              :class="{ 'floating-button': true }"
+              :style="{ 'right': '70px' }"
+              type="primary"
+              icon="el-icon-back"
+              @click="changeBackConfStruct"
+            />
+            <el-button
+              v-show="configsData.stackCursor >= 0 && configsData.cachedConfigStack.length - 1 > configsData.stackCursor"
+              :class="{ 'floating-button': true }"
+              :style="{ 'right': '20px' }"
+              type="primary"
+              icon="el-icon-right"
+              @click="changeForwardConfStruct"
+            />
+          </div>
           <el-dialog title="拖拽确认" width="25%" :visible.sync="dragTreeNodeDialogVisible">
             <p>请选择拖拽操作定义选项:</p>
             <el-radio-group v-model="dragTreeNodeRadio" size="mini">
@@ -136,6 +154,8 @@
 </template>
 
 <script>
+
+import { background } from 'quill/ui/icons'
 
 class ContextStructBuilder {
   constructor() {
@@ -269,7 +289,9 @@ export default {
       updateRequestData: {},
       configsData: {
         mainConfig: '',
-        configs: {}
+        configs: {},
+        cachedConfigStack: [],
+        stackCursor: -1
       },
       formData: {
         value: []
@@ -300,6 +322,11 @@ export default {
       ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta()
     }
   },
+  computed: {
+    background() {
+      return background
+    }
+  },
   created() {
     this.initOptions()
   },
@@ -327,6 +354,8 @@ export default {
         // console.log('配置赋值')
         this.configsData.mainConfig = res.data['main-config']
         this.configsData.configs = res.data.configs
+        this.configsData.cachedConfigStack = []
+        this.configsData.stackCursor = -1
         return true
       }
       return false
@@ -352,6 +381,23 @@ export default {
     async changeConfStructTo(configName) {
       this.currentConfig = configName
       await this.changeCurrentConfStruct()
+      this.configsData.stackCursor++
+      this.configsData.cachedConfigStack.splice(this.configsData.stackCursor)
+      this.configsData.cachedConfigStack.push(configName)
+    },
+    async changeBackConfStruct() {
+      if (this.configsData.stackCursor > 0 && this.configsData.cachedConfigStack.length > 1) {
+        this.currentConfig = this.configsData.cachedConfigStack[this.configsData.stackCursor - 1]
+        await this.changeCurrentConfStruct()
+        this.configsData.stackCursor--
+      }
+    },
+    async changeForwardConfStruct() {
+      if (this.configsData.stackCursor >= 0 && this.configsData.cachedConfigStack.length - 1 > this.configsData.stackCursor) {
+        this.currentConfig = this.configsData.cachedConfigStack[this.configsData.stackCursor + 1]
+        await this.changeCurrentConfStruct()
+        this.configsData.stackCursor++
+      }
     },
     formatConfStruct(pos, contextNode) {
       if (Array.isArray(pos) && typeof contextNode !== 'string') {
@@ -747,5 +793,29 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+.floating-button-container {
+  position: absolute;
+  top: 30px;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+}
+
+.floating-button {
+  position: absolute;
+  top: 0;
+  height: 40px;
+  bottom: 20px;
+  transition: all 0.3s;
+}
+
+.floating-button:hover {
+  /* 悬浮时的样式变化 */
+  position: absolute;
+  top: 1px;
+  right: 15px;
+  bottom: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 </style>
