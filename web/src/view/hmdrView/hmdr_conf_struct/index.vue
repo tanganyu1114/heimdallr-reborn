@@ -35,7 +35,7 @@
             <el-radio v-if="configsData.mainConfig" :key="0" :style="{ fontWeight: 'bold'}" :label="configsData.mainConfig">
               主配置：{{ configsData.mainConfig }}
             </el-radio>
-            <template v-for="(item,index) in Object.keys(configsData.configs)">
+            <template v-for="(item,index) in configsData.configs">
               <el-radio v-if="item !== configsData.mainConfig" :key="index+1" :label="item">
                 {{ item }}
               </el-radio>
@@ -289,7 +289,8 @@ export default {
       updateRequestData: {},
       configsData: {
         mainConfig: '',
-        configs: {},
+        configs: [],
+        configStructs: {},
         cachedConfigStack: [],
         stackCursor: -1
       },
@@ -353,9 +354,18 @@ export default {
       if (res.code === 0) {
         // console.log('配置赋值')
         this.configsData.mainConfig = res.data['main-config']
-        this.configsData.configs = res.data.configs
+        this.configsData.configs = Object.keys(res.data.configs)
         this.configsData.cachedConfigStack = []
         this.configsData.stackCursor = -1
+        for (const c of this.configsData.configs) {
+          this.configsData.configStructs[c] = []
+          for (let i = 0; i < res.data.configs[c].params.length; i++) {
+            var childCtx = this.formatConfStruct([i], res.data.configs[c].params[i])
+            if (childCtx !== {}) {
+              this.configsData.configStructs[c].push(childCtx)
+            }
+          }
+        }
         return true
       }
       return false
@@ -370,13 +380,7 @@ export default {
       })
     },
     async changeCurrentConfStruct() {
-      this.currentConfStruct = []
-      for (let i = 0; i < this.configsData.configs[this.currentConfig].params.length; i++) {
-        var childCtx = this.formatConfStruct([i], this.configsData.configs[this.currentConfig].params[i])
-        if (childCtx !== {}) {
-          this.currentConfStruct.push(childCtx)
-        }
-      }
+      this.currentConfStruct = this.configsData.configStructs[this.currentConfig]
     },
     async changeConfStructTo(configName) {
       this.currentConfig = configName
