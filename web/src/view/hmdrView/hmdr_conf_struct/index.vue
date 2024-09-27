@@ -31,15 +31,26 @@
     <el-row>
       <el-col :span="6">
         <el-card class="configListClass">
-          <el-radio-group v-model="currentConfig" vertical @change="() => changeConfStructTo(currentConfig)">
-            <el-radio v-if="configsData.mainConfig" :key="0" :style="{ fontWeight: 'bold'}" :label="configsData.mainConfig">
-              主配置：{{ configsData.mainConfig }}
-            </el-radio>
-            <template v-for="(item,index) in configsData.configs">
-              <el-radio v-if="item !== configsData.mainConfig" :key="index+1" :label="item">
-                {{ item }}
-              </el-radio>
-            </template>
+          <el-radio-group v-model="currentConfig" style="width: 100%" @change="(c) => changeConfStructTo(c)">
+            <el-tree
+              ref="configPathTree"
+              :data="configsData.pathsStruct"
+              :props="configPathTreeProps"
+              node-key="fullPath"
+              accordion
+              highlight-current
+            >
+              <span slot-scope="{ node, data }" style="display: flex">
+                <i v-if="data.isDir">
+                  <i v-if="!node.expanded" class="el-icon-folder" />
+                  <i v-else class="el-icon-folder-opened" />
+                  {{ node.label }}
+                </i>
+                <i v-else>
+                  <el-radio :label="data.configPath"><i class="el-icon-document"> {{ node.label }}</i></el-radio>
+                </i>
+              </span>
+            </el-tree>
           </el-radio-group>
         </el-card>
       </el-col>
@@ -70,7 +81,7 @@
           <el-tree
             ref="configTree"
             :data="currentConfStruct"
-            :props="defaultProps"
+            :props="configStructTreeProps"
             :default-expanded-keys="currentTreeExpandedKeysMap[currentConfig]"
             node-key="id"
             :draggable="configStructEditable"
@@ -155,7 +166,90 @@
 
 <script>
 
-import { background } from 'quill/ui/icons'
+class ConfigPathTreeStruct {
+  constructor(mainConfigPath, configPaths) {
+    if (Array.isArray(configPaths) && typeof mainConfigPath === 'string' && mainConfigPath.charAt(0) === '/') {
+      this.data = {
+        main: mainConfigPath,
+        paths: {
+          children: {}
+        },
+        configPathTreeNodeKeyMap: {},
+        treeStruct: []
+      }
+
+      for (const configPath of configPaths) {
+        this.push(configPath)
+      }
+      this.data.treeStruct = this.genTreeStruct()
+    }
+    return undefined
+  }
+  getPathNode(pos) {
+    if (pos === []) return this.data.paths
+    if (!Array.isArray(pos)) return undefined
+    var node = this.data.paths
+    for (const idx of pos) {
+      node = node.children[idx]
+      if (node === undefined) return undefined
+    }
+    return node
+  }
+  push(configPath) {
+    if (typeof configPath === 'string' && configPath !== '') {
+      var pos = []
+      if (configPath.charAt(0) === '/') {
+        this.pushWithParsedPath(pos, configPath.substring(1))
+      } else {
+        pos = [...this.data.main.substring(1).split('/').slice(0, -1)]
+        this.pushWithParsedPath(pos, configPath)
+      }
+      var node = this.getPathNode(pos)
+      if (node !== undefined) {
+        node.configPath = configPath
+        this.data.configPathTreeNodeKeyMap[configPath] = node.fullPath
+      }
+    }
+  }
+  pushWithParsedPath(pos, path) {
+    if (path === undefined || typeof path !== 'string' || path === '' || path.charAt(0) === '/' || path.charAt(-1) === '/') return
+    var dsIdx = path.indexOf('/')
+    var name, subPath
+    if (dsIdx >= 0) {
+      name = path.substring(0, dsIdx)
+      subPath = path.substring(dsIdx + 1)
+    } else {
+      name = path
+    }
+    if (this.getPathNode(pos).children[name] === undefined) {
+      this.getPathNode(pos).children[name] = {
+        filename: name,
+        fullPath: [...pos, name].join('/'),
+        isDir: subPath !== undefined && subPath !== '',
+        children: {}
+      }
+    }
+    pos.push(name)
+    this.pushWithParsedPath(pos, subPath)
+  }
+  formatToTreeStruct(paths) {
+    var struct = []
+    for (const k in paths.children) {
+      struct.push({
+        filename: paths.children[k].filename,
+        fullPath: paths.children[k].fullPath,
+        isDir: paths.children[k].isDir,
+        configPath: paths.children[k].configPath,
+        children: this.formatToTreeStruct(paths.children[k])
+      })
+    }
+    return struct
+  }
+  genTreeStruct() {
+    if (this.data === undefined || this.data.paths === undefined || this.data.main === undefined) return undefined
+    return this.formatToTreeStruct(this.data.paths)
+  }
+}
 
 class ContextStructBuilder {
   constructor() {
@@ -289,7 +383,7 @@ export default {
       updateRequestData: {},
       configsData: {
         mainConfig: '',
-        configs: [],
+        pathsStruct: [],
         configStructs: {},
         cachedConfigStack: [],
         stackCursor: -1
@@ -306,9 +400,17 @@ export default {
         }]
       },
       Options: [],
-      defaultProps: {
+      configStructTreeProps: {
         label: this.toTreeLabel,
         isLeaf: this.isTreeLeaf
+      },
+      configPathTreeProps: {
+        label: (data, node) => {
+          return data.filename
+        },
+        isLeaf: (data, node) => {
+          return !data.isDir
+        }
       },
       modifyTreeNodeLabel: '未知上下文',
       modifyTreeNodeDialogVisible: false,
@@ -321,11 +423,6 @@ export default {
       isConfirmingDrag: false,
       ctxCreatorsCardIsCollapse: true,
       ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta()
-    }
-  },
-  computed: {
-    background() {
-      return background
     }
   },
   created() {
@@ -355,9 +452,12 @@ export default {
         // console.log('配置赋值')
         this.configsData.mainConfig = res.data['main-config']
         this.configsData.configs = Object.keys(res.data.configs)
+        var pathStruct = new ConfigPathTreeStruct(res.data['main-config'], Object.keys(res.data.configs))
+        this.configsData.pathsStruct = pathStruct.data.treeStruct
+        this.configsData.configPathTreeNodeKeyMap = pathStruct.data.configPathTreeNodeKeyMap
         this.configsData.cachedConfigStack = []
         this.configsData.stackCursor = -1
-        for (const c of this.configsData.configs) {
+        for (const c of Object.keys(res.data.configs)) {
           this.configsData.configStructs[c] = []
           for (let i = 0; i < res.data.configs[c].params.length; i++) {
             var childCtx = this.formatConfStruct([i], res.data.configs[c].params[i])
@@ -381,6 +481,8 @@ export default {
     },
     async changeCurrentConfStruct() {
       this.currentConfStruct = this.configsData.configStructs[this.currentConfig]
+      this.$refs.configPathTree.setCurrentKey(this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
+      this.accordionExpandTreeNode(this.$refs.configPathTree, this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
     },
     async changeConfStructTo(configName) {
       this.currentConfig = configName
@@ -478,6 +580,22 @@ export default {
         return true
       } else {
         return false
+      }
+    },
+    accordionExpandTreeNode(tree, key) {
+      if (key) {
+        this.accordionExpandParentNode(tree.getNode(key))
+      }
+    },
+    accordionExpandParentNode(node) {
+      if (node) {
+        if (node.parent) {
+          for (const childNode of node.parent.childNodes) {
+            childNode.expanded = false
+          }
+          this.accordionExpandParentNode(node.parent)
+        }
+        node.expanded = true
       }
     },
     handleTreeNodeMouseEnter(node) {
