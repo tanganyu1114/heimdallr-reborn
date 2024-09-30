@@ -484,7 +484,7 @@ export default {
       })
     },
     async changeCurrentConfStruct() {
-      this.currentConfStruct = this.configsData.configStructs[this.currentConfig]
+      this.currentConfStruct = JSON.parse(JSON.stringify(this.configsData.configStructs[this.currentConfig]))
       this.$refs.configPathTree.setCurrentKey(this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
       this.accordionExpandTreeNode(this.$refs.configPathTree, this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
     },
