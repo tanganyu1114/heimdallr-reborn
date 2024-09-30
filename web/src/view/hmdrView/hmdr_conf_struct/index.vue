@@ -47,7 +47,11 @@
                   {{ node.label }}
                 </i>
                 <i v-else>
-                  <el-radio :label="data.configPath"><i class="el-icon-document"> {{ node.label }}</i></el-radio>
+                  <el-radio :label="data.configPath">
+                    <i v-if="currentConfig === data.configPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
+                    <i v-else class="el-icon-document" style="text-indent: -0.75em" />
+                    {{ node.label }}
+                  </el-radio>
                 </i>
               </span>
             </el-tree>
@@ -923,7 +927,6 @@ export default {
   bottom: 20px;
   z-index: 9999;
 }
-
 .floating-button {
   position: absolute;
   top: 0;
@@ -931,7 +934,6 @@ export default {
   bottom: 20px;
   transition: all 0.3s;
 }
-
 .floating-button:hover {
   /* 悬浮时的样式变化 */
   position: absolute;
@@ -939,5 +941,9 @@ export default {
   right: 15px;
   bottom: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/* 隐藏单选按钮的圆点 */
+::v-deep .el-radio .el-radio__inner {
+  display: none;
 }
 </style>
