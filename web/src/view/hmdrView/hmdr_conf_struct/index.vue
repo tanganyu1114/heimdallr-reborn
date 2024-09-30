@@ -47,7 +47,7 @@
                   {{ node.label }}
                 </i>
                 <i v-else>
-                  <el-radio :label="data.configPath">
+                  <el-radio :label="data.configPath" style="font-style: normal">
                     <i v-if="currentConfig === data.configPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
                     <i v-else class="el-icon-document" style="text-indent: -0.75em" />
                     {{ node.label }}
@@ -102,7 +102,7 @@
               @mouseleave="() => handleTreeNodeMouseLeave(node)"
               @mouseenter="() => handleTreeNodeMouseEnter(node)"
             >
-              <span>{{ node.label }}</span> <span v-if="extendTreeNodeLabel(node)" style="color: darkseagreen">{{ node.data.extendLabel }}</span> <span v-if="node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include'">
+              <span :style="data.labelStyle">{{ node.label }}</span> <span v-if="extendTreeNodeLabel(node)" style="color: darkseagreen">{{ node.data.extendLabel }}</span> <span v-if="node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include'">
                 <el-button size="mini" type="info" icon="el-icon-position" @click="() => changeConfStructTo(node.label)">跳转至该配置</el-button>
               </span><span v-else v-show="node.data.delButtonShow && configStructEditable">
                 <el-button v-show="isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
@@ -518,6 +518,9 @@ export default {
           id: pos.toString(),
           children: [],
           delButtonShow: false,
+          labelStyle: {
+            color: '#000000'
+          },
           extendLabel: ''
         }
         formattedContext.label = this.toTreeLabel(formattedContext)
@@ -536,7 +539,11 @@ export default {
         return {
           label: contextNode,
           isLeaf: true,
-          id: pos.toString()
+          id: pos.toString(),
+          labelStyle: {
+            color: '#000000',
+            'font-style': 'normal'
+          }
         }
       } else {
         return {}
@@ -554,20 +561,26 @@ export default {
       return !(data !== {} && typeof data !== 'string' && data.ctxType !== undefined && !['directive', 'inline_comment', 'comment'].includes(data.ctxType))
     },
     toTreeLabel(data, node) {
-      if (data !== {}) {
-        if (data.ctxType !== undefined) {
+      if (data) {
+        if (data.ctxType) {
           switch (data.ctxType) {
             case 'directive': {
+              data.labelStyle.color = '#606266'
               return data.value + ';'
             }
             case 'inline_comment': {
+              data.labelStyle.color = '#C0C4CC'
+              data.labelStyle['font-style'] = 'italic'
               return '└─ # ' + data.value
             }
             case 'comment': {
+              data.labelStyle.color = '#C0C4CC'
+              data.labelStyle['font-style'] = 'italic'
               return '# ' + data.value
             }
             default: {
-              if (data.value !== undefined) {
+              data.labelStyle.color = '#409EFF'
+              if (data.value) {
                 return data.ctxType + ': ' + data.value
               }
               return data.ctxType
