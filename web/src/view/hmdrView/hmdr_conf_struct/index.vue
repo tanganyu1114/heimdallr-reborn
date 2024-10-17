@@ -47,7 +47,7 @@
                   {{ node.label }}
                 </i>
                 <i v-else>
-                  <el-radio :label="data.configPath" style="font-style: normal">
+                  <el-radio class="hidden-el-radio" :label="data.configPath" style="font-style: normal">
                     <i v-if="currentConfig === data.configPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
                     <i v-else class="el-icon-document" style="text-indent: -0.75em" />
                     {{ node.label }}
@@ -956,7 +956,7 @@ export default {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 /* 隐藏单选按钮的圆点 */
-::v-deep .el-radio .el-radio__inner {
+::v-deep .hidden-el-radio .el-radio__inner {
   display: none;
 }
 </style>
