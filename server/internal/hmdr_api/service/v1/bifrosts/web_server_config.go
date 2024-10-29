@@ -7,6 +7,7 @@ import (
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 )
 
 type webServerConfigService struct {
@@ -21,6 +22,10 @@ func (w *webServerConfigService) GetOptions(ctx context.Context) ([]v1.BifrostGr
 
 func (w *webServerConfigService) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
 	return w.store.WebServerConfigs().GetConfig(ctx, opts)
+}
+
+func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+	return w.store.WebServerConfigs().GetContext(ctx, opts, pos)
 }
 
 func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {

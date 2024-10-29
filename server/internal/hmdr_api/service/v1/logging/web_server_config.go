@@ -6,6 +6,7 @@ import (
 	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -35,6 +36,17 @@ func (w *webServerConfigService) GetConfig(ctx context.Context, opts metav1.WebS
 		log(level, "查询服务配置", opts, config, err)
 	}()
 	return w.svc.WebServerConfigs().GetConfig(ctx, opts)
+}
+
+func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (ngCtx nginx_context.Context, err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.ErrorLevel
+		}
+		log(level, "查询配置上下文", opts, ngCtx, err)
+	}()
+	return w.svc.WebServerConfigs().GetContext(ctx, opts, pos)
 }
 
 func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {

@@ -31,12 +31,37 @@ func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
 
 	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
-		global.GVA_LOG.Error("获取失败!")
+		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 
 		return
 	}
 	response.OkWithDetailed(strings.Join(config.TextLines(), "\n"), "获取成功", c)
+}
+
+func (w *WebServerConfigController) GetContextTextLines(c *gin.Context) {
+	var r metav1.WebServerConfigTargetContextOptions
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+
+	ctx, err := w.svc.WebServerConfigs().GetContext(c, r.WebServerOptions, r.ConfigContextPos)
+	if err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
+		response.FailWithMessage("获取失败", c)
+
+		return
+	}
+	lines, err := ctx.ConfigLines(false)
+	if err != nil {
+		global.GVA_LOG.Error("解析上下文配置文本失败！", zap.Any("err", err))
+		response.FailWithMessage("解析上下文配置文本失败", c)
+	}
+	response.OkWithDetailed(strings.Join(lines, "\n"), "获取成功", c)
 }
 
 func (w *WebServerConfigController) GetConfig(c *gin.Context) {
@@ -51,7 +76,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 
 	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
-		global.GVA_LOG.Error("获取失败!")
+		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 
 		return

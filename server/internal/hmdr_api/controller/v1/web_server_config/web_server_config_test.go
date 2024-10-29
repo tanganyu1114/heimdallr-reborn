@@ -92,6 +92,64 @@ func TestWebServerConfigController_GetConfigTextLines(t *testing.T) {
 	}
 }
 
+func TestWebServerConfigController_GetContextTextLines(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	svc := svcv1.NewMockFactory(ctrl)
+	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	getResponse := httptest.NewRecorder()
+	serverOpts := metav1.WebServerOptions{
+		GroupID:    0,
+		HostID:     0,
+		ServerName: "test-bifrost",
+	}
+	targetCtxOpts := metav1.WebServerConfigTargetContextOptions{
+		WebServerOptions: serverOpts,
+		ConfigContextPos: metav1.ConfigContextPos{
+			Config:         "C:\\config_test\\conf.d\\location.conf",
+			ContextPosPath: []int{0},
+		},
+	}
+	b, err := json.Marshal(targetCtxOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	getBody := bytes.NewBuffer(b)
+	getRequest := httptest.NewRequest("GET", "/api/conf/get-context-text", getBody)
+	getRequestCtx, _ := gin.CreateTestContext(getResponse)
+	getRequestCtx.Request = getRequest
+	type fields struct {
+		svc svcv1.Factory
+	}
+	type args struct {
+		c    *gin.Context
+		resp *httptest.ResponseRecorder
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name:   "normal test",
+			fields: fields{svc: svc},
+			args: args{
+				c:    getRequestCtx,
+				resp: getResponse,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &WebServerConfigController{
+				svc: tt.fields.svc,
+			}
+			w.GetContextTextLines(tt.args.c)
+			t.Logf("Code: %d, Body: %s", tt.args.resp.Code, tt.args.resp.Body)
+		})
+	}
+}
+
 func TestWebServerConfigController_GetConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

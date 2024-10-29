@@ -104,9 +104,10 @@
             >
               <span :style="data.labelStyle">{{ node.label }}</span> <span v-if="extendTreeNodeLabel(node)" style="color: darkseagreen">{{ node.data.extendLabel }}</span> <span v-if="node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include'">
                 <el-button size="mini" type="info" icon="el-icon-position" @click="() => changeConfStructTo(node.label)">跳转至该配置</el-button>
-              </span><span v-else v-show="node.data.delButtonShow && configStructEditable">
-                <el-button v-show="isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
-                <el-button size="mini" type="danger" icon="el-icon-delete" circle @click="() => handleTreeNodeDelete(node, data)" />
+              </span><span v-else v-show="node.data.contextHoverButtonsShow">
+                <el-button size="mini" type="info" icon="el-icon-more" circle @click="() => handleTreeNodeDetailedConfigDisplay(node, data)" />
+                <el-button v-if="configStructEditable && isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
+                <el-button v-if="configStructEditable" size="mini" type="danger" icon="el-icon-delete" circle @click="() => handleTreeNodeDelete(node, data)" />
               </span>
             </span>
           </el-tree>
@@ -162,6 +163,14 @@
               <el-button type="primary" :loading="isConfirmingDel" @click.stop="confirmDelDialog">确 定</el-button>
             </span>
           </el-dialog>
+          <el-drawer
+            title="配置上下文详情"
+            :visible.sync="ctxDetailDrawerVisible"
+            direction="rtl"
+            :before-close="handleCtxDetailDrawerClose"
+          >
+            <highlightjs language="nginx" :code="currentCtxText" class="hljs" />
+          </el-drawer>
         </el-card>
       </el-col>
     </el-row>
@@ -346,7 +355,7 @@ class LocationCtx extends ContextStruct {
   }
 }
 
-import { getOptions, getConfStruct, removeCtx, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
+import { getOptions, getContextText, getConfStruct, removeCtx, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
 import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
 import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
 import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
@@ -381,6 +390,7 @@ export default {
   data() {
     return {
       currentConfig: '',
+      currentCtxText: '',
       currentConfStruct: [],
       currentTreeExpandedKeysMap: {},
       deleteRequestData: {},
@@ -424,6 +434,7 @@ export default {
       isConfirmingDel: false,
       dragTreeNodeRadio: '',
       dragTreeNodeDialogVisible: false,
+      ctxDetailDrawerVisible: false,
       isConfirmingDrag: false,
       ctxCreatorsCardIsCollapse: true,
       ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta()
@@ -517,7 +528,7 @@ export default {
           pos: pos,
           id: pos.toString(),
           children: [],
-          delButtonShow: false,
+          contextHoverButtonsShow: false,
           labelStyle: {
             color: '#000000'
           },
@@ -616,12 +627,10 @@ export default {
       }
     },
     handleTreeNodeMouseEnter(node) {
-      // this.$set(node.data, 'delButtonShow', true)
-      node.data.delButtonShow = true
+      node.data.contextHoverButtonsShow = true
     },
     handleTreeNodeMouseLeave(node) {
-      // this.$set(node.data, 'delButtonShow', false)
-      node.data.delButtonShow = false
+      node.data.contextHoverButtonsShow = false
     },
     handleTreeNodeExpand(data) {
       if (this.currentTreeExpandedKeysMap[this.currentConfig] === undefined) this.currentTreeExpandedKeysMap[this.currentConfig] = []
@@ -638,6 +647,28 @@ export default {
           this.currentTreeExpandedKeysMap[this.currentConfig].splice(index, 1)
         }
       }
+    },
+    async handleTreeNodeDetailedConfigDisplay(node, data) {
+      if (data) {
+        var reqOpts = {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2],
+          config: this.currentConfig,
+          'context-pos-path': data.pos
+        }
+        var res = await getContextText(reqOpts)
+        if (res.code === 0) {
+          this.currentCtxText = res.data
+          this.ctxDetailDrawerVisible = true
+        }
+      }
+    },
+    handleCtxDetailDrawerClose() {
+      this.ctxDetailDrawerVisible = false
+      this.$nextTick(() => {
+        this.currentCtxText = ''
+      })
     },
     handleTreeNodeModify(node, data) {
       if (data === undefined) return
@@ -958,5 +989,12 @@ export default {
 /* 隐藏单选按钮的圆点 */
 ::v-deep .hidden-el-radio .el-radio__inner {
   display: none;
+}
+.hljs {
+  max-height: 600px;
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden!important;
+  font-size: 16px;
 }
 </style>

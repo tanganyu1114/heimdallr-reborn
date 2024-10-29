@@ -16,6 +16,7 @@ import (
 	reflect "reflect"
 
 	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	context0 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -55,6 +56,21 @@ func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServ
 func (mr *MockWebServerConfigSrvMockRecorder) GetConfig(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockWebServerConfigSrv)(nil).GetConfig), ctx, opts)
+}
+
+// GetContext mocks base method.
+func (m *MockWebServerConfigSrv) GetContext(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) (context0.Context, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContext", ctx, opts, pos)
+	ret0, _ := ret[0].(context0.Context)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContext indicates an expected call of GetContext.
+func (mr *MockWebServerConfigSrvMockRecorder) GetContext(ctx, opts, pos any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockWebServerConfigSrv)(nil).GetContext), ctx, opts, pos)
 }
 
 // GetOptions mocks base method.

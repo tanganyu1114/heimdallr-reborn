@@ -31,6 +31,26 @@ func (f WebServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServ
 	return configuration.NewNginxConfigFromJsonBytes(data)
 }
 
+func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+	nginxConfig, err := f.GetConfig(ctx, opts)
+	if err != nil {
+		return nginx_context.NullContext(), err
+	}
+	posConfigPath, err := nginx_context.NewRelConfigPath(nginxConfig.Main().MainConfig().BaseDir(), pos.Config)
+	if err != nil {
+		return nginx_context.NullContext(), errors.Errorf("failed to parse nginx config path(%s), cased by: %s", pos.Config, err)
+	}
+	target := nginx_context.NullContext()
+	target, err = nginxConfig.Main().GetConfig(posConfigPath.FullPath())
+	if err != nil {
+		return nginx_context.NullContext(), errors.Errorf("failed to parse target context: %v", err)
+	}
+	for _, idx := range pos.ContextPosPath {
+		target = target.Child(idx)
+	}
+	return target, nil
+}
+
 func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	if len(ctxmeta.TargetContext.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse context posision to be cloned: %v", errors.New("nginx config context pos path is null"))
