@@ -24,8 +24,7 @@ var (
 	regexpProxyPassValue = regexp.MustCompile(`^proxy_pass\s+(.+)$`)
 	regexpHttpURL        = regexp.MustCompile(`^http://([^/]+)(/\S*)?$`)
 	regexpHttpsURL       = regexp.MustCompile(`^https://([^/]+)(/\S*)?$`)
-	regexpOtherURL       = regexp.MustCompile(`^\S+://([^/]+)(/\S*)?$`)
-	regexpUpstream       = regexp.MustCompile(`^([^/:]+)(/\S*)?$`)
+	regexpOtherURL       = regexp.MustCompile(`^(?:[^/:]+?://)?([^/\s]+)(/\S*)?$`)
 	regexpAddrWithPort   = regexp.MustCompile(`^(\S+):(\d+)`)
 	regexpIPAddr         = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
 
@@ -36,7 +35,7 @@ type webServerStatisticsStore struct {
 	bm bifrosts.Manager
 }
 
-func (w *webServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	bc, err := w.bm.GetBifrostClient(opts)
 	if err != nil {
 		return nil, err
@@ -191,68 +190,80 @@ func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
 		return nil
 	}
 
-	var addrs []string
-
+	var host string
 	var port string
-	var defaultPort string
+	var defaultProxyPassPort string
 	var address string
-	var upstreamName string
 	// get default port, address and upstream name
 	switch {
 	case regexpHttpsURL.MatchString(url):
-		defaultPort = "443"
+		defaultProxyPassPort = "443"
 		address = regexpHttpsURL.FindStringSubmatch(url)[1]
 	case regexpHttpURL.MatchString(url):
-		defaultPort = "80"
+		defaultProxyPassPort = "80"
 		address = regexpHttpURL.FindStringSubmatch(url)[1]
 	case regexpOtherURL.MatchString(url):
-		defaultPort = "unknown_port"
+		defaultProxyPassPort = "unknown_port"
 		address = regexpOtherURL.FindStringSubmatch(url)[1]
-	case regexpAddrWithPort.MatchString(url):
-		address = regexpAddrWithPort.FindStringSubmatch(url)[1] + ":" + regexpAddrWithPort.FindStringSubmatch(url)[2]
-	case regexpUpstream.MatchString(url):
-		upstreamName = regexpUpstream.FindStringSubmatch(url)[1]
 	default:
 		return nil
 	}
+	// parse address to host and port
+	if regexpAddrWithPort.MatchString(address) {
+		host = regexpAddrWithPort.FindStringSubmatch(address)[1]
+		port = regexpAddrWithPort.FindStringSubmatch(address)[2]
+	} else {
+		host = address
+	}
 
-	if upstreamName == "" {
-		if regexpAddrWithPort.MatchString(address) {
-			port = regexpAddrWithPort.FindStringSubmatch(address)[2]
-			address = regexpAddrWithPort.FindStringSubmatch(address)[1]
-		} else {
-			port = defaultPort
+	if regexpIPAddr.MatchString(host) {
+		if port == "" {
+			port = defaultProxyPassPort
 		}
-
-		if regexpIPAddr.MatchString(address) {
-			addrs = append(addrs, address+":"+port)
-			return addrs
-		}
-		upstreamName = address
+		return []string{host + ":" + port}
 	}
 
 	upstream := httpOrStream.QueryByKeyWords(
 		nginx_context.NewKeyWords(context_type.TypeUpstream).
-			SetStringMatchingValue(upstreamName),
+			SetStringMatchingValue(host),
 	).Target()
-	if upstream == nginx_context.NullPos().Target() {
-		addrs = append(addrs, upstreamName+":"+port)
-		return addrs
+	if upstream.Error() != nil {
+		if port == "" {
+			port = defaultProxyPassPort
+		}
+		return []string{host + ":" + port}
 	}
-
+	var addrs []string
+	existAddrMap := make(map[string]bool)
 	for _, pos := range upstream.QueryAllByKeyWords(
 		nginx_context.NewKeyWords(context_type.TypeDirective).
 			SetRegexpMatchingValue(`^server\s+`),
 	) {
-		if regexpUpstreamSrvDirective.MatchString(pos.Target().Value()) {
+		if pos.Target().Error() == nil && regexpUpstreamSrvDirective.MatchString(pos.Target().Value()) {
 			srvAddr := regexpUpstreamSrvDirective.FindStringSubmatch(pos.Target().Value())[1]
-			//addrs = append(addrs, parseAddresses(httpOrStream, srvAddr)...)  // upstream 不能嵌套调用
-			addrs = append(addrs, srvAddr)
-			return addrs
+			var srvHost, srvPort string
+			if regexpAddrWithPort.MatchString(srvAddr) {
+				srvHost = regexpAddrWithPort.FindStringSubmatch(srvAddr)[1]
+				srvPort = regexpAddrWithPort.FindStringSubmatch(srvAddr)[2]
+			} else {
+				srvHost = srvAddr
+				if httpOrStream.Type() == context_type.TypeHttp {
+					srvPort = "80"
+				}
+			}
+			if port != "" {
+				srvPort = port
+			}
+			if srvPort == "" {
+				srvPort = defaultProxyPassPort
+			}
+			addr := srvHost + ":" + srvPort
+			if !existAddrMap[addr] {
+				addrs = append(addrs, addr)
+				existAddrMap[addr] = true
+			}
 		}
 	}
-
-	addrs = append(addrs, address)
 	return addrs
 }
 
