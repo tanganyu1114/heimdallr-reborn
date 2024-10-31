@@ -47,7 +47,7 @@
                   {{ node.label }}
                 </i>
                 <i v-else>
-                  <el-radio class="hidden-el-radio" :label="data.configPath" style="font-style: normal">
+                  <el-radio class="hidden-el-radio" :label="data.configPath" style="white-space: pre-wrap; font-style: normal">
                     <i v-if="currentConfig === data.configPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
                     <i v-else class="el-icon-document" style="text-indent: -0.75em" />
                     {{ node.label }}
@@ -98,7 +98,6 @@
           >
             <span
               slot-scope="{ node, data }"
-              class="custom-tree-node"
               @mouseleave="() => handleTreeNodeMouseLeave(node)"
               @mouseenter="() => handleTreeNodeMouseEnter(node)"
             >
@@ -111,7 +110,7 @@
               </span>
             </span>
           </el-tree>
-          <div class="floating-button-container">
+          <div ref="floating-button" :style="floatingButtonContainerStyle">
             <el-button
               v-show="configsData.stackCursor > 0"
               :class="{ 'floating-button': true }"
@@ -166,6 +165,7 @@
           <el-drawer
             title="配置上下文详情"
             :visible.sync="ctxDetailDrawerVisible"
+            :wrapper-closable="false"
             direction="rtl"
             :before-close="handleCtxDetailDrawerClose"
           >
@@ -437,7 +437,13 @@ export default {
       ctxDetailDrawerVisible: false,
       isConfirmingDrag: false,
       ctxCreatorsCardIsCollapse: true,
-      ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta()
+      ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta(),
+      floatingButtonContainerStyle: {
+        position: 'absolute',
+        top: '30px',
+        right: '20px',
+        bottom: '20px'
+      }
     }
   },
   created() {
@@ -893,6 +899,8 @@ export default {
     setConfigStructCardHeight() {
       var configStructCardHeight = 600 - this.getCtxBuildersCardHeight()
       this.$refs.configStructCard.$el.style.height = `${configStructCardHeight}px`
+      var floatingButtonTop = 30 + this.getCtxBuildersCardHeight()
+      this.floatingButtonContainerStyle.top = `${floatingButtonTop}px`
       // console.log("set config struct card's height to " + `${configStructCardHeight}px`)
     },
     handleCtxCreatorsCardClickEvent(eventCb) {
@@ -964,13 +972,6 @@ export default {
   flex-direction: column;
   align-items: flex-start;
 }
-.floating-button-container {
-  position: absolute;
-  top: 30px;
-  right: 20px;
-  bottom: 20px;
-  z-index: 9999;
-}
 .floating-button {
   position: absolute;
   top: 0;
@@ -990,11 +991,20 @@ export default {
 ::v-deep .hidden-el-radio .el-radio__inner {
   display: none;
 }
+::v-deep .el-tree-node__content {
+  height: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word; /* 允许长单词或URL地址换行到下一行 */
+  word-break: break-all; /* 允许在单词内换行 */
+}
 .hljs {
   max-height: 600px;
   width: 100%;
   overflow-y: scroll;
   overflow-x: hidden!important;
   font-size: 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word; /* 允许长单词或URL地址换行到下一行 */
+  word-break: break-all; /* 允许在单词内换行 */
 }
 </style>

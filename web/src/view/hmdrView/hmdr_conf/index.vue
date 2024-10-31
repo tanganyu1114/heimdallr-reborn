@@ -28,15 +28,17 @@
         </el-form>
       </el-row>
     </el-card>
-    <el-card>
+    <el-col>
+      <el-card>
 
-      <!--<div style="height:600px;">
+        <!--<div style="height:600px;">
         <el-scrollbar style="height:100%">
           <highlightjs language="nginx" :code="code" />
         </el-scrollbar>
       </div>-->
-      <highlightjs language="nginx" :code="code" class="hljs" />
-    </el-card>
+        <highlightjs language="nginx" :code="code" class="hljs" />
+      </el-card>
+    </el-col>
   </div>
 </template>
 
@@ -115,5 +117,8 @@ export default {
   overflow-y: scroll;
   overflow-x: hidden!important;
   font-size: 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word; /* 允许长单词或URL地址换行到下一行 */
+  word-break: break-all; /* 允许在单词内换行 */
 }
 </style>
