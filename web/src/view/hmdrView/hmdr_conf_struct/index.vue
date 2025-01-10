@@ -48,7 +48,7 @@
                 </i>
                 <i v-else>
                   <el-radio class="hidden-el-radio" :label="data.configPath" style="white-space: pre-wrap; font-style: normal">
-                    <i v-if="currentConfig === data.configPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
+                    <i v-if="currentConfig === data.configPath || currentConfig === data.fullPath" class="el-icon-document-checked" style="text-indent: -0.75em" />
                     <i v-else class="el-icon-document" style="text-indent: -0.75em" />
                     {{ node.label }}
                   </el-radio>
@@ -92,6 +92,8 @@
             highlight-current
             :allow-drop="allowTreeDrop"
             :allow-drag="allowTreeDrag"
+            lazy
+            :load="handleTreeNodeLazyLoad"
             @node-expand="(data)=>handleTreeNodeExpand(data)"
             @node-collapse="(data)=>handleTreeNodeCollapse(data)"
             @node-drop="handleTreeNodeDrop"
@@ -104,6 +106,7 @@
               <span :style="data.labelStyle">{{ node.label }}</span> <span v-if="extendTreeNodeLabel(node)" style="color: darkseagreen">{{ node.data.extendLabel }}</span> <span v-if="node.parent.data.ctxType !== undefined && node.parent.data.ctxType === 'include'">
                 <el-button size="mini" type="info" icon="el-icon-position" @click="() => changeConfStructTo(node.label)">跳转至该配置</el-button>
               </span><span v-else v-show="node.data.contextHoverButtonsShow">
+                <el-switch :value="node.data.enabled" :disabled="!configStructEditable" @change="() => handleTreeNodeEnabledStateChanges(node, data)" /> <span /> <span />
                 <el-button size="mini" type="info" icon="el-icon-more" circle @click="() => handleTreeNodeDetailedConfigDisplay(node, data)" />
                 <el-button v-if="configStructEditable && isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
                 <el-button v-if="configStructEditable" size="mini" type="danger" icon="el-icon-delete" circle @click="() => handleTreeNodeDelete(node, data)" />
@@ -137,6 +140,13 @@
             <span slot="footer" class="dialog-footer">
               <el-button @click="cancelDragDialog">取 消</el-button>
               <el-button type="primary" :loading="isConfirmingDrag" @click.stop="confirmDragDialog">确 定</el-button>
+            </span>
+          </el-dialog>
+          <el-dialog title="上下文启用状态修改确认" width="25%" :visible.sync="enabledStateChangeTreeNodeDialogVisible">
+            <p>请确认是否要{{ enabledStateChangeLabel }}该上下文[{{ enabledStateChangeTreeNodeLabel }}]</p>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="cancelEnabledStateChangeDialog">取 消</el-button>
+              <el-button type="primary" :loading="isConfirmingDrag" @click.stop="confirmEnabledStateChangeDialog">确 定</el-button>
             </span>
           </el-dialog>
           <el-dialog title="修改上下文" width="25%" :visible.sync="modifyTreeNodeDialogVisible">
@@ -221,6 +231,7 @@ class ConfigPathTreeStruct {
       if (node !== undefined) {
         node.configPath = configPath
         this.data.configPathTreeNodeKeyMap[configPath] = node.fullPath
+        this.data.configPathTreeNodeKeyMap[node.fullPath] = node.fullPath
       }
     }
   }
@@ -237,7 +248,7 @@ class ConfigPathTreeStruct {
     if (this.getPathNode(pos).children[name] === undefined) {
       this.getPathNode(pos).children[name] = {
         filename: name,
-        fullPath: [...pos, name].join('/'),
+        fullPath: '/' + [...pos, name].join('/'),
         isDir: subPath !== undefined && subPath !== '',
         children: {}
       }
@@ -284,9 +295,12 @@ class ContextStructBuilder {
 class ContextStruct {
   constructor(data) {
     this.data = data
+    this.el = ''
+    this.disabledCtxExtendLabel = ''
+    if (!this.data.enabled && this.data.ctxType !== undefined && this.data.ctxType !== 'comment' && this.data.ctxType !== 'inline_comment') this.disabledCtxExtendLabel = '(已禁用的上下文)'
   }
   genExtendLabel() {
-    return ''
+    return this.disabledCtxExtendLabel + this.el
   }
 }
 
@@ -311,18 +325,15 @@ class ServerCtx extends ContextStruct {
         }
       }
     }
-  }
-  genExtendLabel() {
-    var el = '<=='
+    this.el = '<=='
     if (this.ports.length > 0) {
-      el += ' 侦听端口：“' + this.ports.join('”，“') + '”'
+      this.el += ' 侦听端口：“' + this.ports.join('”，“') + '”'
     } else {
-      el += '侦听默认端口：“80/8000”？'
+      this.el += ' 侦听默认端口：“80/8000”？'
     }
     if (this.server_names.length > 0) {
-      el += '，服务名：“' + this.server_names.join('”，“') + '”'
+      this.el += '，服务名：“' + this.server_names.join('”，“') + '”'
     }
-    return el
   }
 }
 
@@ -348,14 +359,18 @@ class LocationCtx extends ContextStruct {
         }
       }
     }
-  }
-  genExtendLabel() {
-    if (this.proxy !== '') return '<== 代理至：“' + this.proxy + '”'
-    if (this.root !== '') return '<== 静态资源路径：“' + this.root + '”'; else return '<== 默认静态资源路径：“html”？'
+    this.el = '<=='
+    if (this.proxy !== '') {
+      this.el += ' 代理至：“' + this.proxy + '”'
+    } else if (this.root !== '') {
+      this.el += ' 静态资源路径：“' + this.root + '”'
+    } else {
+      this.el += ' 默认静态资源路径：“html”？'
+    }
   }
 }
 
-import { getOptions, getContextText, getConfStruct, removeCtx, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
+import { getOptions, getContextText, getConfStruct, getIncludes, removeCtx, changeCtxEnabledState, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
 import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
 import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
 import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
@@ -393,6 +408,7 @@ export default {
       currentCtxText: '',
       currentConfStruct: [],
       currentTreeExpandedKeysMap: {},
+      enabledStateChangeRequestData: {},
       deleteRequestData: {},
       updateRequestData: {},
       configsData: {
@@ -426,6 +442,10 @@ export default {
           return !data.isDir
         }
       },
+      enabledStateChangeLabel: '启用/禁用',
+      enabledStateChangeTreeNodeLabel: '未知上下文',
+      enabledStateChangeTreeNodeDialogVisible: false,
+      isConfirmingEnabledStateChange: false,
       modifyTreeNodeLabel: '未知上下文',
       modifyTreeNodeDialogVisible: false,
       isConfirmingModify: false,
@@ -479,11 +499,12 @@ export default {
         this.configsData.cachedConfigStack = []
         this.configsData.stackCursor = -1
         for (const c of Object.keys(res.data.configs)) {
-          this.configsData.configStructs[c] = []
+          const configFullPath = this.configsData.configPathTreeNodeKeyMap[c]
+          this.configsData.configStructs[configFullPath] = []
           for (let i = 0; i < res.data.configs[c].params.length; i++) {
             var childCtx = this.formatConfStruct([i], res.data.configs[c].params[i])
             if (childCtx !== {}) {
-              this.configsData.configStructs[c].push(childCtx)
+              this.configsData.configStructs[configFullPath].push(childCtx)
             }
           }
         }
@@ -501,16 +522,21 @@ export default {
       })
     },
     async changeCurrentConfStruct() {
+      // loading child include context
+      for (let i = 0; i < this.configsData.configStructs[this.currentConfig].length; i++) {
+        await this.handleParseIncludes(this.configsData.configStructs[this.currentConfig][i], this.currentConfig)
+      }
+
       this.currentConfStruct = JSON.parse(JSON.stringify(this.configsData.configStructs[this.currentConfig]))
       this.$refs.configPathTree.setCurrentKey(this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
       this.accordionExpandTreeNode(this.$refs.configPathTree, this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
     },
     async changeConfStructTo(configName) {
-      this.currentConfig = configName
+      this.currentConfig = this.configsData.configPathTreeNodeKeyMap[configName]
       await this.changeCurrentConfStruct()
       this.configsData.stackCursor++
       this.configsData.cachedConfigStack.splice(this.configsData.stackCursor)
-      this.configsData.cachedConfigStack.push(configName)
+      this.configsData.cachedConfigStack.push(this.configsData.configPathTreeNodeKeyMap[configName])
     },
     async changeBackConfStruct() {
       if (this.configsData.stackCursor > 0 && this.configsData.cachedConfigStack.length > 1) {
@@ -529,6 +555,7 @@ export default {
     formatConfStruct(pos, contextNode) {
       if (Array.isArray(pos) && typeof contextNode !== 'string') {
         var formattedContext = {
+          enabled: contextNode['enabled'],
           ctxType: contextNode['context-type'],
           value: contextNode['value'],
           pos: pos,
@@ -566,6 +593,36 @@ export default {
         return {}
       }
     },
+    async handleParseIncludes(data, wbConfig) {
+      if (data.ctxType === 'include' && !data.isFormatted) {
+        var reqOpts = {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2],
+          config: wbConfig,
+          'context-pos-path': data.pos
+        }
+        var res = await getIncludes(reqOpts)
+        if (res.code === 0) {
+          for (let i = 0; i < res.data.length; i++) {
+            data.children.push(this.formatConfStruct(data.pos.concat(i), res.data[i]))
+          }
+          var children = this.configsData.configStructs[this.currentConfig]
+          for (let i = 0; i < data.pos.length - 1; i++) {
+            children = children[data.pos[i]].children
+          }
+          data.isFormatted = true
+          children[data.pos[data.pos.length - 1]] = data
+        }
+      }
+    },
+    async handleTreeNodeLazyLoad(node, resolve) {
+      if (!node.data.children) return
+      for (let i = 0; i < node.data.children.length; i++) {
+        await this.handleParseIncludes(node.data.children[i], this.currentConfig)
+      }
+      resolve(node.data.children)
+    },
     allowTreeDrop(draggingNode, dropNode, type) {
       if (dropNode.data.isLeaf) {
         return type !== 'inner'
@@ -582,7 +639,11 @@ export default {
         if (data.ctxType) {
           switch (data.ctxType) {
             case 'directive': {
-              data.labelStyle.color = '#606266'
+              if (data.enabled) {
+                data.labelStyle.color = '#606266'
+              } else {
+                data.labelStyle.color = '#C0C4CC'
+              }
               return data.value + ';'
             }
             case 'inline_comment': {
@@ -596,7 +657,11 @@ export default {
               return '# ' + data.value
             }
             default: {
-              data.labelStyle.color = '#409EFF'
+              if (data.enabled) {
+                data.labelStyle.color = '#409EFF'
+              } else {
+                data.labelStyle.color = '#C0C4CC'
+              }
               if (data.value) {
                 return data.ctxType + ': ' + data.value
               }
@@ -654,6 +719,32 @@ export default {
         }
       }
     },
+    handleTreeNodeEnabledStateChanges(node, data) {
+      if (data === undefined) return
+      this.enabledStateChangeRequestData = {
+        'web-server-options': {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2]
+        },
+        'target-config-context-options': {
+          position: {
+            config: this.currentConfig,
+            'context-pos-path': data.pos
+          },
+          'target-context': {
+            'enabled': !data.enabled
+          }
+        }
+      }
+      if (data.enabled) {
+        this.enabledStateChangeLabel = '禁用'
+      } else {
+        this.enabledStateChangeLabel = '启用'
+      }
+      this.enabledStateChangeTreeNodeLabel = data.label
+      this.enabledStateChangeTreeNodeDialogVisible = true
+    },
     async handleTreeNodeDetailedConfigDisplay(node, data) {
       if (data) {
         var reqOpts = {
@@ -690,6 +781,7 @@ export default {
             'context-pos-path': data.pos
           },
           'target-context': {
+            'enabled': data.enabled,
             'context-type': data.ctxType,
             'context-value': data.value
           }
@@ -774,6 +866,39 @@ export default {
     isCtxWithValue(data) {
       const reg = /^(events|http|include|server|stream|types)$/
       return !reg.test(data.ctxType.toLowerCase())
+    },
+    cancelEnabledStateChangeDialog() {
+      this.changeConfStructTo(this.currentConfig)
+      this.enabledStateChangeTreeNodeDialogVisible = false
+      this.enabledStateChangeTreeNodeLabel = '未知上下文'
+      this.enabledStateChangeLabel = '启用/禁用'
+      this.enabledStateChangeRequestData = {}
+      this.isConfirmingEnabledStateChange = false
+    },
+    async confirmEnabledStateChangeDialog() {
+      if (this.isConfirmingEnabledStateChange) return
+      this.isConfirmingEnabledStateChange = true
+      var res = {
+        code: 7,
+        msg: '放弃[' + this.enabledStateChangeTreeNodeLabel + ']上下文' + this.enabledStateChangeLabel + '操作并离开页面'
+      }
+      var currentConfName = this.currentConfig
+      res = await changeCtxEnabledState(this.enabledStateChangeRequestData)
+      if (res.code !== 0) {
+        // TODO: 错误提示框
+        // console.log('cancel dialog')
+        this.cancelEnabledStateChangeDialog()
+        return
+      }
+      // console.log('search config struct')
+      if (await this.refreshConfStruct()) {
+        // 置空当前配置树节点展开状态
+        this.currentTreeExpandedKeysMap[currentConfName] = []
+        // console.log('change config struct to current config')
+        await this.changeConfStructTo(currentConfName)
+      }
+      this.enabledStateChangeTreeNodeDialogVisible = false
+      this.isConfirmingEnabledStateChange = false
     },
     cancelModifyDialog() {
       this.changeConfStructTo(this.currentConfig)

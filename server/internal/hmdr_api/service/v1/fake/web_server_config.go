@@ -25,6 +25,10 @@ func (w WebServerConfigService) GetContext(ctx context.Context, opts metav1.WebS
 	return new(storefake.WebServerConfigStore).GetContext(ctx, opts, pos)
 }
 
+func (w WebServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) ([]string, error) {
+	return new(storefake.WebServerConfigStore).GetIncludedConfigs(ctx, opts, pos)
+}
+
 func (w WebServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	return new(storefake.WebServerConfigStore).InsertWithClone(ctx, opts, ctxmeta)
 }
@@ -43,6 +47,10 @@ func (w WebServerConfigService) ModifyWithClone(ctx context.Context, opts metav1
 
 func (w WebServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
 	return new(storefake.WebServerConfigStore).ModifyWithNew(ctx, opts, ctxmeta)
+}
+
+func (w WebServerConfigService) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
+	return new(storefake.WebServerConfigStore).ChangeContextEnabledState(ctx, opts, ctxmeta)
 }
 
 func (w WebServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {

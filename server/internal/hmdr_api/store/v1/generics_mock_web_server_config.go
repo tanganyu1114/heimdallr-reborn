@@ -43,6 +43,20 @@ func (m *MockWebServerConfigStore) EXPECT() *MockWebServerConfigStoreMockRecorde
 	return m.recorder
 }
 
+// ChangeContextEnabledState mocks base method.
+func (m *MockWebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.ConfigContextEnabledStateMeta]) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeContextEnabledState", ctx, opts, ctxmeta)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeContextEnabledState indicates an expected call of ChangeContextEnabledState.
+func (mr *MockWebServerConfigStoreMockRecorder) ChangeContextEnabledState(ctx, opts, ctxmeta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeContextEnabledState", reflect.TypeOf((*MockWebServerConfigStore)(nil).ChangeContextEnabledState), ctx, opts, ctxmeta)
+}
+
 // GetConfig mocks base method.
 func (m *MockWebServerConfigStore) GetConfig(ctx context.Context, opts v10.WebServerOptions) (configuration.NginxConfig, error) {
 	m.ctrl.T.Helper()
@@ -71,6 +85,21 @@ func (m *MockWebServerConfigStore) GetContext(ctx context.Context, opts v10.WebS
 func (mr *MockWebServerConfigStoreMockRecorder) GetContext(ctx, opts, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetContext), ctx, opts, pos)
+}
+
+// GetIncludedConfigs mocks base method.
+func (m *MockWebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncludedConfigs", ctx, opts, pos)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIncludedConfigs indicates an expected call of GetIncludedConfigs.
+func (mr *MockWebServerConfigStoreMockRecorder) GetIncludedConfigs(ctx, opts, pos any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncludedConfigs", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetIncludedConfigs), ctx, opts, pos)
 }
 
 // GetOptions mocks base method.

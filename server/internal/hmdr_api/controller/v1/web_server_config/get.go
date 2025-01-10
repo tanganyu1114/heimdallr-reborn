@@ -19,7 +19,6 @@ func (w *WebServerConfigController) GetOptions(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
-	// TODO: 新增支持指定配置上下文对象文本格式获取的功能
 	var r metav1.WebServerOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
@@ -83,4 +82,25 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 	}
 
 	response.OkWithDetailed(config.Main(), "获取成功", c)
+}
+
+func (w *WebServerConfigController) GetIncludedConfigs(c *gin.Context) {
+	var r metav1.WebServerConfigTargetContextOptions
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+
+	includes, err := w.svc.WebServerConfigs().GetIncludedConfigs(c, r.WebServerOptions, r.ConfigContextPos)
+	if err != nil {
+		global.GVA_LOG.Error("获取包含的配置文件失败!", zap.Any("err", err))
+		response.FailWithMessage("获取包含的配置文件失败", c)
+
+		return
+	}
+
+	response.OkWithDetailed(includes, "获取包含的配置文件成功", c)
 }

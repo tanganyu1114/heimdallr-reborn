@@ -47,12 +47,12 @@ type WebServerConfigTargetContextOptions struct {
 	ConfigContextPos `json:",inline"`
 }
 
-type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
+type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
 	WebServerOptions                              `json:"web-server-options"`
 	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options"`
 }
 
-type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta] struct {
+type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
 	Position      ConfigContextPos  `json:"position"`
 	TargetContext TargetContextMeta `json:"target-context"`
 }
@@ -63,6 +63,7 @@ type ConfigContextPos struct {
 }
 
 type NewConfigContextMeta struct {
+	Enabled             bool                     `json:"enabled"`
 	ContextType         context_type.ContextType `json:"context-type"`
 	ContextValue        string                   `json:"context-value"`
 	ChildrenContextMeta []NewConfigContextMeta   `json:"children-context-meta"`
@@ -70,4 +71,8 @@ type NewConfigContextMeta struct {
 
 type CloneConfigContextMeta struct {
 	ConfigContextPos `json:"clone-context-pos"`
+}
+
+type ConfigContextEnabledStateMeta struct {
+	Enabled bool `json:"enabled"`
 }

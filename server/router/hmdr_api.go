@@ -67,11 +67,13 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 		webSrvConfRoutes.POST("getConfInfo", webSrvConfController.GetConfigTextLines)       // 获取配置文件信息
 		webSrvConfRoutes.POST("get-context-text", webSrvConfController.GetContextTextLines) // 获取上下文配置明细
 		webSrvConfRoutes.POST("get-conf-struct", webSrvConfController.GetConfig)            // 获取配置文件JSON数据
+		webSrvConfRoutes.POST("get-includes", webSrvConfController.GetIncludedConfigs)      // 获取包含的配置文件路径列表
 		webSrvConfRoutes.POST("insert-clone-ctx", webSrvConfController.InsertWithClone)
 		webSrvConfRoutes.POST("insert-new-ctx", webSrvConfController.InsertWithNew)
 		webSrvConfRoutes.DELETE("remove-ctx", webSrvConfController.Remove)
 		webSrvConfRoutes.POST("modify-ctx-value", webSrvConfController.ModifyContextValue)
 		webSrvConfRoutes.POST("modify-clone-ctx", webSrvConfController.ModifyWithClone)
+		webSrvConfRoutes.POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState)
 		webSrvConfRoutes.POST("modify-new-ctx", webSrvConfController.ModifyWithNew)
 		webSrvConfRoutes.POST("move-ctx", webSrvConfController.Move)
 	}

@@ -9,6 +9,7 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"go.uber.org/mock/gomock"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -33,6 +34,124 @@ func Test_newWebServerConfigs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := newWebServerConfigs(tt.args.svc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("newWebServerConfigs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	store := storev1.NewMockFactory(ctrl)
+	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
+	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "C:\\config_test\\nginx.conf",
+			ContextPosPath: []int{0},
+		},
+		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "C:\\config_test\\nginx.conf",
+			ContextPosPath: []int{0},
+		},
+		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+	}))
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "conf.d\\location.conf",
+			ContextPosPath: nil,
+		},
+		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "conf.d\\location.conf",
+			ContextPosPath: nil,
+		},
+		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
+	}))
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "conf.d\\location.conf",
+			ContextPosPath: []int{1, 2, 3},
+		},
+		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+		Position: metav1.ConfigContextPos{
+			Config:         "conf.d\\location.conf",
+			ContextPosPath: []int{1, 2, 3},
+		},
+		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+	}))
+	type fields struct {
+		store storev1.Factory
+	}
+	type args struct {
+		ctx     context.Context
+		opts    metav1.WebServerOptions
+		ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "enable context",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\nginx.conf",
+						ContextPosPath: []int{0},
+					},
+					TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:   "disable context",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "conf.d\\location.conf",
+						ContextPosPath: nil,
+					},
+					//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:   "wrong position",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "conf.d\\location.conf",
+						ContextPosPath: []int{1, 2, 3},
+					},
+					TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigService{
+				store: tt.fields.store,
+			}
+			if err := w.ChangeContextEnabledState(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+				t.Errorf("ChangeContextEnabledState() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -65,7 +184,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 			fields: fields{store: store},
 			args:   args{opts: webSrvOpts},
 			wantConfigTextLines: []string{
-				`# user  nobody;`,
+				`# user nobody;`,
 				`worker_processes 1;`,
 				`# error_log  logs/error.log;`,
 				`# error_log  logs/error.log  notice;`,
@@ -473,7 +592,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				return
 			}
 			if gotLines := got.TextLines(); !reflect.DeepEqual(gotLines, tt.wantConfigTextLines) {
-				t.Errorf("GetConfig() got.TextLines = %v, want %v", gotLines, tt.wantConfigTextLines)
+				t.Errorf("GetConfig() got.TextLines = %v, want %v", strings.Join(gotLines, "\n"), strings.Join(tt.wantConfigTextLines, "\n"))
 			}
 		})
 	}
@@ -513,6 +632,13 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: nil,
+	}))
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\nginx.conf",
+		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\nginx.conf",
+		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
 	}))
 	type fields struct {
 		store storev1.Factory
@@ -573,7 +699,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
-				`# user  nobody;`,
+				`# user nobody;`,
 				`worker_processes 1;`,
 				`# error_log  logs/error.log;`,
 				`# error_log  logs/error.log  notice;`,
@@ -980,7 +1106,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
-				`# user  nobody;`,
+				`# user nobody;`,
 				`worker_processes 1;`,
 				`# error_log  logs/error.log;`,
 				`# error_log  logs/error.log  notice;`,
@@ -1376,6 +1502,18 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`}`,
 			},
 		},
+		{
+			name:   "wrong pos path",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\nginx.conf",
+					ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1390,6 +1528,107 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			gotConfigLines, _ := got.ConfigLines(false)
 			if !reflect.DeepEqual(gotConfigLines, tt.wantConfigLines) {
 				t.Errorf("GetContext() got.ConfigLines( false ) = %v, want %v", gotConfigLines, tt.wantConfigLines)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	store := storev1.NewMockFactory(ctrl)
+	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
+	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 2},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 2},
+	}))
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.con",
+		ContextPosPath: nil,
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.con",
+		ContextPosPath: nil,
+	}))
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 1},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 1},
+	}))
+	type fields struct {
+		store storev1.Factory
+	}
+	type args struct {
+		ctx  context.Context
+		opts metav1.WebServerOptions
+		pos  metav1.ConfigContextPos
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name:   "normal test",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+					ContextPosPath: []int{0, 2},
+				},
+			},
+			want: []string{
+				"C:\\config_test\\conf.d\\location.conf",
+				"C:\\config_test\\conf.d\\location2.conf",
+			},
+			wantErr: false,
+		},
+		{
+			name:   "wrong position",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\conf.d\\server_test1.con",
+					ContextPosPath: nil,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:   "the target is not an `include` context",
+			fields: fields{store: store},
+			args: args{
+				opts: webSrvOpts,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+					ContextPosPath: []int{0, 1},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigService{
+				store: tt.fields.store,
+			}
+			got, err := w.GetIncludedConfigs(tt.args.ctx, tt.args.opts, tt.args.pos)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetIncludedConfigs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetIncludedConfigs() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

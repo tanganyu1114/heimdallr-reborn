@@ -44,9 +44,20 @@ func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.Web
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "查询配置上下文", opts, ngCtx, err)
+		log(level, "查询目标配置上下文", map[string]any{"web-server-options": opts, "config-context-position": pos}, ngCtx, err)
 	}()
 	return w.svc.WebServerConfigs().GetContext(ctx, opts, pos)
+}
+
+func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (includedConfigs []string, err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.WarnLevel
+		}
+		log(level, "查询目标`Include`上下文包含的配置文件路径列表", map[string]any{"web-server-options": opts, "config-context-position": pos}, includedConfigs, err)
+	}()
+	return w.svc.WebServerConfigs().GetIncludedConfigs(ctx, opts, pos)
 }
 
 func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
@@ -77,7 +88,7 @@ func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServ
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "删除指定配置", map[string]any{"web-server-options": opts, "config-context-position": pos}, nil, err)
+		log(level, "删除目标配置", map[string]any{"web-server-options": opts, "config-context-position": pos}, nil, err)
 	}()
 	return w.svc.WebServerConfigs().Remove(ctx, opts, pos)
 }
@@ -104,13 +115,24 @@ func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.
 	return w.svc.WebServerConfigs().ModifyWithNew(ctx, opts, ctxmeta)
 }
 
+func (w *webServerConfigService) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) (err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.ErrorLevel
+		}
+		log(level, "启用/禁用目标上下文", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
+	}()
+	return w.svc.WebServerConfigs().ChangeContextEnabledState(ctx, opts, ctxmeta)
+}
+
 func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "修改指定上下文的参数值", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
+		log(level, "修改目标上下文的参数值", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
 	}()
 	return w.svc.WebServerConfigs().ModifyContextValue(ctx, opts, ctxmeta)
 }
@@ -121,7 +143,7 @@ func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServer
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "移动指定配置", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
+		log(level, "移动目标配置", map[string]any{"web-server-options": opts, "config-context-meta": ctxmeta}, nil, err)
 	}()
 	return w.svc.WebServerConfigs().Move(ctx, opts, ctxmeta)
 }

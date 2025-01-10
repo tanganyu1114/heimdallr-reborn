@@ -49,10 +49,25 @@ export const getContextText = (data) => {
 // @accept application/json
 // @Produce  application/json
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"返回成功"}"
-// @Router /conf/get-conf-struct [get]
+// @Router /conf/get-conf-struct [post]
 export const getConfStruct = (data) => {
   return service({
     url: '/conf/get-conf-struct',
+    method: 'post',
+    data
+  })
+}
+
+// @Tags conf
+// @Summary 获取包含的配置文件路径列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{["some/included_config.conf"]},"msg":"获取包含的配置文件成功"}"
+// @Router /conf/get-conf-struct [post]
+export const getIncludes = (data) => {
+  return service({
+    url: '/conf/get-includes',
     method: 'post',
     data
   })
@@ -69,6 +84,21 @@ export const removeCtx = (data) => {
   return service({
     url: '/conf/remove-ctx',
     method: 'delete',
+    data
+  })
+}
+
+// @Tags conf
+// @Summary 修改指定配置上下文启用状态
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"修改启用状态成功"}"
+// @Router /conf/change-ctx-enabled-state [post]
+export const changeCtxEnabledState = (data) => {
+  return service({
+    url: '/conf/change-ctx-enabled-state',
+    method: 'post',
     data
   })
 }

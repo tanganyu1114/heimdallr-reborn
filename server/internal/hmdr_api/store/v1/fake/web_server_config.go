@@ -48,7 +48,23 @@ func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebSer
 	for _, idx := range pos.ContextPosPath {
 		target = target.Child(idx)
 	}
-	return target, nil
+	return target, target.Error()
+}
+
+func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) ([]string, error) {
+	c, err := f.GetContext(ctx, opts, pos)
+	if err != nil {
+		return nil, err
+	}
+	include, ok := c.(*local.Include)
+	if !ok {
+		return nil, errors.Errorf("failed to parse the target include context, possibly due to changes in the content of the target nginx config!")
+	}
+	includedConfigs := make([]string, 0)
+	for _, config := range include.Configs() {
+		includedConfigs = append(includedConfigs, config.FullPath())
+	}
+	return includedConfigs, nil
 }
 
 func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
@@ -86,6 +102,22 @@ func (f WebServerConfigStore) ModifyWithNew(ctx context.Context, opts metav1.Web
 	return nil
 }
 
+func (f WebServerConfigStore) parseContext(nginxconfig configuration.NginxConfig, configPath string, ctxPosPath []int) (nginx_context.Context, error) {
+	posConfigPath, err := nginx_context.NewRelConfigPath(nginxconfig.Main().MainConfig().BaseDir(), configPath)
+	if err != nil {
+		return nginx_context.NullContext(), errors.Errorf("failed to parse the nginx config path(%s), cased by: %s", configPath, err)
+	}
+	target := nginx_context.NullContext()
+	target, err = nginxconfig.Main().GetConfig(posConfigPath.FullPath())
+	if err != nil {
+		return nginx_context.NullContext(), err
+	}
+	for _, idx := range ctxPosPath {
+		target = target.Child(idx)
+	}
+	return target, target.Error()
+}
+
 func (f WebServerConfigStore) parseContextPos(nginxconfig configuration.NginxConfig, pos metav1.ConfigContextPos) (nginx_context.Pos, error) {
 	if len(pos.ContextPosPath) == 0 {
 		return nginx_context.NullPos(), errors.New("nginx config context pos path is null")
@@ -102,6 +134,24 @@ func (f WebServerConfigStore) parseContextPos(nginxconfig configuration.NginxCon
 		nextFather = nextFather.Child(idx)
 	}
 	return nginx_context.SetPos(nextFather, targetIdx), nil
+}
+
+func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
+	ngconf, err := f.GetConfig(ctx, opts)
+	if err != nil {
+		return err
+	}
+	target, err := f.parseContext(ngconf, ctxmeta.Position.Config, ctxmeta.Position.ContextPosPath)
+	if err != nil {
+		return errors.Errorf("failed to parse the target position: %v", err)
+	}
+
+	if ctxmeta.TargetContext.Enabled {
+		target.Enable()
+	} else {
+		target.Disable()
+	}
+	return new(fake.ServiceClient).WebServerConfig().Update(opts.ServerName, ngconf.Json())
 }
 
 func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {

@@ -26,7 +26,7 @@ func (w *WebServerConfigController) InsertWithClone(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().InsertWithClone(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("新增失败!")
+		global.GVA_LOG.Error("新增失败!", zap.Any("err", err))
 		response.FailWithMessage("新增失败", c)
 
 		return
@@ -46,7 +46,7 @@ func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("新增失败!")
+		global.GVA_LOG.Error("新增失败!", zap.Any("err", err))
 		response.FailWithMessage("新增失败", c)
 
 		return
@@ -66,7 +66,7 @@ func (w *WebServerConfigController) ModifyWithClone(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().ModifyWithClone(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("修改失败!")
+		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
 		response.FailWithMessage("修改失败", c)
 
 		return
@@ -86,13 +86,40 @@ func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().ModifyWithNew(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("修改失败!")
+		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
 		response.FailWithMessage("修改失败", c)
 
 		return
 	}
 
 	response.OkWithMessage("修改成功", c)
+}
+
+// @Tags conf
+// @Summary 修改指定配置上下文启用状态
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":{},"msg":"修改启用状态成功"}"
+// @Router /conf/change-ctx-enabled-state [post]
+func (w *WebServerConfigController) ChangeContextEnabledState(c *gin.Context) {
+	var r metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+	err = w.svc.WebServerConfigs().ChangeContextEnabledState(c, r.WebServerOptions, r.TargetConfigContextOptions)
+	if err != nil {
+		global.GVA_LOG.Error("修改启用状态失败!", zap.Any("err", err))
+		response.FailWithMessage("修改启用状态失败", c)
+
+		return
+	}
+
+	response.OkWithMessage("修改启用状态成功", c)
 }
 
 func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
@@ -106,7 +133,7 @@ func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().ModifyContextValue(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("修改失败!")
+		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
 		response.FailWithMessage("修改失败", c)
 
 		return
@@ -133,7 +160,7 @@ func (w *WebServerConfigController) Move(c *gin.Context) {
 	}
 	err = w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.TargetConfigContextOptions)
 	if err != nil {
-		global.GVA_LOG.Error("修改失败!")
+		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
 		response.FailWithMessage("修改失败", c)
 
 		return

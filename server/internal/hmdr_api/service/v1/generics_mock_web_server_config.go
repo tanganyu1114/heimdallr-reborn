@@ -43,6 +43,20 @@ func (m *MockWebServerConfigSrv) EXPECT() *MockWebServerConfigSrvMockRecorder {
 	return m.recorder
 }
 
+// ChangeContextEnabledState mocks base method.
+func (m *MockWebServerConfigSrv) ChangeContextEnabledState(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.ConfigContextEnabledStateMeta]) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeContextEnabledState", ctx, opts, ctxmeta)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeContextEnabledState indicates an expected call of ChangeContextEnabledState.
+func (mr *MockWebServerConfigSrvMockRecorder) ChangeContextEnabledState(ctx, opts, ctxmeta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeContextEnabledState", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ChangeContextEnabledState), ctx, opts, ctxmeta)
+}
+
 // GetConfig mocks base method.
 func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServerOptions) (configuration.NginxConfig, error) {
 	m.ctrl.T.Helper()
@@ -71,6 +85,21 @@ func (m *MockWebServerConfigSrv) GetContext(ctx context.Context, opts v10.WebSer
 func (mr *MockWebServerConfigSrvMockRecorder) GetContext(ctx, opts, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockWebServerConfigSrv)(nil).GetContext), ctx, opts, pos)
+}
+
+// GetIncludedConfigs mocks base method.
+func (m *MockWebServerConfigSrv) GetIncludedConfigs(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncludedConfigs", ctx, opts, pos)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIncludedConfigs indicates an expected call of GetIncludedConfigs.
+func (mr *MockWebServerConfigSrvMockRecorder) GetIncludedConfigs(ctx, opts, pos any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncludedConfigs", reflect.TypeOf((*MockWebServerConfigSrv)(nil).GetIncludedConfigs), ctx, opts, pos)
 }
 
 // GetOptions mocks base method.
