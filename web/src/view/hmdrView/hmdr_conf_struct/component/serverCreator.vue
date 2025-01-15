@@ -7,6 +7,7 @@ export class NewServerGenerator extends NewContextGenerator {
   constructor(data) {
     super(data)
     var formatData = {
+      'enabled': true,
       'context-type': 'server',
       'children-context-meta': []
     }
@@ -16,6 +17,7 @@ export class NewServerGenerator extends NewContextGenerator {
     }
 
     formatData['children-context-meta'].push({
+      'enabled': true,
       'context-type': 'directive',
       'context-value': 'listen ' + data.listenPort
     })
@@ -23,6 +25,7 @@ export class NewServerGenerator extends NewContextGenerator {
     if (data.fatherCtxType === 'http') {
       if (data.isSSL) {
         formatData['children-context-meta'].push({
+          'enabled': true,
           'context-type': 'directive',
           'context-value': 'ssl on'
         })
@@ -30,6 +33,7 @@ export class NewServerGenerator extends NewContextGenerator {
 
       if (data.certCrtPath !== undefined && data.certCrtPath !== '') {
         formatData['children-context-meta'].push({
+          'enabled': true,
           'context-type': 'directive',
           'context-value': 'ssl_certificate ' + data.certCrtPath
         })
@@ -37,6 +41,7 @@ export class NewServerGenerator extends NewContextGenerator {
 
       if (data.certKeyPath !== undefined && data.certKeyPath !== '') {
         formatData['children-context-meta'].push({
+          'enabled': true,
           'context-type': 'directive',
           'context-value': 'ssl_certificate_key ' + data.certKeyPath
         })
@@ -47,6 +52,7 @@ export class NewServerGenerator extends NewContextGenerator {
         serverName = data.serverName
       }
       formatData['children-context-meta'].push({
+        'enabled': true,
         'context-type': 'directive',
         'context-value': 'server_name ' + serverName
       })

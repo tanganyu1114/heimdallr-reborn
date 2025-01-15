@@ -7,6 +7,7 @@ export class NewIfGenerator extends NewContextGenerator {
   constructor(data) {
     super(data)
     var formatData = {
+      'enabled': true,
       'context-type': 'if',
       'context-value': ''
     }

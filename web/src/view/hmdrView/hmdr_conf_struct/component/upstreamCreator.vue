@@ -7,6 +7,7 @@ export class NewUpstreamGenerator extends NewContextGenerator {
   constructor(data) {
     super(data)
     var formatData = {
+      'enabled': true,
       'context-type': 'upstream',
       'context-value': '',
       'children-context-meta': []
@@ -19,6 +20,7 @@ export class NewUpstreamGenerator extends NewContextGenerator {
       var directive = 'server ' + data.backends[i].server
       if (data.backends[i].params !== undefined && data.backends[i].params !== '') directive += ' ' + data.backends[i].params
       formatData['children-context-meta'].push({
+        'enabled': true,
         'context-type': 'directive',
         'context-value': directive
       })

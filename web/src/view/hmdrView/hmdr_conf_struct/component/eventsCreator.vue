@@ -10,6 +10,7 @@ export class NewEventsGenerator extends NewContextGenerator {
     // if (data !== undefined) {
     // }
     this.data = {
+      'enabled': true,
       'context-type': 'events',
       'context-value': ''
     }

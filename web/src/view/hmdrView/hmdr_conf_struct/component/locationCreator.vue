@@ -7,6 +7,7 @@ export class NewLocationGenerator extends NewContextGenerator {
   constructor(data) {
     super(data)
     var formatData = {
+      'enabled': true,
       'context-type': 'location',
       'context-value': '',
       'children-context-meta': []
@@ -32,6 +33,7 @@ export class NewLocationGenerator extends NewContextGenerator {
           data.rootPath = 'html'
         }
         formatData['children-context-meta'].push({
+          'enabled': true,
           'context-type': 'directive',
           'context-value': 'root ' + data.rootPath
         })
@@ -42,6 +44,7 @@ export class NewLocationGenerator extends NewContextGenerator {
           return
         }
         formatData['children-context-meta'].push({
+          'enabled': true,
           'context-type': 'directive',
           'context-value': 'proxy_pass ' + data.proxyURL
         })

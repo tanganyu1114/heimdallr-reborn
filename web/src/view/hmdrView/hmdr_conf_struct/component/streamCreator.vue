@@ -10,6 +10,7 @@ export class NewStreamGenerator extends NewContextGenerator {
     // if (data !== undefined) {
     // }
     this.data = {
+      'enabled': true,
       'context-type': 'stream',
       'context-value': ''
     }

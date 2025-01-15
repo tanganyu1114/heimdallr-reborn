@@ -7,6 +7,7 @@ export class NewDirectiveGenerator extends NewContextGenerator {
   constructor(data) {
     super(data)
     var formatData = {
+      'enabled': true,
       'context-type': 'directive',
       'context-value': ''
     }
