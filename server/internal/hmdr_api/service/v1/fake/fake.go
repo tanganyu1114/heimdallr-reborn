@@ -35,3 +35,7 @@ func (s Service) WebServerStatistics() svcv1.WebServerStatisticsSrv {
 	//TODO implement me
 	panic("implement me")
 }
+
+func (s Service) WebServerBinCMD() svcv1.WebServerBinCMDSrv {
+	return new(WebServerBinCMD)
+}

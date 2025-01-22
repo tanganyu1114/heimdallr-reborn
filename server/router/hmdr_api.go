@@ -4,6 +4,7 @@ import (
 	"gin-vue-admin/internal/hmdr_api/controller/v1/agent_info"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/group"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/host"
+	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_bin_cmd"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_config"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_log_watcher"
 	"gin-vue-admin/internal/hmdr_api/controller/v1/web_server_statistics"
@@ -59,7 +60,7 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 		hostRoutes.GET("getHmdrHostList", hostController.List)                    // 获取HmdrHost列表
 	}
 
-	webSrvConfRoutes := rg.Group("conf").Use(middleware.OperationRecord())
+	webSrvConfRoutes := rg.Group("conf").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
 	{
 		webSrvConfController := web_server_config.NewController(svcIns)
 
@@ -76,6 +77,13 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 		webSrvConfRoutes.POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState)
 		webSrvConfRoutes.POST("modify-new-ctx", webSrvConfController.ModifyWithNew)
 		webSrvConfRoutes.POST("move-ctx", webSrvConfController.Move)
+	}
+
+	webSrvBinCMDRoutes := rg.Group("bin-cmd").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
+	{
+		webSrvBinCMDController := web_server_bin_cmd.NewController(svcIns)
+
+		webSrvBinCMDRoutes.POST("exec", webSrvBinCMDController.Exec) // 提交Web服务端二进制命令工具执行请求
 	}
 
 	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.OperationRecord())

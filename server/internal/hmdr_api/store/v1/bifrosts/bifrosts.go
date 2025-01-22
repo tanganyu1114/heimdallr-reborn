@@ -44,6 +44,10 @@ func (b *bifrostsStore) WebServerStatistics() storev1.WebServerStatisticsStore {
 	return newWebServerStatisticsStore(b)
 }
 
+func (b *bifrostsStore) WebServerBinCMD() storev1.WebServerBinCMDStore {
+	return newWebServerBinCMDStore(b)
+}
+
 func (b *bifrostsStore) Close() error {
 	return b.bm.RemoveAll()
 }

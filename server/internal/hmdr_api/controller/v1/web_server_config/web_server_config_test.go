@@ -475,10 +475,11 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 		requestMeta any
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name         string
+		fields       fields
+		args         args
+		wantRespBody []byte
+		wantErr      bool
 	}{
 		{
 			name:   "valid request body",
@@ -486,7 +487,8 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 			args: args{
 				requestMeta: validMeta,
 			},
-			wantErr: false,
+			wantRespBody: []byte(`{"code":0,"data":{},"msg":"新增成功"}`),
+			wantErr:      false,
 		},
 		{
 			name:   "invalid request body",
@@ -494,7 +496,8 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 			args: args{
 				requestMeta: invalidMeta,
 			},
-			wantErr: true,
+			wantRespBody: []byte(`{"code":7,"data":{},"msg":"解析失败"}`),
+			wantErr:      true,
 		},
 	}
 	for _, tt := range tests {
@@ -517,6 +520,9 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}
+			if got := resp.Body.Bytes(); !reflect.DeepEqual(got, tt.wantRespBody) {
+				t.Errorf("InsertWithClone() got = %s, want %s", got, tt.wantRespBody)
+			}
 		})
 	}
 }
@@ -527,10 +533,39 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
-	serverOpts := metav1.WebServerOptions{
-		GroupID:    0,
-		HostID:     0,
-		ServerName: "test-bifrost",
+	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{2},
+			},
+			TargetContext: metav1.NewConfigContextMeta{
+				ContextType:  "location",
+				ContextValue: "~ /normal-test",
+			},
+		},
+	}
+	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\nginx.conf",
+				ContextPosPath: []int{8, 13, 4},
+			},
+			TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{4},
+			}},
+		},
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -549,19 +584,7 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 			name:   "valid request body",
 			fields: fields{svc: svc},
 			args: args{
-				requestMeta: metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-					WebServerOptions: serverOpts,
-					TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-						Position: metav1.ConfigContextPos{
-							Config:         "C:\\config_test\\conf.d\\location2.conf",
-							ContextPosPath: []int{2},
-						},
-						TargetContext: metav1.NewConfigContextMeta{
-							ContextType:  "location",
-							ContextValue: "~ /normal-test",
-						},
-					},
-				},
+				requestMeta: validMeta,
 			},
 			wantRespBody: []byte(`{"code":0,"data":{},"msg":"新增成功"}`),
 			wantErr:      false,
@@ -570,21 +593,9 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 			name:   "invalid request body",
 			fields: fields{svc: svc},
 			args: args{
-				requestMeta: metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-					WebServerOptions: serverOpts,
-					TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-						Position: metav1.ConfigContextPos{
-							Config:         "C:\\config_test\\nginx.conf",
-							ContextPosPath: []int{8, 13, 4},
-						},
-						TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
-							Config:         "C:\\config_test\\conf.d\\location2.conf",
-							ContextPosPath: []int{4},
-						}},
-					},
-				},
+				requestMeta: invalidMeta,
 			},
-			wantRespBody: []byte(`{"code":7,"data":{},"msg":"新增失败"}`),
+			wantRespBody: []byte(`{"code":7,"data":{},"msg":"解析失败"}`),
 			wantErr:      true,
 		},
 	}
@@ -609,7 +620,7 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}
 			if got := resp.Body.Bytes(); !reflect.DeepEqual(got, tt.wantRespBody) {
-				t.Errorf("GetIncludedConfigs() got = %s, want %s", got, tt.wantRespBody)
+				t.Errorf("InsertWithNew() got = %s, want %s", got, tt.wantRespBody)
 			}
 		})
 	}

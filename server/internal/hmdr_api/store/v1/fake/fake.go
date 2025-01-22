@@ -36,6 +36,10 @@ func (f Store) WebServerStatistics() storev1.WebServerStatisticsStore {
 	panic("implement me")
 }
 
+func (f Store) WebServerBinCMD() storev1.WebServerBinCMDStore {
+	return new(WebServerBinCMDStore)
+}
+
 func (f Store) Close() error {
 	//TODO implement me
 	panic("implement me")

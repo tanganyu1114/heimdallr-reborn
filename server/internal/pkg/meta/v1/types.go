@@ -33,12 +33,12 @@ type StringObjectMeta struct {
 type WebServerOptions struct {
 	GroupID    uint   `json:"group_id"`
 	HostID     uint   `json:"host_id"`
-	ServerName string `json:"srv_name"`
+	ServerName string `json:"srv_name" binding:"required"`
 }
 
 type WebServerLogOptions struct {
 	WebServerOptions    `json:",inline"`
-	LogName             string `json:"log_name"`
+	LogName             string `json:"log_name" binding:"required"`
 	FilteringRegexpRule string `json:"filtering_regexp_rule"`
 }
 
@@ -48,31 +48,42 @@ type WebServerConfigTargetContextOptions struct {
 }
 
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
-	WebServerOptions                              `json:"web-server-options"`
-	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options"`
+	WebServerOptions                              `json:"web-server-options" binding:"required"`
+	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options" binding:"required"`
 }
 
 type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
-	Position      ConfigContextPos  `json:"position"`
-	TargetContext TargetContextMeta `json:"target-context"`
+	Position      ConfigContextPos  `json:"position" binding:"required"`
+	TargetContext TargetContextMeta `json:"target-context" binding:"required"`
 }
 
 type ConfigContextPos struct {
-	Config         string `json:"config"`
+	Config         string `json:"config" binding:"required"`
 	ContextPosPath []int  `json:"context-pos-path"`
 }
 
 type NewConfigContextMeta struct {
 	Enabled             bool                     `json:"enabled"`
-	ContextType         context_type.ContextType `json:"context-type"`
+	ContextType         context_type.ContextType `json:"context-type" binding:"required"`
 	ContextValue        string                   `json:"context-value"`
 	ChildrenContextMeta []NewConfigContextMeta   `json:"children-context-meta"`
 }
 
 type CloneConfigContextMeta struct {
-	ConfigContextPos `json:"clone-context-pos"`
+	ConfigContextPos `json:"clone-context-pos" binding:"required"`
 }
 
 type ConfigContextEnabledStateMeta struct {
 	Enabled bool `json:"enabled"`
+}
+
+type WebServerBinCMDExecRequest struct {
+	WebServerOptions `json:"web-server-options" binding:"required"`
+	Args             []string `json:"args"`
+}
+
+type WebServerBinCMDExecResponse struct {
+	Successful bool   `json:"successful"`
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
 }

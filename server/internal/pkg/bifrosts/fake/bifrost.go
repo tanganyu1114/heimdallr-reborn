@@ -1,6 +1,7 @@
 package fake
 
 import (
+	"fmt"
 	"gin-vue-admin/global"
 	"github.com/ClessLi/bifrost/pkg/client/bifrost/v1/service"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
@@ -34,6 +35,22 @@ func (f WebServerConfigService) Update(servername string, config []byte) error {
 	return nil
 }
 
+type WebServerBinCMDService struct {
+}
+
+func (f WebServerBinCMDService) Exec(servername string, arg ...string) (bool, string, string, error) {
+	if arg == nil || len(arg) == 0 {
+		return true, "nginx startup\n", "", nil
+	}
+	if len(arg) == 1 && arg[0] == "-t" {
+		return false, "", "config verify failure\n", nil
+	}
+	if len(arg) == 2 && arg[0] == "-s" && arg[1] == "reload" {
+		return true, "nginx config reload successfully\n", "", nil
+	}
+	return false, "", fmt.Sprintf("unknown argument:\n %v", arg), nil
+}
+
 type ServiceClient struct {
 }
 
@@ -54,4 +71,8 @@ func (f ServiceClient) WebServerStatus() service.WebServerStatusService {
 func (f ServiceClient) WebServerLogWatcher() service.WebServerLogWatcherService {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (f ServiceClient) WebServerBinCMD() service.WebServerBinCMDService {
+	return new(WebServerBinCMDService)
 }

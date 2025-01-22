@@ -45,6 +45,10 @@ func (s *service) WebServerStatistics() svcv1.WebServerStatisticsSrv {
 	return s.svc.WebServerStatistics()
 }
 
+func (s *service) WebServerBinCMD() svcv1.WebServerBinCMDSrv {
+	return newWebServerBinCMDService(s.svc)
+}
+
 func log(level zapcore.Level, msg string, requestData, responseData any, err error) {
 	var logfunc func(msg string, fields ...zapcore.Field)
 	switch level {

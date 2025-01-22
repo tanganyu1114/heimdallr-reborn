@@ -117,7 +117,7 @@
             <el-button
               v-show="configsData.stackCursor > 0"
               :class="{ 'floating-button': true }"
-              :style="{ 'right': '70px' }"
+              :style="{ 'right': '120px' }"
               type="primary"
               icon="el-icon-back"
               @click="changeBackConfStruct"
@@ -125,10 +125,17 @@
             <el-button
               v-show="configsData.stackCursor >= 0 && configsData.cachedConfigStack.length - 1 > configsData.stackCursor"
               :class="{ 'floating-button': true }"
-              :style="{ 'right': '20px' }"
+              :style="{ 'right': '70px' }"
               type="primary"
               icon="el-icon-right"
               @click="changeForwardConfStruct"
+            />
+            <WebServerReloadButton
+              v-if="configStructEditable"
+              :server-options="serverOptions"
+              :disabled="Object.keys(serverOptions).length === 0"
+              :class="{ 'floating-button': true }"
+              :style="{ 'right': '20px' }"
             />
           </div>
           <el-dialog title="拖拽确认" width="25%" :visible.sync="dragTreeNodeDialogVisible">
@@ -188,6 +195,8 @@
 </template>
 
 <script>
+
+import WebServerReloadButton from './component/webServerReloadButton.vue'
 
 class ConfigPathTreeStruct {
   constructor(mainConfigPath, configPaths) {
@@ -385,6 +394,7 @@ import ElCardCollapse from '@/components/ElCardCollapse.vue'
 export default {
   name: 'HmdrConfStruct',
   components: {
+    WebServerReloadButton,
     CommentCreator,
     DirectiveCreator,
     EventsCreator,
@@ -421,6 +431,7 @@ export default {
       formData: {
         value: []
       },
+      serverOptions: {},
       rules: {
         value: [{
           required: true,
@@ -482,12 +493,7 @@ export default {
       }
     },
     async refreshConfStruct() {
-      const sf = {
-        group_id: this.formData.value[0],
-        host_id: this.formData.value[1],
-        srv_name: this.formData.value[2]
-      }
-      const res = await getConfStruct(sf)
+      const res = await getConfStruct(this.serverOptions)
       // console.log(res)
       if (res.code === 0) {
         // console.log('配置赋值')
@@ -515,6 +521,11 @@ export default {
     async searchConfStruct() {
       this.$refs['elForm'].validate(async(valid) => {
         if (!valid) return
+        this.serverOptions = {
+          group_id: JSON.parse(JSON.stringify(this.formData.value[0])),
+          host_id: JSON.parse(JSON.stringify(this.formData.value[1])),
+          srv_name: JSON.parse(JSON.stringify(this.formData.value[2]))
+        }
         if (await this.refreshConfStruct()) {
           this.currentTreeExpandedKeysMap = {}
           await this.changeConfStructTo(this.configsData.mainConfig)
@@ -596,9 +607,9 @@ export default {
     async handleParseIncludes(data, wbConfig) {
       if (data.ctxType === 'include' && !data.isFormatted) {
         var reqOpts = {
-          group_id: this.formData.value[0],
-          host_id: this.formData.value[1],
-          srv_name: this.formData.value[2],
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name,
           config: wbConfig,
           'context-pos-path': data.pos
         }
@@ -723,9 +734,9 @@ export default {
       if (data === undefined) return
       this.enabledStateChangeRequestData = {
         'web-server-options': {
-          group_id: this.formData.value[0],
-          host_id: this.formData.value[1],
-          srv_name: this.formData.value[2]
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name
         },
         'target-config-context-options': {
           position: {
@@ -748,9 +759,9 @@ export default {
     async handleTreeNodeDetailedConfigDisplay(node, data) {
       if (data) {
         var reqOpts = {
-          group_id: this.formData.value[0],
-          host_id: this.formData.value[1],
-          srv_name: this.formData.value[2],
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name,
           config: this.currentConfig,
           'context-pos-path': data.pos
         }
@@ -771,9 +782,9 @@ export default {
       if (data === undefined) return
       this.updateRequestData = {
         'web-server-options': {
-          group_id: this.formData.value[0],
-          host_id: this.formData.value[1],
-          srv_name: this.formData.value[2]
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name
         },
         'target-config-context-options': {
           position: {
@@ -793,9 +804,9 @@ export default {
     handleTreeNodeDelete(node, data) {
       if (data === undefined) return
       this.deleteRequestData = {
-        group_id: this.formData.value[0],
-        host_id: this.formData.value[1],
-        srv_name: this.formData.value[2],
+        group_id: this.serverOptions.group_id,
+        host_id: this.serverOptions.host_id,
+        srv_name: this.serverOptions.srv_name,
         config: this.currentConfig,
         'context-pos-path': data.pos
       }
@@ -830,9 +841,9 @@ export default {
 
       this.updateRequestData = {
         'web-server-options': {
-          group_id: this.formData.value[0],
-          host_id: this.formData.value[1],
-          srv_name: this.formData.value[2]
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name
         },
         'target-config-context-options': {
           position: {

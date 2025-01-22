@@ -38,3 +38,7 @@ func (s *service) WebServerLogWatchers() svcv1.WebServerLogWatcherSrv {
 func (s *service) WebServerStatistics() svcv1.WebServerStatisticsSrv {
 	return newWebServerStatistics(s)
 }
+
+func (s *service) WebServerBinCMD() svcv1.WebServerBinCMDSrv {
+	return newWebServerBinCMD(s)
+}
