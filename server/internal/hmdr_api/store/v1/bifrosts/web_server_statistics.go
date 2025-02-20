@@ -49,19 +49,19 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 		return nil, err
 	}
 
-	var proxySvcInfos []v1.ProxyServiceInfo
+	var proxySvcInfos = make([]v1.ProxyServiceInfo, 0)
 	// Get Http Server Proxy Brief
 	httpSrvsProxyBrief, err := getHttpSrvsProxyBrief(conf)
-	if err != nil && !errors.IsCode(err, 110007) {
-		return nil, err
+	if err != nil && !errors.Is(err, nginx_context.NotFoundPos().Target().Error().(errors.Aggregate).Errors()[0]) {
+		return proxySvcInfos, err
 	}
-	proxySvcInfos = append(proxySvcInfos, httpSrvsProxyBrief...)
-
 	// Get Stream Server Proxy Brief
 	streamSrvsProxyBrief, err := getStreamSrvsProxyBrief(conf)
-	if err != nil && !errors.IsCode(err, 110007) {
-		return nil, err
+	if err != nil && !errors.Is(err, nginx_context.NotFoundPos().Target().Error().(errors.Aggregate).Errors()[0]) {
+		return proxySvcInfos, err
 	}
+
+	proxySvcInfos = append(proxySvcInfos, httpSrvsProxyBrief...)
 	proxySvcInfos = append(proxySvcInfos, streamSrvsProxyBrief...)
 
 	return proxySvcInfos, nil
@@ -69,106 +69,137 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 
 func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
 	var streamSrvsProxyBrief []v1.ProxyServiceInfo
-	stream := conf.Main().QueryByKeyWords(nginx_context.NewKeyWords(context_type.TypeStream)).Target()
-
-	for _, pos := range stream.QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeServer)) {
-		// get listening port
-		port := configuration.Port(pos.Target())
-
-		proxyPass := pos.Target().QueryByKeyWords(
-			nginx_context.NewKeyWords(context_type.TypeDirective).
-				SetRegexpMatchingValue(`^proxy_pass\s+`).
-				SetCascaded(false),
-		).Target()
-
-		if err := proxyPass.Error(); err != nil {
-			if !errors.Is(err, nginx_context.NullPos().Target().Error()) {
-				global.GVA_LOG.Warn("检索proxy_pass配置项异常", zap.Any("err", err))
-			}
-			continue
-		}
-
-		proxyAddrs := getProxyAddresses(stream, proxyPass)
-		if len(proxyAddrs) == 0 {
-			global.GVA_LOG.Warn("获取Stream Server反向代理配置异常", zap.Any("listen_port", port), zap.Any("proxy_pass_value", proxyPass.Value()))
-			continue
-		}
-
-		for _, proxyAddr := range proxyAddrs {
-			streamSrvsProxyBrief = append(streamSrvsProxyBrief, v1.ProxyServiceInfo{
-				ProxyType:    "TCP/UDP",
-				Port:         port,
-				ProxyAddress: proxyAddr,
-			})
-		}
-
-	}
-
-	return streamSrvsProxyBrief, nil
+	streamPos := conf.Main().ChildrenPosSet().
+		QueryOne(nginx_context.NewKeyWords(context_type.TypeStream).
+			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc))
+	proxyPassKW := nginx_context.NewKeyWords(context_type.TypeDirective).
+		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
+		SetRegexpMatchingValue(`^proxy_pass\s+`)
+	return streamSrvsProxyBrief, streamPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeServer).
+		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+		Filter( // filter out the proxy server
+			func(srvPos nginx_context.Pos) bool { return srvPos.QueryOne(proxyPassKW).Target().Error() == nil },
+		).
+		Map(
+			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
+				// get listening port
+				port := configuration.Port(srvPos.Target())
+				return srvPos, srvPos.QueryAll(proxyPassKW).
+					Filter( // filter out the normal "proxy_pass" directive
+						func(directivePos nginx_context.Pos) bool {
+							if directivePos.Target().Error() != nil {
+								global.GVA_LOG.Warn(
+									"检索proxy_pass配置项异常",
+									zap.Any("err", directivePos.Target().Error()),
+								)
+								return false
+							}
+							return true
+						},
+					).
+					Map(
+						func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
+							proxyAddrs := getProxyAddresses(streamPos.Target(), directivePos.Target())
+							if len(proxyAddrs) == 0 {
+								global.GVA_LOG.Warn(
+									"获取Stream Server反向代理配置异常",
+									zap.Any("listen_port", port),
+									zap.Any("proxy_pass_value", directivePos.Target().Value()),
+								)
+								return directivePos, nil
+							}
+							for _, proxyAddr := range proxyAddrs {
+								streamSrvsProxyBrief = append(streamSrvsProxyBrief, v1.ProxyServiceInfo{
+									ProxyType:    "TCP/UDP",
+									Port:         port,
+									ProxyAddress: proxyAddr,
+								})
+							}
+							return directivePos, nil
+						},
+					).
+					Error()
+			},
+		).
+		Error()
 }
 
 func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
 	var httpSrvsProxyBrief []v1.ProxyServiceInfo
-	http := conf.Main().QueryByKeyWords(nginx_context.NewKeyWords(context_type.TypeHttp)).Target()
-	for _, serverPos := range http.QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeServer)) {
-		// get server name
-		srvnameDirective := serverPos.Target().QueryByKeyWords(
-			nginx_context.NewKeyWords(context_type.TypeDirective).
-				SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
-				SetCascaded(false),
-		).Target()
-		if err := srvnameDirective.Error(); err != nil {
-			if !errors.Is(err, nginx_context.NullPos().Target().Error()) {
-				global.GVA_LOG.Warn("未检索到Http Server的server_name配置项")
-			} else {
-				global.GVA_LOG.Warn("检索Http Server的server_name配置项失败", zap.Any("err", err))
-			}
-			continue
-		}
-		srvname := srvnameDirective.(*local.Directive).Params
-
-		// get listening port
-		port := configuration.Port(serverPos.Target())
-
-		for _, locationPos := range serverPos.Target().QueryAllByKeyWords(nginx_context.NewKeyWords(context_type.TypeLocation)) {
-			proxyPass := locationPos.Target().QueryByKeyWords(
-				nginx_context.NewKeyWords(context_type.TypeDirective).
-					SetRegexpMatchingValue(`^proxy_pass\s+`).
-					SetCascaded(false),
-			).Target()
-
-			if err := proxyPass.Error(); err != nil {
-				if a, ok := err.(errors.Aggregate); ok {
-					if len(a.Errors()) == 1 {
-						err = a.Errors()[0]
-					}
+	httpPos := conf.Main().ChildrenPosSet().
+		QueryOne(nginx_context.NewKeyWords(context_type.TypeHttp).
+			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc))
+	proxyPassKW := nginx_context.NewKeyWords(context_type.TypeDirective).
+		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
+		SetRegexpMatchingValue(`^proxy_pass\s+`)
+	return httpSrvsProxyBrief, httpPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeServer).
+		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+		Filter( // filter out the proxy server
+			func(srvPos nginx_context.Pos) bool { return srvPos.QueryOne(proxyPassKW).Target().Error() == nil },
+		).
+		Map(
+			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
+				// get server name
+				var srvname string
+				if p := srvPos.QueryOne(nginx_context.NewKeyWords(context_type.TypeDirective).
+					SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
+					SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)); p.Target().Error() == nil {
+					srvname = p.Target().(*local.Directive).Params
 				}
-				if !errors.IsCode(err, 110017) {
-					global.GVA_LOG.Warn("获取proxy_pass配置项异常", zap.Any("err", err))
-				}
-				continue
-			}
 
-			proxyAddrs := getProxyAddresses(http, proxyPass)
-			if len(proxyAddrs) == 0 {
-				global.GVA_LOG.Warn("获取location反向代理配置异常", zap.Any("location", locationPos.Target().Value()), zap.Any("proxy_pass_value", proxyPass.Value()))
-				continue
-			}
+				// get listening port
+				port := configuration.Port(srvPos.Target())
 
-			for _, proxyAddr := range proxyAddrs {
-				httpSrvsProxyBrief = append(httpSrvsProxyBrief, v1.ProxyServiceInfo{
-					ProxyType:    "HTTP",
-					ServerName:   srvname,
-					Port:         port,
-					Location:     locationPos.Target().Value(),
-					ProxyAddress: proxyAddr,
-				})
-
-			}
-		}
-
-	}
-	return httpSrvsProxyBrief, nil
+				return srvPos, srvPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeLocation).
+					SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+					Filter( // filter out the proxy location
+						func(locPos nginx_context.Pos) bool { return locPos.QueryOne(proxyPassKW).Target().Error() == nil },
+					).
+					Map(
+						func(locPos nginx_context.Pos) (nginx_context.Pos, error) {
+							return locPos, locPos.QueryAll(proxyPassKW).
+								Filter( // filter out the normal "proxy_pass" directive
+									func(directivePos nginx_context.Pos) bool {
+										if directivePos.Target().Error() != nil {
+											global.GVA_LOG.Warn(
+												"检索proxy_pass配置项异常",
+												zap.Any("err", directivePos.Target().Error()),
+											)
+											return false
+										}
+										return true
+									},
+								).
+								Map(
+									func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
+										proxyAddrs := getProxyAddresses(httpPos.Target(), directivePos.Target())
+										if len(proxyAddrs) == 0 {
+											global.GVA_LOG.Warn(
+												"获取location反向代理配置异常",
+												zap.Any("location", locPos.Target().Value()),
+												zap.Any("proxy_pass_value", directivePos.Target().Value()),
+											)
+											return directivePos, nil
+										}
+										for _, proxyAddr := range proxyAddrs {
+											httpSrvsProxyBrief = append(httpSrvsProxyBrief, v1.ProxyServiceInfo{
+												ProxyType:    "HTTP",
+												ServerName:   srvname,
+												Port:         port,
+												Location:     locPos.Target().Value(),
+												ProxyAddress: proxyAddr,
+											})
+										}
+										return directivePos, nil
+									},
+								).
+								Error()
+						},
+					).
+					Error()
+			},
+		).
+		Error()
 }
 
 func getProxyAddresses(httpOrStream, proxypass nginx_context.Context) []string {
@@ -223,11 +254,12 @@ func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
 		return []string{host + ":" + port}
 	}
 
-	upstream := httpOrStream.QueryByKeyWords(
+	upstreamPos := httpOrStream.ChildrenPosSet().QueryOne(
 		nginx_context.NewKeyWords(context_type.TypeUpstream).
+			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
 			SetStringMatchingValue(host),
-	).Target()
-	if upstream.Error() != nil {
+	)
+	if upstreamPos.Target().Error() != nil {
 		if port == "" {
 			port = defaultProxyPassPort
 		}
@@ -235,35 +267,38 @@ func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
 	}
 	var addrs []string
 	existAddrMap := make(map[string]bool)
-	for _, pos := range upstream.QueryAllByKeyWords(
-		nginx_context.NewKeyWords(context_type.TypeDirective).
-			SetRegexpMatchingValue(`^server\s+`),
-	) {
-		if pos.Target().Error() == nil && regexpUpstreamSrvDirective.MatchString(pos.Target().Value()) {
-			srvAddr := regexpUpstreamSrvDirective.FindStringSubmatch(pos.Target().Value())[1]
-			var srvHost, srvPort string
-			if regexpAddrWithPort.MatchString(srvAddr) {
-				srvHost = regexpAddrWithPort.FindStringSubmatch(srvAddr)[1]
-				srvPort = regexpAddrWithPort.FindStringSubmatch(srvAddr)[2]
-			} else {
-				srvHost = srvAddr
-				if httpOrStream.Type() == context_type.TypeHttp {
-					srvPort = "80"
+	upstreamPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeDirective).
+		SetRegexpMatchingValue(`^server\s+`).
+		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+		Map(
+			func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
+				if regexpUpstreamSrvDirective.MatchString(directivePos.Target().Value()) {
+					srvAddr := regexpUpstreamSrvDirective.FindStringSubmatch(directivePos.Target().Value())[1]
+					var srvHost, srvPort string
+					if regexpAddrWithPort.MatchString(srvAddr) {
+						srvHost = regexpAddrWithPort.FindStringSubmatch(srvAddr)[1]
+						srvPort = regexpAddrWithPort.FindStringSubmatch(srvAddr)[2]
+					} else {
+						srvHost = srvAddr
+						if httpOrStream.Type() == context_type.TypeHttp {
+							srvPort = "80"
+						}
+					}
+					if port != "" {
+						srvPort = port
+					}
+					if srvPort == "" {
+						srvPort = defaultProxyPassPort
+					}
+					addr := srvHost + ":" + srvPort
+					if !existAddrMap[addr] {
+						addrs = append(addrs, addr)
+						existAddrMap[addr] = true
+					}
 				}
-			}
-			if port != "" {
-				srvPort = port
-			}
-			if srvPort == "" {
-				srvPort = defaultProxyPassPort
-			}
-			addr := srvHost + ":" + srvPort
-			if !existAddrMap[addr] {
-				addrs = append(addrs, addr)
-				existAddrMap[addr] = true
-			}
-		}
-	}
+				return directivePos, nil
+			},
+		)
 	return addrs
 }
 

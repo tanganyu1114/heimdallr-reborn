@@ -1,7 +1,9 @@
 package bifrosts
 
 import (
+	"context"
 	"encoding/json"
+	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/internal/pkg/bifrosts"
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
@@ -311,6 +313,78 @@ func Test_parseAddresses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := parseAddresses(tt.args.httpOrStream, tt.args.url); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseAddresses() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_webServerStatisticsStore_GetProxyServiceInfo(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
+	mockBifrostsManager.EXPECT().GetBifrostClient(webSrvOpts).AnyTimes().Return(&bifrostclinetv1.Client{Factory: new(fake.ServiceClient)}, nil)
+	type fields struct {
+		bm bifrosts.Manager
+	}
+	type args struct {
+		in0  context.Context
+		opts metav1.WebServerOptions
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []v1.ProxyServiceInfo
+		wantErr bool
+	}{
+		{
+			name:   "normal test",
+			fields: fields{bm: mockBifrostsManager},
+			args:   args{opts: webSrvOpts},
+			want: []v1.ProxyServiceInfo{
+				{"HTTP", "localhost", 80, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "localhost", 80, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "localhost", -1, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "localhost", -1, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test2.com", 80, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "test2.com", 80, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy2", "baidu.com:443"},
+				{"HTTP", "test1.com", 80, "/test_proxy3", "baidu2.com:80"},
+				{"HTTP", "test1.com", 80, "/test_proxy4", "10.1.1.2:333"},
+				{"HTTP", "test1.com", 8080, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "test1.com", 8080, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test1.com", 8080, "/test_proxy2", "baidu.com:443"},
+				{"HTTP", "test1.com", 8080, "/test_proxy3", "baidu2.com:80"},
+				{"HTTP", "test1.com", 8080, "/test_proxy4", "10.1.1.2:333"},
+				{"HTTP", "test2.com", 8080, "/test_proxy", "10.1.1.1:443"},
+				{"HTTP", "test2.com", 8080, "/test_proxy", "10.1.1.2:443"},
+				{"HTTP", "test2.com", 8080, "/test_proxy2", "baidu.com:443"},
+				{"HTTP", "test2.com", 8080, "/test_proxy3", "baidu2.com:80"},
+				{"HTTP", "test2.com", 8080, "/test_proxy4", "10.1.1.2:333"},
+				{"TCP/UDP", "", 5510, "", "www.baidu.com:443"},
+				{"TCP/UDP", "", 5520, "", "test.1.cn:22"},
+				{"TCP/UDP", "", 5530, "", "vvvvv1:55"},
+				{"TCP/UDP", "", 5530, "", "test.vv2.3.cn:44"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerStatisticsStore{
+				bm: tt.fields.bm,
+			}
+			got, err := w.GetProxyServiceInfo(tt.args.in0, tt.args.opts)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetProxyServiceInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetProxyServiceInfo() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

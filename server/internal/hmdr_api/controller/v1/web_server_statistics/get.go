@@ -20,19 +20,11 @@ func (w *WebServerStatisticsController) GetProxyServiceInfo(c *gin.Context) {
 
 	proxyInfo, err := w.svc.WebServerStatistics().GetProxyServiceInfo(c, r)
 	if err != nil {
-		global.GVA_LOG.Error("获取失败!")
+		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 
 		return
 	}
-	//jsonData, err := json.Marshal(proxyInfo)
-	//if err != nil {
-	//	global.GVA_LOG.Error("解析失败!")
-	//	response.FailWithMessage("解析失败", c)
-	//
-	//	return
-	//}
 
 	response.OkWithDetailed(proxyInfo, "获取成功", c)
-	//response.OkWithDetailed(string(jsonData), "获取成功", c)
 }
