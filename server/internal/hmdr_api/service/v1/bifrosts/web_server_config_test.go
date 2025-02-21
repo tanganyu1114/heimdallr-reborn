@@ -5,12 +5,14 @@ import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
+	"gin-vue-admin/internal/hmdr_api/store/v1/cache"
 	storefake "gin-vue-admin/internal/hmdr_api/store/v1/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"go.uber.org/mock/gomock"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func Test_newWebServerConfigs(t *testing.T) {
@@ -40,12 +42,22 @@ func Test_newWebServerConfigs(t *testing.T) {
 }
 
 func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
@@ -101,7 +113,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	}{
 		{
 			name:   "enable context",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
@@ -116,7 +128,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 		},
 		{
 			name:   "disable context",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
@@ -131,7 +143,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 		},
 		{
 			name:   "wrong position",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
@@ -162,6 +174,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
@@ -181,22 +194,22 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args:   args{opts: webSrvOpts},
 			wantConfigTextLines: []string{
 				`# user nobody;`,
 				`worker_processes 1;`,
-				`# error_log  logs/error.log;`,
-				`# error_log  logs/error.log  notice;`,
-				`# error_log  logs/error.log  info;`,
-				`# pid        logs/nginx.pid;`,
+				`# error_log logs/error.log;`,
+				`# error_log logs/error.log  notice;`,
+				`# error_log logs/error.log  info;`,
+				`# pid logs/nginx.pid;`,
 				`events {`,
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
 				`    upstream vvvvv1 {`,
 				`        server test.1.cn:22 weight=5;`,
-				`        server test.2.cn:33 weight=5;`,
+				`        # server test.2.cn:33 weight=5;`,
 				`    }`,
 				`    upstream vvvvv2 {`,
 				`        server vvvvv1:55;`,
@@ -309,12 +322,12 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
 				`    # '"$http_user_agent" "$http_x_forwarded_for"';`,
-				`    # access_log  logs/access.log  main;`,
+				`    # access_log logs/access.log  main;`,
 				`    sendfile on;`,
-				`    # tcp_nopush     on;`,
-				`    # keepalive_timeout  0;`,
+				`    # tcp_nopush on;`,
+				`    # keepalive_timeout 0;`,
 				`    keepalive_timeout 65;`,
-				`    # gzip  on;`,
+				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
 				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
 				`        listen 80;`,
@@ -324,7 +337,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -341,7 +354,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -359,7 +372,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -381,7 +394,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -401,7 +414,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -423,7 +436,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -443,7 +456,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -465,7 +478,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -481,7 +494,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`        listen 80;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -491,7 +504,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -499,7 +512,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`        location /test_proxy {`,
 				`            proxy_pass upstream.test.1;`,
 				`        }`,
-				`        # error_page  404              /404.html;`,
+				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
 				`        #`,
 				`        error_page 500 502 503 504  /50x.html;`,
@@ -509,29 +522,29 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`        # proxy the PHP scripts to Apache listening on 127.0.0.1:80`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # proxy_pass   http://127.0.0.1;`,
+				`        #     proxy_pass http://127.0.0.1;`,
 				`        # }`,
 				`        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # root           html;`,
-				`        # fastcgi_pass   127.0.0.1:9000;`,
-				`        # fastcgi_index  index.php;`,
-				`        # fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
-				`        # include        fastcgi_params;`,
+				`        #     root html;`,
+				`        #     fastcgi_pass 127.0.0.1:9000;`,
+				`        #     fastcgi_index index.php;`,
+				`        #     fastcgi_param SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
+				`        #     # include <== fastcgi_params`,
 				`        # }`,
 				`        # deny access to .htaccess files, if Apache's document root`,
 				`        # concurs with nginx's one`,
 				`        #`,
 				`        # location ~ /\.ht {`,
-				`        # deny  all;`,
+				`        #     deny all;`,
 				`        # }`,
 				`    }`,
 				`    server {`,
 				`        listen 990 ssl;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -541,7 +554,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -553,29 +566,29 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
 				`    # server {`,
-				`    # listen       8000;`,
-				`    # listen       somename:8080;`,
-				`    # server_name  somename  alias  another.alias;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 8000;`,
+				`    #     listen somename:8080;`,
+				`    #     server_name somename  alias  another.alias;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`    # HTTPS server`,
 				`    #`,
 				`    # server {`,
-				`    # listen       443 ssl;`,
-				`    # server_name  localhost;`,
-				`    # ssl_certificate      cert.pem;`,
-				`    # ssl_certificate_key  cert.key;`,
-				`    # ssl_session_cache    shared:SSL:1m;`,
-				`    # ssl_session_timeout  5m;`,
-				`    # ssl_ciphers  HIGH:!aNULL:!MD5;`,
-				`    # ssl_prefer_server_ciphers  on;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 443 ssl;`,
+				`    #     server_name localhost;`,
+				`    #     ssl_certificate cert.pem;`,
+				`    #     ssl_certificate_key cert.key;`,
+				`    #     ssl_session_cache shared:SSL:1m;`,
+				`    #     ssl_session_timeout 5m;`,
+				`    #     ssl_ciphers HIGH:!aNULL:!MD5;`,
+				`    #     ssl_prefer_server_ciphers on;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`}`,
 			},
@@ -603,8 +616,14 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0},
@@ -657,7 +676,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	}{
 		{
 			name:   "one level pos path",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -675,7 +694,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 		},
 		{
 			name:   "two level pos path",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -690,7 +709,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 		},
 		{
 			name:   "null pos path",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -701,17 +720,17 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			wantConfigLines: []string{
 				`# user nobody;`,
 				`worker_processes 1;`,
-				`# error_log  logs/error.log;`,
-				`# error_log  logs/error.log  notice;`,
-				`# error_log  logs/error.log  info;`,
-				`# pid        logs/nginx.pid;`,
+				`# error_log logs/error.log;`,
+				`# error_log logs/error.log  notice;`,
+				`# error_log logs/error.log  info;`,
+				`# pid logs/nginx.pid;`,
 				`events {`,
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
 				`    upstream vvvvv1 {`,
 				`        server test.1.cn:22 weight=5;`,
-				`        server test.2.cn:33 weight=5;`,
+				`        # server test.2.cn:33 weight=5;`,
 				`    }`,
 				`    upstream vvvvv2 {`,
 				`        server vvvvv1:55;`,
@@ -824,12 +843,12 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
 				`    # '"$http_user_agent" "$http_x_forwarded_for"';`,
-				`    # access_log  logs/access.log  main;`,
+				`    # access_log logs/access.log  main;`,
 				`    sendfile on;`,
-				`    # tcp_nopush     on;`,
-				`    # keepalive_timeout  0;`,
+				`    # tcp_nopush on;`,
+				`    # keepalive_timeout 0;`,
 				`    keepalive_timeout 65;`,
-				`    # gzip  on;`,
+				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
 				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
 				`        listen 80;`,
@@ -839,7 +858,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -856,7 +875,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -874,7 +893,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -896,7 +915,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -916,7 +935,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -938,7 +957,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -958,7 +977,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -980,7 +999,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -996,7 +1015,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        listen 80;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -1006,7 +1025,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1014,7 +1033,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        location /test_proxy {`,
 				`            proxy_pass upstream.test.1;`,
 				`        }`,
-				`        # error_page  404              /404.html;`,
+				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
 				`        #`,
 				`        error_page 500 502 503 504  /50x.html;`,
@@ -1024,29 +1043,29 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        # proxy the PHP scripts to Apache listening on 127.0.0.1:80`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # proxy_pass   http://127.0.0.1;`,
+				`        #     proxy_pass http://127.0.0.1;`,
 				`        # }`,
 				`        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # root           html;`,
-				`        # fastcgi_pass   127.0.0.1:9000;`,
-				`        # fastcgi_index  index.php;`,
-				`        # fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
-				`        # include        fastcgi_params;`,
+				`        #     root html;`,
+				`        #     fastcgi_pass 127.0.0.1:9000;`,
+				`        #     fastcgi_index index.php;`,
+				`        #     fastcgi_param SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
+				`        #     # include <== fastcgi_params`,
 				`        # }`,
 				`        # deny access to .htaccess files, if Apache's document root`,
 				`        # concurs with nginx's one`,
 				`        #`,
 				`        # location ~ /\.ht {`,
-				`        # deny  all;`,
+				`        #     deny all;`,
 				`        # }`,
 				`    }`,
 				`    server {`,
 				`        listen 990 ssl;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -1056,7 +1075,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1068,36 +1087,36 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
 				`    # server {`,
-				`    # listen       8000;`,
-				`    # listen       somename:8080;`,
-				`    # server_name  somename  alias  another.alias;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 8000;`,
+				`    #     listen somename:8080;`,
+				`    #     server_name somename  alias  another.alias;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`    # HTTPS server`,
 				`    #`,
 				`    # server {`,
-				`    # listen       443 ssl;`,
-				`    # server_name  localhost;`,
-				`    # ssl_certificate      cert.pem;`,
-				`    # ssl_certificate_key  cert.key;`,
-				`    # ssl_session_cache    shared:SSL:1m;`,
-				`    # ssl_session_timeout  5m;`,
-				`    # ssl_ciphers  HIGH:!aNULL:!MD5;`,
-				`    # ssl_prefer_server_ciphers  on;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 443 ssl;`,
+				`    #     server_name localhost;`,
+				`    #     ssl_certificate cert.pem;`,
+				`    #     ssl_certificate_key cert.key;`,
+				`    #     ssl_session_cache shared:SSL:1m;`,
+				`    #     ssl_session_timeout 5m;`,
+				`    #     ssl_ciphers HIGH:!aNULL:!MD5;`,
+				`    #     ssl_prefer_server_ciphers on;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`}`,
 			},
 		},
 		{
 			name:   "nil pos path",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -1108,17 +1127,17 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			wantConfigLines: []string{
 				`# user nobody;`,
 				`worker_processes 1;`,
-				`# error_log  logs/error.log;`,
-				`# error_log  logs/error.log  notice;`,
-				`# error_log  logs/error.log  info;`,
-				`# pid        logs/nginx.pid;`,
+				`# error_log logs/error.log;`,
+				`# error_log logs/error.log  notice;`,
+				`# error_log logs/error.log  info;`,
+				`# pid logs/nginx.pid;`,
 				`events {`,
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
 				`    upstream vvvvv1 {`,
 				`        server test.1.cn:22 weight=5;`,
-				`        server test.2.cn:33 weight=5;`,
+				`        # server test.2.cn:33 weight=5;`,
 				`    }`,
 				`    upstream vvvvv2 {`,
 				`        server vvvvv1:55;`,
@@ -1231,12 +1250,12 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
 				`    # '"$http_user_agent" "$http_x_forwarded_for"';`,
-				`    # access_log  logs/access.log  main;`,
+				`    # access_log logs/access.log  main;`,
 				`    sendfile on;`,
-				`    # tcp_nopush     on;`,
-				`    # keepalive_timeout  0;`,
+				`    # tcp_nopush on;`,
+				`    # keepalive_timeout 0;`,
 				`    keepalive_timeout 65;`,
-				`    # gzip  on;`,
+				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
 				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
 				`        listen 80;`,
@@ -1246,7 +1265,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1263,7 +1282,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1281,7 +1300,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1303,7 +1322,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -1323,7 +1342,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1345,7 +1364,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -1365,7 +1384,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1387,7 +1406,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            server upstream.test.3;`,
 				`        }`,
 				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.2;`,
+				`            # proxy_pass upstream.test.2;`,
 				`        }`,
 				`        location /test_proxy2 {`,
 				`            proxy_pass https://baidu.com;`,
@@ -1403,7 +1422,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        listen 80;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -1413,7 +1432,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1421,7 +1440,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        location /test_proxy {`,
 				`            proxy_pass upstream.test.1;`,
 				`        }`,
-				`        # error_page  404              /404.html;`,
+				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
 				`        #`,
 				`        error_page 500 502 503 504  /50x.html;`,
@@ -1431,29 +1450,29 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        # proxy the PHP scripts to Apache listening on 127.0.0.1:80`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # proxy_pass   http://127.0.0.1;`,
+				`        #     proxy_pass http://127.0.0.1;`,
 				`        # }`,
 				`        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000`,
 				`        #`,
 				`        # location ~ \.php$ {`,
-				`        # root           html;`,
-				`        # fastcgi_pass   127.0.0.1:9000;`,
-				`        # fastcgi_index  index.php;`,
-				`        # fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
-				`        # include        fastcgi_params;`,
+				`        #     root html;`,
+				`        #     fastcgi_pass 127.0.0.1:9000;`,
+				`        #     fastcgi_index index.php;`,
+				`        #     fastcgi_param SCRIPT_FILENAME  /scripts$fastcgi_script_name;`,
+				`        #     # include <== fastcgi_params`,
 				`        # }`,
 				`        # deny access to .htaccess files, if Apache's document root`,
 				`        # concurs with nginx's one`,
 				`        #`,
 				`        # location ~ /\.ht {`,
-				`        # deny  all;`,
+				`        #     deny all;`,
 				`        # }`,
 				`    }`,
 				`    server {`,
 				`        listen 990 ssl;`,
 				`        server_name localhost;`,
 				`        # charset koi8-r;`,
-				`        # access_log  logs/host.access.log  main;`,
+				`        # access_log logs/host.access.log  main;`,
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
@@ -1463,7 +1482,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`            root html/test;`,
 				`            index index.html index.htm;`,
 				`        }`,
-				`        # include location.conf;`,
+				`        # # include <== location.conf`,
 				`        upstream upstream.test.1 {`,
 				`            server 10.1.1.1:443;`,
 				`            server 10.1.1.2:443;`,
@@ -1475,36 +1494,36 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
 				`    # server {`,
-				`    # listen       8000;`,
-				`    # listen       somename:8080;`,
-				`    # server_name  somename  alias  another.alias;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 8000;`,
+				`    #     listen somename:8080;`,
+				`    #     server_name somename  alias  another.alias;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`    # HTTPS server`,
 				`    #`,
 				`    # server {`,
-				`    # listen       443 ssl;`,
-				`    # server_name  localhost;`,
-				`    # ssl_certificate      cert.pem;`,
-				`    # ssl_certificate_key  cert.key;`,
-				`    # ssl_session_cache    shared:SSL:1m;`,
-				`    # ssl_session_timeout  5m;`,
-				`    # ssl_ciphers  HIGH:!aNULL:!MD5;`,
-				`    # ssl_prefer_server_ciphers  on;`,
-				`    # location / {`,
-				`    # root   html;`,
-				`    # index  index.html index.htm;`,
-				`    # }`,
+				`    #     listen 443 ssl;`,
+				`    #     server_name localhost;`,
+				`    #     ssl_certificate cert.pem;`,
+				`    #     ssl_certificate_key cert.key;`,
+				`    #     ssl_session_cache shared:SSL:1m;`,
+				`    #     ssl_session_timeout 5m;`,
+				`    #     ssl_ciphers HIGH:!aNULL:!MD5;`,
+				`    #     ssl_prefer_server_ciphers on;`,
+				`    #     location / {`,
+				`    #         root html;`,
+				`    #         index index.html index.htm;`,
+				`    #     }`,
 				`    # }`,
 				`}`,
 			},
 		},
 		{
 			name:   "wrong pos path",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -1527,6 +1546,9 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			}
 			gotConfigLines, _ := got.ConfigLines(false)
 			if !reflect.DeepEqual(gotConfigLines, tt.wantConfigLines) {
+				//for _, line := range gotConfigLines {
+				//	fmt.Printf("`%s`,\n", line)
+				//}
 				t.Errorf("GetContext() got.ConfigLines( false ) = %v, want %v", gotConfigLines, tt.wantConfigLines)
 			}
 		})
@@ -1538,8 +1560,14 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 2},
@@ -1578,7 +1606,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -1594,7 +1622,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 		},
 		{
 			name:   "wrong position",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -1606,7 +1634,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 		},
 		{
 			name:   "the target is not an `include` context",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos: metav1.ConfigContextPos{
@@ -1682,8 +1710,14 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().InsertWithClone(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithClone(nil, webSrvOpts, ctxmeta))
 	type fields struct {
 		store storev1.Factory
@@ -1701,7 +1735,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
@@ -1736,8 +1770,14 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().InsertWithNew(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithNew(nil, webSrvOpts, ctxmeta))
 	type fields struct {
 		store storev1.Factory
@@ -1755,7 +1795,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
@@ -1800,8 +1840,14 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ctxmeta))
 	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, unmatchedTypeCtxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, unmatchedTypeCtxmeta))
 	type fields struct {
@@ -1820,7 +1866,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
@@ -1829,7 +1875,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 		},
 		{
 			name:   "unmatched context type",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: unmatchedTypeCtxmeta,
@@ -1864,8 +1910,14 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().ModifyWithClone(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithClone(nil, webSrvOpts, ctxmeta))
 	type fields struct {
 		store storev1.Factory
@@ -1883,7 +1935,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
@@ -1918,8 +1970,14 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().ModifyWithNew(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithNew(nil, webSrvOpts, ctxmeta))
 	type fields struct {
 		store storev1.Factory
@@ -1937,7 +1995,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
@@ -1966,8 +2024,14 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().Remove(nil, webSrvOpts, pos).AnyTimes().Return(new(storefake.WebServerConfigStore).Remove(nil, webSrvOpts, pos))
 	type fields struct {
 		store storev1.Factory
@@ -1985,7 +2049,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
 				pos:  pos,
@@ -2019,8 +2083,14 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wscstore.EXPECT().Move(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).Move(nil, webSrvOpts, ctxmeta))
 	type fields struct {
 		store storev1.Factory
@@ -2038,7 +2108,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: store},
+			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
 				ctxmeta: ctxmeta,
