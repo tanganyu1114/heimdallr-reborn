@@ -497,18 +497,20 @@ export default {
       // console.log(res)
       if (res.code === 0) {
         // console.log('配置赋值')
-        this.configsData.mainConfig = res.data['main-config']
-        this.configsData.configs = Object.keys(res.data.configs)
-        var pathStruct = new ConfigPathTreeStruct(res.data['main-config'], Object.keys(res.data.configs))
+        this.configsData.mainConfig = res.data.config['main-config']
+        this.configsData.configs = Object.keys(res.data.config.configs)
+        // refresh config original fingerprints
+        this.configsData.originalFingerprints = res.data['original-fingerprints']
+        var pathStruct = new ConfigPathTreeStruct(res.data.config['main-config'], Object.keys(res.data.config.configs))
         this.configsData.pathsStruct = pathStruct.data.treeStruct
         this.configsData.configPathTreeNodeKeyMap = pathStruct.data.configPathTreeNodeKeyMap
         this.configsData.cachedConfigStack = []
         this.configsData.stackCursor = -1
-        for (const c of Object.keys(res.data.configs)) {
+        for (const c of Object.keys(res.data.config.configs)) {
           const configFullPath = this.configsData.configPathTreeNodeKeyMap[c]
           this.configsData.configStructs[configFullPath] = []
-          for (let i = 0; i < res.data.configs[c].params.length; i++) {
-            var childCtx = this.formatConfStruct([i], res.data.configs[c].params[i])
+          for (let i = 0; i < res.data.config.configs[c].params.length; i++) {
+            var childCtx = this.formatConfStruct([i], res.data.config.configs[c].params[i])
             if (childCtx !== {}) {
               this.configsData.configStructs[configFullPath].push(childCtx)
             }
@@ -894,6 +896,7 @@ export default {
         msg: '放弃[' + this.enabledStateChangeTreeNodeLabel + ']上下文' + this.enabledStateChangeLabel + '操作并离开页面'
       }
       var currentConfName = this.currentConfig
+      this.setOFP2EnabledStateChangeRequest()
       res = await changeCtxEnabledState(this.enabledStateChangeRequestData)
       if (res.code !== 0) {
         // TODO: 错误提示框
@@ -924,6 +927,7 @@ export default {
         msg: '放弃删除操作并离开页面'
       }
       var currentConfName = this.currentConfig
+      this.setOFP2UpdateRequest()
       res = await modifyCtxValue(this.updateRequestData)
       if (res.code !== 0) {
         // TODO: 错误提示框
@@ -954,6 +958,7 @@ export default {
         msg: '放弃删除操作并离开页面'
       }
       var currentConfName = this.currentConfig
+      this.setOFP2DeleteRequest()
       res = await removeCtx(this.deleteRequestData)
       if (res.code !== 0) {
         // TODO: 错误提示框
@@ -984,6 +989,7 @@ export default {
         msg: '放弃拖拽操作并离开页面'
       }
       var currentConfName = this.currentConfig
+      this.setOFP2UpdateRequest()
       switch (this.dragTreeNodeRadio) {
         case 'mv': {
           res = await moveCtx(this.updateRequestData)
@@ -1056,6 +1062,7 @@ export default {
     async handleNewCtxCommitEvent(newCtxOpts, cb) {
       this.updateRequestData['target-config-context-options']['target-context'] = JSON.parse(JSON.stringify(newCtxOpts))
       // console.log(this.updateRequestData)
+      this.setOFP2UpdateRequest()
       var res = await insertNewCtx(this.updateRequestData)
       if (res.code !== 0) {
         await this.$nextTick(() => {
@@ -1079,6 +1086,15 @@ export default {
     resetUpdateRequest() {
       this.updateRequestData = {}
       this.changeCurrentConfStruct()
+    },
+    setOFP2UpdateRequest() {
+      this.updateRequestData['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
+    },
+    setOFP2DeleteRequest() {
+      this.deleteRequestData['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
+    },
+    setOFP2EnabledStateChangeRequest() {
+      this.enabledStateChangeRequestData['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
     }
   }
 }

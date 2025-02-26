@@ -1238,7 +1238,7 @@ func TestWebServerConfigController_Move(t *testing.T) {
 			}
 			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
-			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败") != tt.wantErrIsInconsistentFP {
+			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败, 请重新查询, 刷新配置文件!") != tt.wantErrIsInconsistentFP {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}
 		})

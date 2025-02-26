@@ -13,7 +13,7 @@ func updateErrorHandle(c *gin.Context, err error, okmsg, failuremsg string) {
 	if err != nil {
 		if errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
 			global.GVA_LOG.Warn("更新时，指纹校验失败!", zap.Error(err))
-			response.FailWithMessage("指纹校验失败", c)
+			response.FailWithMessage("指纹校验失败, 请重新查询, 刷新配置文件!", c)
 
 			return
 		}
