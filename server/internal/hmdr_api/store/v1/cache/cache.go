@@ -12,13 +12,13 @@ import (
 )
 
 type cacheStore struct {
-	store          storev1.Factory
+	next           storev1.Factory
 	cache          *groupsCache
 	expireDuration time.Duration
 }
 
 func (c *cacheStore) AgentInfos() storev1.AgentInfoStore {
-	return c.store.AgentInfos()
+	return c.next.AgentInfos()
 }
 
 func (c *cacheStore) Groups() storev1.GroupStore {
@@ -34,62 +34,37 @@ func (c *cacheStore) WebServerConfigs() storev1.WebServerConfigStore {
 }
 
 func (c *cacheStore) WebServerLogWatchers() storev1.WebServerLogWatcherStore {
-	return c.store.WebServerLogWatchers()
+	return c.next.WebServerLogWatchers()
 }
 
 func (c *cacheStore) WebServerStatistics() storev1.WebServerStatisticsStore {
-	return c.store.WebServerStatistics()
+	return c.next.WebServerStatistics()
 }
 
 func (c *cacheStore) WebServerBinCMD() storev1.WebServerBinCMDStore {
-	return c.store.WebServerBinCMD()
+	return c.next.WebServerBinCMD()
 }
 
 func (c *cacheStore) Close() error {
-	return c.store.Close()
+	return c.next.Close()
 }
 
-func (c *cacheStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
-	err := c.flushConfigCache(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	return c.getConfig(opts)
-}
-
-func (c *cacheStore) flushConfigCache(ctx context.Context, opts metav1.WebServerOptions) error {
+func (c *cacheStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 	cache := c.cache.GetGroup(opts.GroupID).GetHost(opts.HostID).GetConfigCache(opts.ServerName)
-	if cache.hasExpired(c.expireDuration) {
-		cache.release()
-		config, err := c.store.WebServerConfigs().GetConfig(ctx, opts)
-		if err != nil {
-			return err
-		}
-		return cache.refresh(config)
+	if cache.available() && !cache.hasExpired(c.expireDuration) {
+		// get config from the local cache
+		return cache.config, cache.ofp, nil
 	}
-	return nil
-}
-
-func (c *cacheStore) getConfig(opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
-	cache := c.cache.GetGroup(opts.GroupID).GetHost(opts.HostID).GetConfigCache(opts.ServerName)
-	if !cache.available() {
-		return nil, errors.Errorf("nginx config cache of the server(%v) is unavailable", opts)
-	}
-	return cache.config, nil
-}
-
-func (c *cacheStore) CheckBeforeUpdating(ctx context.Context, opts metav1.WebServerOptions) error {
-	remoteConfig, err := c.store.WebServerConfigs().GetConfig(ctx, opts)
+	// get config from the next `WebServerConfig` store
+	config, ofp, err := c.next.WebServerConfigs().GetConfig(ctx, opts)
 	if err != nil {
-		return errors.Wrapf(err, "failed to check for the server(%v), before updating config", opts)
+		return nil, nil, err
 	}
-	if c.cache.GetGroup(opts.GroupID).
-		GetHost(opts.HostID).
-		GetConfigCache(opts.ServerName).
-		isDiff(remoteConfig) {
-		return errors.Errorf("failed to check for the server(%v), before updating config. Because the config has been changed", opts)
-	}
-	return nil
+	return config, ofp, cache.refresh(config, ofp)
+}
+
+func (c *cacheStore) ReleaseConfigCache(opts metav1.WebServerOptions) {
+	c.cache.GetGroup(opts.GroupID).GetHost(opts.HostID).GetConfigCache(opts.ServerName).release()
 }
 
 type groupsCache struct {
@@ -161,16 +136,16 @@ func (s *serversCache) ReleaseConfigCache(servername string) *serversCache {
 }
 
 type nginxConfigCache struct {
-	config        configuration.NginxConfig
-	fingerprinter utilsV3.ConfigFingerprinter
+	config configuration.NginxConfig
+	ofp    utilsV3.ConfigFingerprinter
 
 	rwLocker *sync.RWMutex
 }
 
-func (c *nginxConfigCache) isDiff(config configuration.NginxConfig) bool {
+func (c *nginxConfigCache) isDiff(fp utilsV3.ConfigFingerprints) bool {
 	c.rwLocker.RLock()
 	defer c.rwLocker.RUnlock()
-	return c.fingerprinter == nil || c.fingerprinter.Diff(utilsV3.NewConfigFingerprinter(config.Dump()))
+	return c.ofp == nil || c.ofp.Diff(fp)
 }
 
 func (c *nginxConfigCache) hasExpired(expireDuration time.Duration) bool {
@@ -183,16 +158,16 @@ func (c *nginxConfigCache) release() {
 	c.rwLocker.Lock()
 	defer c.rwLocker.Unlock()
 	c.config = nil
-	c.fingerprinter = nil
+	c.ofp = nil
 }
 
 func (c *nginxConfigCache) available() bool {
 	c.rwLocker.RLock()
 	defer c.rwLocker.RUnlock()
-	return c.config != nil && c.fingerprinter != nil
+	return c.config != nil && c.ofp != nil
 }
 
-func (c *nginxConfigCache) refresh(config configuration.NginxConfig) error {
+func (c *nginxConfigCache) refresh(config configuration.NginxConfig, ofp utilsV3.ConfigFingerprinter) error {
 	c.release()
 	if config == nil {
 		return errors.New("refresh into a nil config")
@@ -200,13 +175,13 @@ func (c *nginxConfigCache) refresh(config configuration.NginxConfig) error {
 	c.rwLocker.Lock()
 	defer c.rwLocker.Unlock()
 	c.config = config
-	c.fingerprinter = utilsV3.NewConfigFingerprinterWithTimestamp(config.Dump(), config.UpdatedTimestamp())
+	c.ofp = ofp
 	return nil
 }
 
-func GetCacheStore(store storev1.Factory, cacheExpireDur time.Duration) storev1.Factory {
+func GetCacheStore(nextstore storev1.Factory, cacheExpireDur time.Duration) storev1.Factory {
 	return &cacheStore{
-		store: store,
+		next: nextstore,
 		cache: &groupsCache{
 			cache:  make(map[uint]*hostsCache),
 			locker: new(sync.RWMutex),

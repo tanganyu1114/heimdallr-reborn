@@ -11,8 +11,10 @@ import (
 	bifrostssvc "gin-vue-admin/internal/hmdr_api/service/v1/bifrosts"
 	loggingsvc "gin-vue-admin/internal/hmdr_api/service/v1/logging"
 	bifrostsstore "gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
+	cachestore "gin-vue-admin/internal/hmdr_api/store/v1/cache"
 	"gin-vue-admin/middleware"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func InitPublicHeimdallrApi(rg *gin.RouterGroup) {
@@ -27,7 +29,7 @@ func InitPublicHeimdallrApi(rg *gin.RouterGroup) {
 }
 
 func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
-	storeIns := bifrostsstore.GetBifrostsStore()
+	storeIns := cachestore.GetCacheStore(bifrostsstore.GetBifrostsStore(), time.Minute)
 	svcIns := loggingsvc.NewService(bifrostssvc.NewService(storeIns))
 	agentRoutes := rg.Group("agent").Use(middleware.OperationRecord())
 	{

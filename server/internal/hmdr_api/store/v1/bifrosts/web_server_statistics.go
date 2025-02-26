@@ -40,11 +40,7 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 	if err != nil {
 		return nil, err
 	}
-	confData, err := bc.WebServerConfig().Get(opts.ServerName)
-	if err != nil {
-		return nil, err
-	}
-	conf, err := configuration.NewNginxConfigFromJsonBytes(confData)
+	conf, _, err := bc.WebServerConfig().Get(opts.ServerName)
 	if err != nil {
 		return nil, err
 	}

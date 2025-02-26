@@ -5,8 +5,8 @@ import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	storefake "gin-vue-admin/internal/hmdr_api/store/v1/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 )
 
 type WebServerConfigService struct {
@@ -17,8 +17,15 @@ func (w WebServerConfigService) GetOptions(ctx context.Context) ([]v1.BifrostGro
 	panic("implement me")
 }
 
-func (w WebServerConfigService) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, error) {
-	return new(storefake.WebServerConfigStore).GetConfig(ctx, opts)
+func (w WebServerConfigService) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (metav1.WebServerConfig, error) {
+	config, ofp, err := new(storefake.WebServerConfigStore).GetConfig(ctx, opts)
+	if err != nil {
+		return metav1.WebServerConfig{}, err
+	}
+	return metav1.WebServerConfig{
+		Config:               config.Main(),
+		OriginalFingerprints: ofp.Fingerprints(),
+	}, nil
 }
 
 func (w WebServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
@@ -29,34 +36,34 @@ func (w WebServerConfigService) GetIncludedConfigs(ctx context.Context, opts met
 	return new(storefake.WebServerConfigStore).GetIncludedConfigs(ctx, opts, pos)
 }
 
-func (w WebServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).InsertWithClone(ctx, opts, ctxmeta)
+func (w WebServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).InsertWithClone(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).InsertWithNew(ctx, opts, ctxmeta)
+func (w WebServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).InsertWithNew(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) error {
-	return new(storefake.WebServerConfigStore).Remove(ctx, opts, pos)
+func (w WebServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
+	return new(storefake.WebServerConfigStore).Remove(ctx, opts, ofp, pos)
 }
 
-func (w WebServerConfigService) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).ModifyWithClone(ctx, opts, ctxmeta)
+func (w WebServerConfigService) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).ModifyWithClone(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).ModifyWithNew(ctx, opts, ctxmeta)
+func (w WebServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).ModifyWithNew(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
-	return new(storefake.WebServerConfigStore).ChangeContextEnabledState(ctx, opts, ctxmeta)
+func (w WebServerConfigService) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
+	return new(storefake.WebServerConfigStore).ChangeContextEnabledState(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).ModifyContextValue(ctx, opts, ctxmeta)
+func (w WebServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w WebServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
-	return new(storefake.WebServerConfigStore).Move(ctx, opts, ctxmeta)
+func (w WebServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+	return new(storefake.WebServerConfigStore).Move(ctx, opts, ofp, ctxmeta)
 }

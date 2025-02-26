@@ -8,6 +8,7 @@ import (
 	"gin-vue-admin/internal/hmdr_api/store/v1/cache"
 	storefake "gin-vue-admin/internal/hmdr_api/store/v1/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	"go.uber.org/mock/gomock"
 	"reflect"
 	"strings"
@@ -54,43 +55,43 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
 		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
 		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
 	}))
-	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: nil,
 		},
 		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: nil,
 		},
 		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
 	}))
-	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: []int{1, 2, 3},
 		},
 		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: []int{1, 2, 3},
@@ -103,6 +104,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]
 	}
 	tests := []struct {
@@ -116,6 +118,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp.Fingerprints(),
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\nginx.conf",
@@ -131,6 +134,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp.Fingerprints(),
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "conf.d\\location.conf",
@@ -146,6 +150,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp.Fingerprints(),
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "conf.d\\location.conf",
@@ -162,7 +167,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.ChangeContextEnabledState(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ChangeContextEnabledState(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ChangeContextEnabledState() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -186,11 +191,12 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 		opts metav1.WebServerOptions
 	}
 	tests := []struct {
-		name                string
-		fields              fields
-		args                args
-		wantConfigTextLines []string
-		wantErr             bool
+		name                     string
+		fields                   fields
+		args                     args
+		wantConfigTextLines      []string
+		wantOriginalFingerprints utilsV3.ConfigFingerprints
+		wantErr                  bool
 	}{
 		{
 			name:   "normal test",
@@ -592,6 +598,16 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`    # }`,
 				`}`,
 			},
+			wantOriginalFingerprints: utilsV3.ConfigFingerprints{
+				"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+				"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+				"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+				"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+				"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+				"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+				"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+				"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -604,8 +620,11 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				t.Errorf("GetConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotLines := got.TextLines(); !reflect.DeepEqual(gotLines, tt.wantConfigTextLines) {
-				t.Errorf("GetConfig() got.TextLines = %v, want %v", strings.Join(gotLines, "\n"), strings.Join(tt.wantConfigTextLines, "\n"))
+			if gotLines, _ := got.Config.ConfigLines(false); !reflect.DeepEqual(gotLines, tt.wantConfigTextLines) {
+				t.Errorf("GetConfig() got.NginxConfig.TextLines = %v, want %v", strings.Join(gotLines, "\n"), strings.Join(tt.wantConfigTextLines, "\n"))
+			}
+			if gotFP := got.OriginalFingerprints; !reflect.DeepEqual(gotFP, tt.wantOriginalFingerprints) {
+				t.Errorf("GetConfig() got.OriginalFingerprints = %v, want %v", gotFP, tt.wantOriginalFingerprints)
 			}
 		})
 	}
@@ -620,10 +639,10 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
-	if err != nil {
-		t.Fatal(err)
-	}
+	//_, _, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0},
@@ -1564,10 +1583,10 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
-	if err != nil {
-		t.Fatal(err)
-	}
+	//_, _, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
 	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 2},
@@ -1714,17 +1733,18 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().InsertWithClone(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithClone(nil, webSrvOpts, ctxmeta))
+	wscstore.EXPECT().InsertWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -1738,6 +1758,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -1748,7 +1769,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.InsertWithClone(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithClone(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithClone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1774,17 +1795,18 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().InsertWithNew(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithNew(nil, webSrvOpts, ctxmeta))
+	wscstore.EXPECT().InsertWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
@@ -1798,6 +1820,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -1808,7 +1831,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.InsertWithNew(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithNew(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithNew() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1844,18 +1867,19 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ctxmeta))
-	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, unmatchedTypeCtxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, unmatchedTypeCtxmeta))
+	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
+	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), unmatchedTypeCtxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), unmatchedTypeCtxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
@@ -1869,6 +1893,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -1878,6 +1903,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: unmatchedTypeCtxmeta,
 			},
 			wantErr: true,
@@ -1888,7 +1914,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.ModifyContextValue(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyContextValue(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyContextValue() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1914,17 +1940,18 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyWithClone(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithClone(nil, webSrvOpts, ctxmeta))
+	wscstore.EXPECT().ModifyWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -1938,6 +1965,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -1948,7 +1976,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.ModifyWithClone(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyWithClone(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyWithClone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1974,17 +2002,18 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyWithNew(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithNew(nil, webSrvOpts, ctxmeta))
+	wscstore.EXPECT().ModifyWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
@@ -1998,6 +2027,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -2008,7 +2038,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.ModifyWithNew(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyWithNew(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyWithNew() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -2028,17 +2058,19 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().Remove(nil, webSrvOpts, pos).AnyTimes().Return(new(storefake.WebServerConfigStore).Remove(nil, webSrvOpts, pos))
+
+	wscstore.EXPECT().Remove(nil, webSrvOpts, ofp.Fingerprints(), pos).AnyTimes().Return(new(storefake.WebServerConfigStore).Remove(nil, webSrvOpts, ofp.Fingerprints(), pos))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx  context.Context
 		opts metav1.WebServerOptions
+		ofp  utilsV3.ConfigFingerprints
 		pos  metav1.ConfigContextPos
 	}
 	tests := []struct {
@@ -2052,6 +2084,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp.Fingerprints(),
 				pos:  pos,
 			},
 		},
@@ -2061,7 +2094,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.Remove(tt.args.ctx, tt.args.opts, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := w.Remove(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.pos); (err != nil) != tt.wantErr {
 				t.Errorf("Remove() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -2087,17 +2120,18 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
 	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	_, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().Move(nil, webSrvOpts, ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).Move(nil, webSrvOpts, ctxmeta))
+	wscstore.EXPECT().Move(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).Move(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
 	type fields struct {
 		store storev1.Factory
 	}
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -2111,6 +2145,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts:    webSrvOpts,
+				ofp:     ofp.Fingerprints(),
 				ctxmeta: ctxmeta,
 			},
 			wantErr: false,
@@ -2121,7 +2156,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			if err := w.Move(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.Move(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("Move() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

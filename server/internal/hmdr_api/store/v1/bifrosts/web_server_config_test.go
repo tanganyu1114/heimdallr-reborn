@@ -7,11 +7,12 @@ import (
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	bifrostclinetv1 "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
+	"github.com/marmotedu/errors"
 	"go.uber.org/mock/gomock"
 	"reflect"
 	"testing"
 
-	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 )
 
@@ -57,6 +58,16 @@ func Test_newWebServerConfigStore(t *testing.T) {
 
 func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -67,6 +78,7 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]
 	}
 	tests := []struct {
@@ -80,6 +92,7 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\nginx.conf",
@@ -95,6 +108,7 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "conf.d\\location.conf",
@@ -110,6 +124,7 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "conf.d\\location.conf",
@@ -126,7 +141,7 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.ChangeContextEnabledState(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ChangeContextEnabledState(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ChangeContextEnabledState() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -147,11 +162,12 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 		opts metav1.WebServerOptions
 	}
 	tests := []struct {
-		name                string
-		fields              fields
-		args                args
-		wantConfigTextLines []string
-		wantErr             bool
+		name                     string
+		fields                   fields
+		args                     args
+		wantConfigTextLines      []string
+		wantOriginalFingerprints utilsV3.ConfigFingerprints
+		wantErr                  bool
 	}{
 		{
 			name:   "normal test",
@@ -553,6 +569,16 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 				`    # }`,
 				`}`,
 			},
+			wantOriginalFingerprints: utilsV3.ConfigFingerprints{
+				"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+				"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+				"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+				"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+				"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+				"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+				"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+				"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+			},
 			wantErr: false,
 		},
 	}
@@ -561,13 +587,16 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			got, err := w.GetConfig(tt.args.ctx, tt.args.opts)
+			gotConfig, gotofp, err := w.GetConfig(tt.args.ctx, tt.args.opts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got.TextLines(), tt.wantConfigTextLines) {
-				t.Errorf("GetConfig() got.TextLines() = %v, want %v", got.TextLines(), tt.wantConfigTextLines)
+			if !reflect.DeepEqual(gotConfig.TextLines(), tt.wantConfigTextLines) {
+				t.Errorf("GetConfig() got.TextLines() = %v, want %v", gotConfig.TextLines(), tt.wantConfigTextLines)
+			}
+			if !reflect.DeepEqual(gotofp.Fingerprints(), tt.wantOriginalFingerprints) {
+				t.Errorf("GetConfig() got.OriginalFingerprints = %v, want %v", gotofp.Fingerprints(), tt.wantOriginalFingerprints)
 			}
 		})
 	}
@@ -1586,6 +1615,16 @@ func Test_webServerConfigStore_GetOptions(t *testing.T) {
 
 func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1596,6 +1635,7 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -1609,6 +1649,7 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\nginx.conf",
@@ -1628,7 +1669,7 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.InsertWithClone(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithClone(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithClone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1637,6 +1678,26 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 
 func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1647,19 +1708,22 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name                    string
+		fields                  fields
+		args                    args
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "normal test",
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1673,14 +1737,36 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{bm: mockBifrostsManager},
+			args: args{
+				opts: webSrvOpts,
+				ofp:  difffp,
+				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
+					Position: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location2.conf",
+						ContextPosPath: []int{2},
+					},
+					TargetContext: metav1.NewConfigContextMeta{
+						ContextType:  "location",
+						ContextValue: "~ /normal-test",
+					},
+				},
+			},
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.InsertWithNew(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithNew(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithNew() error = %v, wantErr %v", err, tt.wantErr)
+			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+				t.Errorf("InsertWithNew() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 			}
 		})
 	}
@@ -1688,6 +1774,16 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1698,6 +1794,7 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
@@ -1711,6 +1808,7 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1729,6 +1827,7 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1748,7 +1847,7 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.ModifyContextValue(tt.args.ctx, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyContextValue(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyContextValue() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1757,6 +1856,16 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1767,6 +1876,7 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -1780,6 +1890,7 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\conf.d\\location.conf",
@@ -1799,7 +1910,7 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.ModifyWithClone(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyWithClone(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyWithClone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1808,6 +1919,16 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1818,6 +1939,7 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
 	}
 	tests := []struct {
@@ -1831,6 +1953,7 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1850,7 +1973,7 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.ModifyWithNew(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.ModifyWithNew(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("ModifyWithNew() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1859,6 +1982,16 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 
 func Test_webServerConfigStore_Remove(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1868,6 +2001,7 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
+		ofp  utilsV3.ConfigFingerprints
 		opts metav1.WebServerOptions
 		pos  metav1.ConfigContextPos
 	}
@@ -1882,6 +2016,7 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\location.conf",
 					ContextPosPath: []int{0},
@@ -1895,7 +2030,7 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.Remove(tt.args.ctx, tt.args.opts, tt.args.pos); (err != nil) != tt.wantErr {
+			if err := w.Remove(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.pos); (err != nil) != tt.wantErr {
 				t.Errorf("Remove() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1904,6 +2039,16 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 
 func Test_webServerConfigStore_Move(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockBifrostsManager := bifrosts.NewMockManager(ctrl)
@@ -1914,6 +2059,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 	type args struct {
 		in0     context.Context
 		opts    metav1.WebServerOptions
+		ofp     utilsV3.ConfigFingerprints
 		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
 	}
 	tests := []struct {
@@ -1927,6 +2073,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 			fields: fields{bm: mockBifrostsManager},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\nginx.conf",
@@ -1946,6 +2093,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 			args: args{
 				in0:  nil,
 				opts: webSrvOpts,
+				ofp:  ofp,
 				ctxmeta: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 					Position: metav1.ConfigContextPos{
 						Config:         "C:\\config_test\\nginx.conf",
@@ -1965,75 +2113,8 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.Move(tt.args.in0, tt.args.opts, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.Move(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("Move() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_webServerConfigStore_getConfig(t *testing.T) {
-	type fields struct {
-		bm bifrosts.Manager
-	}
-	type args struct {
-		opts metav1.WebServerOptions
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    configuration.NginxConfig
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := &webServerConfigStore{
-				bm: tt.fields.bm,
-			}
-			got, err := w.getConfig(tt.args.opts)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("getConfig() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getConfig() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_webServerConfigStore_parseContextPos(t *testing.T) {
-	type fields struct {
-		bm bifrosts.Manager
-	}
-	type args struct {
-		nginxconfig configuration.NginxConfig
-		pos         metav1.ConfigContextPos
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    nginx_context.Pos
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := &webServerConfigStore{
-				bm: tt.fields.bm,
-			}
-			got, err := w.parseContextPos(tt.args.nginxconfig, tt.args.pos)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("parseContextPos() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseContextPos() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

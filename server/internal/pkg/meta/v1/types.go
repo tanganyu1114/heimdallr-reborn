@@ -1,6 +1,10 @@
 package v1
 
-import "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
+import (
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
+)
 
 type ListMeta struct {
 	TotalCount int64 `json:"totalCount,omitempty"`
@@ -42,14 +46,21 @@ type WebServerLogOptions struct {
 	FilteringRegexpRule string `json:"filtering_regexp_rule"`
 }
 
+type WebServerConfig struct {
+	Config               local.MainContext          `json:"config"`
+	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints"`
+}
+
 type WebServerConfigTargetContextOptions struct {
-	WebServerOptions `json:",inline"`
-	ConfigContextPos `json:",inline"`
+	WebServerOptions     `json:",inline"`
+	ConfigContextPos     `json:",inline"`
+	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints"`
 }
 
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
 	WebServerOptions                              `json:"web-server-options" binding:"required"`
 	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options" binding:"required"`
+	OriginalFingerprints                          utilsV3.ConfigFingerprints `json:"original-fingerprints" binding:"required"`
 }
 
 type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {

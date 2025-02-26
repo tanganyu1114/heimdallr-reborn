@@ -17,13 +17,10 @@ func (w *WebServerConfigController) Remove(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().Remove(c, r.WebServerOptions, r.ConfigContextPos)
-	if err != nil {
-		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
-		response.FailWithMessage("删除失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("删除成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().Remove(c, r.WebServerOptions, r.OriginalFingerprints, r.ConfigContextPos),
+		"删除成功",
+		"删除失败",
+	)
 }

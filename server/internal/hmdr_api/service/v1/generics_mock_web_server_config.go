@@ -15,8 +15,8 @@ import (
 	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	reflect "reflect"
 
-	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	context0 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
+	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -44,24 +44,24 @@ func (m *MockWebServerConfigSrv) EXPECT() *MockWebServerConfigSrvMockRecorder {
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigSrv) ChangeContextEnabledState(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.ConfigContextEnabledStateMeta]) error {
+func (m *MockWebServerConfigSrv) ChangeContextEnabledState(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.ConfigContextEnabledStateMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChangeContextEnabledState", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "ChangeContextEnabledState", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ChangeContextEnabledState indicates an expected call of ChangeContextEnabledState.
-func (mr *MockWebServerConfigSrvMockRecorder) ChangeContextEnabledState(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) ChangeContextEnabledState(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeContextEnabledState", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ChangeContextEnabledState), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeContextEnabledState", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ChangeContextEnabledState), ctx, opts, ofp, ctxmeta)
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServerOptions) (configuration.NginxConfig, error) {
+func (m *MockWebServerConfigSrv) GetConfig(ctx context.Context, opts v10.WebServerOptions) (v10.WebServerConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", ctx, opts)
-	ret0, _ := ret[0].(configuration.NginxConfig)
+	ret0, _ := ret[0].(v10.WebServerConfig)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -118,99 +118,99 @@ func (mr *MockWebServerConfigSrvMockRecorder) GetOptions(ctx any) *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigSrv) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithClone indicates an expected call of InsertWithClone.
-func (mr *MockWebServerConfigSrvMockRecorder) InsertWithClone(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) InsertWithClone(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithClone), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithClone), ctx, opts, ofp, ctxmeta)
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigSrv) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithNew indicates an expected call of InsertWithNew.
-func (mr *MockWebServerConfigSrvMockRecorder) InsertWithNew(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) InsertWithNew(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithNew), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithNew), ctx, opts, ofp, ctxmeta)
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigSrv) ModifyContextValue(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) ModifyContextValue(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ModifyContextValue", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "ModifyContextValue", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ModifyContextValue indicates an expected call of ModifyContextValue.
-func (mr *MockWebServerConfigSrvMockRecorder) ModifyContextValue(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) ModifyContextValue(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyContextValue", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyContextValue), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyContextValue", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyContextValue), ctx, opts, ofp, ctxmeta)
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigSrv) ModifyWithClone(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) ModifyWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ModifyWithClone", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "ModifyWithClone", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ModifyWithClone indicates an expected call of ModifyWithClone.
-func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithClone(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithClone(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyWithClone), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyWithClone), ctx, opts, ofp, ctxmeta)
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigSrv) ModifyWithNew(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) ModifyWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ModifyWithNew", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "ModifyWithNew", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ModifyWithNew indicates an expected call of ModifyWithNew.
-func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithNew(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithNew(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyWithNew), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).ModifyWithNew), ctx, opts, ofp, ctxmeta)
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigSrv) Move(ctx context.Context, opts v10.WebServerOptions, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Move", ctx, opts, ctxmeta)
+	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Move indicates an expected call of Move.
-func (mr *MockWebServerConfigSrvMockRecorder) Move(ctx, opts, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) Move(ctx, opts, ofp, ctxmeta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Move), ctx, opts, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Move), ctx, opts, ofp, ctxmeta)
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigSrv) Remove(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) error {
+func (m *MockWebServerConfigSrv) Remove(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", ctx, opts, pos)
+	ret := m.ctrl.Call(m, "Remove", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Remove indicates an expected call of Remove.
-func (mr *MockWebServerConfigSrvMockRecorder) Remove(ctx, opts, pos any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) Remove(ctx, opts, ofp, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Remove), ctx, opts, pos)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Remove), ctx, opts, ofp, pos)
 }

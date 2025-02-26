@@ -5,8 +5,27 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/model/response"
 	"github.com/gin-gonic/gin"
+	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 )
+
+func updateErrorHandle(c *gin.Context, err error, okmsg, failuremsg string) {
+	if err != nil {
+		if errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
+			global.GVA_LOG.Warn("更新时，指纹校验失败!", zap.Error(err))
+			response.FailWithMessage("指纹校验失败", c)
+
+			return
+		}
+
+		global.GVA_LOG.Error(failuremsg+"!", zap.Any("err", err))
+		response.FailWithMessage(failuremsg, c)
+
+		return
+	}
+
+	response.OkWithMessage(okmsg, c)
+}
 
 // @Tags conf
 // @Summary 插入需被克隆的配置上下文
@@ -24,15 +43,12 @@ func (w *WebServerConfigController) InsertWithClone(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().InsertWithClone(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("新增失败!", zap.Any("err", err))
-		response.FailWithMessage("新增失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("新增成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().InsertWithClone(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"新增成功",
+		"新增失败",
+	)
 }
 
 func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
@@ -44,15 +60,12 @@ func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("新增失败!", zap.Any("err", err))
-		response.FailWithMessage("新增失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("新增成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"新增成功",
+		"新增失败",
+	)
 }
 
 func (w *WebServerConfigController) ModifyWithClone(c *gin.Context) {
@@ -64,15 +77,12 @@ func (w *WebServerConfigController) ModifyWithClone(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().ModifyWithClone(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
-		response.FailWithMessage("修改失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("修改成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().ModifyWithClone(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"修改成功",
+		"修改失败",
+	)
 }
 
 func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
@@ -84,15 +94,12 @@ func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().ModifyWithNew(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
-		response.FailWithMessage("修改失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("修改成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().ModifyWithNew(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"修改成功",
+		"修改失败",
+	)
 }
 
 // @Tags conf
@@ -111,15 +118,12 @@ func (w *WebServerConfigController) ChangeContextEnabledState(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().ChangeContextEnabledState(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("修改启用状态失败!", zap.Any("err", err))
-		response.FailWithMessage("修改启用状态失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("修改启用状态成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().ChangeContextEnabledState(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"修改启用状态成功",
+		"修改启用状态失败",
+	)
 }
 
 func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
@@ -131,15 +135,12 @@ func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().ModifyContextValue(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
-		response.FailWithMessage("修改失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("修改成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().ModifyContextValue(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"修改成功",
+		"修改失败",
+	)
 }
 
 // @Tags conf
@@ -158,13 +159,10 @@ func (w *WebServerConfigController) Move(c *gin.Context) {
 
 		return
 	}
-	err = w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.TargetConfigContextOptions)
-	if err != nil {
-		global.GVA_LOG.Error("修改失败!", zap.Any("err", err))
-		response.FailWithMessage("修改失败", c)
-
-		return
-	}
-
-	response.OkWithMessage("修改成功", c)
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		"修改成功",
+		"修改失败",
+	)
 }

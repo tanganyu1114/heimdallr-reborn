@@ -28,14 +28,21 @@ func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
 		return
 	}
 
-	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
+	configmeta, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
 
 		return
 	}
-	response.OkWithDetailed(strings.Join(config.TextLines(), "\n"), "获取成功", c)
+	lines, err := configmeta.Config.ConfigLines(false)
+	if err != nil {
+		global.GVA_LOG.Error("解析配置文本失败!", zap.Any("err", err))
+		response.FailWithMessage("解析配置文本失败", c)
+
+		return
+	}
+	response.OkWithDetailed(strings.Join(lines, "\n"), "获取成功", c)
 }
 
 func (w *WebServerConfigController) GetContextTextLines(c *gin.Context) {
@@ -73,7 +80,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	config, err := w.svc.WebServerConfigs().GetConfig(c, r)
+	configmeta, err := w.svc.WebServerConfigs().GetConfig(c, r)
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Any("err", err))
 		response.FailWithMessage("获取失败", c)
@@ -81,7 +88,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 		return
 	}
 
-	response.OkWithDetailed(config.Main(), "获取成功", c)
+	response.OkWithDetailed(configmeta, "获取成功", c)
 }
 
 func (w *WebServerConfigController) GetIncludedConfigs(c *gin.Context) {

@@ -13,7 +13,7 @@ type hostStore struct {
 
 func (h *hostStore) Create(ctx context.Context, host v1.Host) error {
 	h.cacheStore.cache.GetGroup(host.GroupId).ReleaseHost(host.ID)
-	return h.cacheStore.store.Hosts().Create(ctx, host)
+	return h.cacheStore.next.Hosts().Create(ctx, host)
 }
 
 func (h *hostStore) Delete(ctx context.Context, hostid uint) error {
@@ -25,7 +25,7 @@ func (h *hostStore) Delete(ctx context.Context, hostid uint) error {
 		return err
 	}
 	h.cacheStore.cache.GetGroup(host.GroupId).ReleaseHost(host.ID)
-	return h.cacheStore.store.Hosts().Delete(ctx, hostid)
+	return h.cacheStore.next.Hosts().Delete(ctx, hostid)
 }
 
 func (h *hostStore) DeleteCollection(ctx context.Context, ids metav1.IDsOptions) error {
@@ -38,20 +38,20 @@ func (h *hostStore) DeleteCollection(ctx context.Context, ids metav1.IDsOptions)
 	for _, host := range hosts {
 		h.cacheStore.cache.GetGroup(host.GroupId).ReleaseHost(host.ID)
 	}
-	return h.cacheStore.store.Hosts().DeleteCollection(ctx, ids)
+	return h.cacheStore.next.Hosts().DeleteCollection(ctx, ids)
 }
 
 func (h *hostStore) Get(ctx context.Context, hostid uint) (v1.Host, error) {
-	return h.cacheStore.store.Hosts().Get(ctx, hostid)
+	return h.cacheStore.next.Hosts().Get(ctx, hostid)
 }
 
 func (h *hostStore) List(ctx context.Context, opts metav1.ListOptions) (v1.HostList, error) {
-	return h.cacheStore.store.Hosts().List(ctx, opts)
+	return h.cacheStore.next.Hosts().List(ctx, opts)
 }
 
 func (h *hostStore) Update(ctx context.Context, host v1.Host) error {
 	h.cacheStore.cache.GetGroup(host.GroupId).ReleaseHost(host.ID)
-	return h.cacheStore.store.Hosts().Update(ctx, host)
+	return h.cacheStore.next.Hosts().Update(ctx, host)
 }
 
 func newHostStore(cacheStore *cacheStore) *hostStore {

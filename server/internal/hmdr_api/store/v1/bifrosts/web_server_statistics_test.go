@@ -8,7 +8,6 @@ import (
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	bifrostclinetv1 "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
-	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
@@ -27,11 +26,7 @@ func Test_getStreamSrvsProxyBrief(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := client.WebServerConfig().Get(webSrvOpts.ServerName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	conf, err := configuration.NewNginxConfigFromJsonBytes(data)
+	conf, _, err := client.WebServerConfig().Get(webSrvOpts.ServerName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,11 +51,7 @@ func Test_getHttpSrvsProxyBrief(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := client.WebServerConfig().Get(webSrvOpts.ServerName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	conf, err := configuration.NewNginxConfigFromJsonBytes(data)
+	conf, _, err := client.WebServerConfig().Get(webSrvOpts.ServerName)
 	if err != nil {
 		t.Fatal(err)
 	}

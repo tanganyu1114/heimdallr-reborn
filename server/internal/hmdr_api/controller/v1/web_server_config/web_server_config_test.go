@@ -8,6 +8,7 @@ import (
 	svcfake "gin-vue-admin/internal/hmdr_api/service/v1/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/model/response"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	log "github.com/ClessLi/component-base/pkg/log/v1"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/mock/gomock"
@@ -52,6 +53,16 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 		HostID:     0,
 		ServerName: "test-bifrost",
 	}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	type fields struct {
 		svc svcv1.Factory
 	}
@@ -78,6 +89,7 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 						},
 						TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":0,"data":{},"msg":"修改启用状态成功"}`),
@@ -96,6 +108,7 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 						},
 						//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":0,"data":{},"msg":"修改启用状态成功"}`),
@@ -114,6 +127,7 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 						},
 						TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":7,"data":{},"msg":"修改启用状态失败"}`),
@@ -318,6 +332,16 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 		HostID:     0,
 		ServerName: "test-bifrost",
 	}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	type fields struct {
 		svc svcv1.Factory
 	}
@@ -341,6 +365,7 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 						Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 						ContextPosPath: []int{0, 2},
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":0,"data":["C:\\config_test\\conf.d\\location.conf","C:\\config_test\\conf.d\\location2.conf"],"msg":"获取包含的配置文件成功"}`),
@@ -356,6 +381,7 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 						Config:         "C:\\config_test\\conf.d\\server_test1.con",
 						ContextPosPath: nil,
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":7,"data":{},"msg":"获取包含的配置文件失败"}`),
@@ -371,6 +397,7 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 						Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 						ContextPosPath: []int{0, 1},
 					},
+					OriginalFingerprints: ofp,
 				},
 			},
 			wantRespBody: []byte(`{"code":7,"data":{},"msg":"获取包含的配置文件失败"}`),
@@ -434,6 +461,16 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -450,6 +487,7 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -467,6 +505,7 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -533,6 +572,16 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -549,6 +598,7 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -566,6 +616,7 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -632,6 +683,16 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -648,6 +709,7 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -665,6 +727,7 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	unmatchedTypeMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -682,6 +745,7 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -750,6 +814,16 @@ func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -766,6 +840,7 @@ func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -783,6 +858,7 @@ func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -843,6 +919,16 @@ func TestWebServerConfigController_ModifyWithNew(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -859,6 +945,7 @@ func TestWebServerConfigController_ModifyWithNew(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -876,6 +963,7 @@ func TestWebServerConfigController_ModifyWithNew(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -936,6 +1024,16 @@ func TestWebServerConfigController_Remove(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
 	validMeta := metav1.WebServerConfigTargetContextOptions{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -946,6 +1044,7 @@ func TestWebServerConfigController_Remove(t *testing.T) {
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{8, 13, 4},
 		},
+		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigTargetContextOptions{}
 	type fields struct {
@@ -1007,6 +1106,26 @@ func TestWebServerConfigController_Move(t *testing.T) {
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
 			GroupID:    0,
@@ -1023,6 +1142,7 @@ func TestWebServerConfigController_Move(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
 		WebServerOptions: metav1.WebServerOptions{
@@ -1040,6 +1160,25 @@ func TestWebServerConfigController_Move(t *testing.T) {
 				ContextValue: "~ /normal-test",
 			},
 		},
+		OriginalFingerprints: ofp,
+	}
+	diffFPMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
+		WebServerOptions: metav1.WebServerOptions{
+			GroupID:    0,
+			HostID:     0,
+			ServerName: "test-bifrost",
+		},
+		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
+			Position: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\nginx.conf",
+				ContextPosPath: []int{8, 13, 4},
+			},
+			TargetContext: metav1.CloneConfigContextMeta{ConfigContextPos: metav1.ConfigContextPos{
+				Config:         "C:\\config_test\\conf.d\\location2.conf",
+				ContextPosPath: []int{4},
+			}},
+		},
+		OriginalFingerprints: difffp,
 	}
 	type fields struct {
 		svc svcv1.Factory
@@ -1048,10 +1187,11 @@ func TestWebServerConfigController_Move(t *testing.T) {
 		requestMeta any
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name                    string
+		fields                  fields
+		args                    args
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "valid request body",
@@ -1068,6 +1208,15 @@ func TestWebServerConfigController_Move(t *testing.T) {
 				requestMeta: invalidMeta,
 			},
 			wantErr: true,
+		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: diffFPMeta,
+			},
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1088,6 +1237,8 @@ func TestWebServerConfigController_Move(t *testing.T) {
 				t.Fatal(err)
 			}
 			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败") != tt.wantErrIsInconsistentFP {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}
 		})
