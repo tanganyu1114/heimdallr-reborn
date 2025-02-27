@@ -321,7 +321,7 @@ class ServerCtx extends ContextStruct {
     const listenRE = /^listen\s+(.*)/
     const serverNameRE = /^server_name\s+(.*)/
     for (let i = 0; i < this.data.children.length; i++) {
-      if (this.data.children[i].ctxType === 'directive') {
+      if (this.data.children[i].enabled && this.data.children[i].ctxType === 'directive') {
         switch (true) {
           case listenRE.test(this.data.children[i].value): {
             this.ports.push(listenRE.exec(this.data.children[i].value)[1].split(/\s+/))
@@ -355,7 +355,7 @@ class LocationCtx extends ContextStruct {
     const proxyPassRE = /^proxy_pass\s+(.*)/
     const rootRE = /^root\s+(.*)/
     for (let i = 0; i < this.data.children.length; i++) {
-      if (this.data.children[i].ctxType === 'directive') {
+      if (this.data.children[i].enabled && this.data.children[i].ctxType === 'directive') {
         switch (true) {
           case proxyPassRE.test(this.data.children[i].value): {
             this.proxy = proxyPassRE.exec(this.data.children[i].value)[1]
