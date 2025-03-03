@@ -213,50 +213,97 @@ func TestWebServerConfigController_GetConfigTextLines(t *testing.T) {
 }
 
 func TestWebServerConfigController_GetContextTextLines(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	svc := svcv1.NewMockFactory(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
-	getResponse := httptest.NewRecorder()
 	serverOpts := metav1.WebServerOptions{
 		GroupID:    0,
 		HostID:     0,
 		ServerName: "test-bifrost",
 	}
-	targetCtxOpts := metav1.WebServerConfigTargetContextOptions{
-		WebServerOptions: serverOpts,
-		ConfigContextPos: metav1.ConfigContextPos{
-			Config:         "C:\\config_test\\conf.d\\location.conf",
-			ContextPosPath: []int{0},
-		},
-	}
-	b, err := json.Marshal(targetCtxOpts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	getBody := bytes.NewBuffer(b)
-	getRequest := httptest.NewRequest("GET", "/api/conf/get-context-text", getBody)
-	getRequestCtx, _ := gin.CreateTestContext(getResponse)
-	getRequestCtx.Request = getRequest
 	type fields struct {
 		svc svcv1.Factory
 	}
 	type args struct {
-		c    *gin.Context
-		resp *httptest.ResponseRecorder
+		requestMeta any
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name                    string
+		fields                  fields
+		args                    args
+		wantRespBody            []byte
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "normal test",
 			fields: fields{svc: svc},
 			args: args{
-				c:    getRequestCtx,
-				resp: getResponse,
+				requestMeta: metav1.WebServerConfigTargetContextOptions{
+					WebServerOptions: serverOpts,
+					ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location.conf",
+						ContextPosPath: []int{0},
+					},
+					OriginalFingerprints: ofp,
+				},
 			},
+			wantRespBody: []byte(`{"code":0,"data":"location /test {\n    root html/test;\n    index index.html index.htm;\n}","msg":"获取成功"}`),
+		},
+		{
+			name:   "wrong pos path",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigTargetContextOptions{
+					WebServerOptions: serverOpts,
+					ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location.conf",
+						ContextPosPath: []int{100, 0, 10},
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":7,"data":{},"msg":"获取失败"}`),
+			wantErr:      true,
+		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigTargetContextOptions{
+					WebServerOptions: serverOpts,
+					ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\location.conf",
+						ContextPosPath: []int{0},
+					},
+					OriginalFingerprints: difffp,
+				},
+			},
+			wantRespBody:            []byte(`{"code":7,"data":{},"msg":"指纹校验失败, 请重新查询, 刷新配置文件!"}`),
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
 		},
 	}
 	for _, tt := range tests {
@@ -264,8 +311,26 @@ func TestWebServerConfigController_GetContextTextLines(t *testing.T) {
 			w := &WebServerConfigController{
 				svc: tt.fields.svc,
 			}
-			w.GetContextTextLines(tt.args.c)
-			t.Logf("Code: %d, Body: %s", tt.args.resp.Code, tt.args.resp.Body)
+			reqBodyBytes, err := json.Marshal(tt.args.requestMeta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(resp)
+			c.Request = httptest.NewRequest("POST", "/api/conf/get-context-text", bytes.NewBuffer(reqBodyBytes))
+			w.GetContextTextLines(c)
+			var respBody response.Response
+			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+				t.Fatal(err)
+			}
+			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
+			if got := resp.Body.Bytes(); !reflect.DeepEqual(got, tt.wantRespBody) {
+				t.Errorf("GetContextTextLines() got = %s, want %s", got, tt.wantRespBody)
+			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败, 请重新查询, 刷新配置文件!") != tt.wantErrIsInconsistentFP {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
 		})
 	}
 }
@@ -342,6 +407,16 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
 		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
 	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	type fields struct {
 		svc svcv1.Factory
 	}
@@ -349,11 +424,12 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 		requestMeta any
 	}
 	tests := []struct {
-		name         string
-		fields       fields
-		args         args
-		wantRespBody []byte
-		wantErr      bool
+		name                    string
+		fields                  fields
+		args                    args
+		wantRespBody            []byte
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "normal test",
@@ -403,6 +479,23 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 			wantRespBody: []byte(`{"code":7,"data":{},"msg":"获取包含的配置文件失败"}`),
 			wantErr:      true,
 		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigTargetContextOptions{
+					WebServerOptions: serverOpts,
+					ConfigContextPos: metav1.ConfigContextPos{
+						Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+						ContextPosPath: []int{0, 2},
+					},
+					OriginalFingerprints: difffp,
+				},
+			},
+			wantRespBody:            []byte(`{"code":7,"data":{},"msg":"指纹校验失败, 请重新查询, 刷新配置文件!"}`),
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -426,6 +519,8 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 			}
 			if got := resp.Body.Bytes(); !reflect.DeepEqual(got, tt.wantRespBody) {
 				t.Errorf("GetIncludedConfigs() got = %s, want %s", got, tt.wantRespBody)
+			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败, 请重新查询, 刷新配置文件!") != tt.wantErrIsInconsistentFP {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}
 		})
 	}
@@ -1238,6 +1333,203 @@ func TestWebServerConfigController_Move(t *testing.T) {
 			}
 			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败, 请重新查询, 刷新配置文件!") != tt.wantErrIsInconsistentFP {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
+		})
+	}
+}
+
+func TestWebServerConfigController_SearchContextPositions(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	svc := svcv1.NewMockFactory(ctrl)
+	svc.EXPECT().WebServerConfigs().AnyTimes().Return(new(svcfake.WebServerConfigService))
+	serverOpts := metav1.WebServerOptions{
+		GroupID:    0,
+		HostID:     0,
+		ServerName: "test-bifrost",
+	}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
+	type fields struct {
+		svc svcv1.Factory
+	}
+	type args struct {
+		requestMeta any
+	}
+	tests := []struct {
+		name                    string
+		fields                  fields
+		args                    args
+		wantRespBody            []byte
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
+	}{
+		{
+			name:   "string match rule, only in current config",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf"}},
+						Keywords:             "listen 80",
+						IsRegexpRule:         false,
+						IsOnlyInCurrent:      true,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":0,"data":[{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,13,0]},{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,17,0]}],"msg":"搜索成功"}`),
+		},
+		{
+			name:   "regexp match rule, only in current config",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf"}},
+						Keywords:             `^server_name\s+local.*$`,
+						IsRegexpRule:         true,
+						IsOnlyInCurrent:      true,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":0,"data":[{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,13,1]},{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,14,1]},{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,20,1]}],"msg":"搜索成功"}`),
+		},
+		{
+			name:   "string match rule, not only in current config",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+						Keywords:             "listen 80",
+						IsRegexpRule:         false,
+						IsOnlyInCurrent:      false,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":0,"data":[{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,13,0]},{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,17,0]},{"config":"conf.d\\server_test1.conf","context-pos-path":[0,0]},{"config":"conf.d\\server_test2.conf","context-pos-path":[0,0]},{"config":"conf.d\\server_test2.conf","context-pos-path":[1,0]},{"config":"conf.d\\test1.com.conf","context-pos-path":[0,1]},{"config":"conf.d\\test2.com.conf","context-pos-path":[0,0]}],"msg":"搜索成功"}`),
+		},
+		{
+			name:   "regexp match rule, not only in current config",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+						Keywords:             `^server_name\s+test.*$`,
+						IsRegexpRule:         true,
+						IsOnlyInCurrent:      false,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":0,"data":[{"config":"conf.d\\server_test1.conf","context-pos-path":[0,1]},{"config":"conf.d\\server_test2.conf","context-pos-path":[0,1]},{"config":"conf.d\\server_test2.conf","context-pos-path":[1,1]},{"config":"conf.d\\test1.com.conf","context-pos-path":[0,2]},{"config":"conf.d\\test2.com.conf","context-pos-path":[0,1]}],"msg":"搜索成功"}`),
+		},
+		{
+			name:   "context not found",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+						Keywords:             ".*not found.*",
+						IsRegexpRule:         true,
+						IsOnlyInCurrent:      false,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":0,"data":[],"msg":"搜索成功"}`),
+		},
+		{
+			name:   "config not found",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\unknown.conf", ContextPosPath: []int{8}}},
+						Keywords:             ".*not found.*",
+						IsRegexpRule:         true,
+						IsOnlyInCurrent:      false,
+					},
+					OriginalFingerprints: ofp,
+				},
+			},
+			wantRespBody: []byte(`{"code":7,"data":{},"msg":"搜索失败"}`),
+			wantErr:      true,
+		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{svc: svc},
+			args: args{
+				requestMeta: metav1.WebServerConfigContextPosSearchOptions{
+					WebServerOptions: serverOpts,
+					SearchKeywordsMeta: metav1.SearchKeywordsMeta{
+						StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+						Keywords:             "listen 80",
+						IsRegexpRule:         false,
+						IsOnlyInCurrent:      false,
+					},
+					OriginalFingerprints: difffp,
+				},
+			},
+			wantRespBody:            []byte(`{"code":7,"data":{},"msg":"指纹校验失败, 请重新查询, 刷新配置文件!"}`),
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &WebServerConfigController{
+				svc: tt.fields.svc,
+			}
+			reqBodyBytes, err := json.Marshal(tt.args.requestMeta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(resp)
+			c.Request = httptest.NewRequest("POST", "/api/conf/search-ctx-pos", bytes.NewBuffer(reqBodyBytes))
+			w.SearchContextPositions(c)
+			var respBody response.Response
+			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+				t.Fatal(err)
+			}
+			if tt.wantErr != (resp.Code != 200 || respBody.Code != 0) {
+				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
+			}
+			if got := resp.Body.Bytes(); !reflect.DeepEqual(got, tt.wantRespBody) {
+				t.Errorf("SearchContextPositions() got = %s, want %s", got, tt.wantRespBody)
 			} else if (resp.Code != 200 || respBody.Code != 0) && (respBody.Msg == "指纹校验失败, 请重新查询, 刷新配置文件!") != tt.wantErrIsInconsistentFP {
 				t.Errorf("Code: %d, Body: %s", resp.Code, resp.Body)
 			}

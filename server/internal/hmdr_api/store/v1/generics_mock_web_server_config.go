@@ -75,33 +75,33 @@ func (mr *MockWebServerConfigStoreMockRecorder) GetConfig(ctx, opts any) *gomock
 }
 
 // GetContext mocks base method.
-func (m *MockWebServerConfigStore) GetContext(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) (context0.Context, error) {
+func (m *MockWebServerConfigStore) GetContext(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) (context0.Context, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContext", ctx, opts, pos)
+	ret := m.ctrl.Call(m, "GetContext", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].(context0.Context)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContext indicates an expected call of GetContext.
-func (mr *MockWebServerConfigStoreMockRecorder) GetContext(ctx, opts, pos any) *gomock.Call {
+func (mr *MockWebServerConfigStoreMockRecorder) GetContext(ctx, opts, ofp, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetContext), ctx, opts, pos)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetContext), ctx, opts, ofp, pos)
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v10.WebServerOptions, pos v10.ConfigContextPos) ([]string, error) {
+func (m *MockWebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIncludedConfigs", ctx, opts, pos)
+	ret := m.ctrl.Call(m, "GetIncludedConfigs", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetIncludedConfigs indicates an expected call of GetIncludedConfigs.
-func (mr *MockWebServerConfigStoreMockRecorder) GetIncludedConfigs(ctx, opts, pos any) *gomock.Call {
+func (mr *MockWebServerConfigStoreMockRecorder) GetIncludedConfigs(ctx, opts, ofp, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncludedConfigs", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetIncludedConfigs), ctx, opts, pos)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncludedConfigs", reflect.TypeOf((*MockWebServerConfigStore)(nil).GetIncludedConfigs), ctx, opts, ofp, pos)
 }
 
 // GetOptions mocks base method.
@@ -215,4 +215,19 @@ func (m *MockWebServerConfigStore) Remove(ctx context.Context, opts v10.WebServe
 func (mr *MockWebServerConfigStoreMockRecorder) Remove(ctx, opts, ofp, pos any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockWebServerConfigStore)(nil).Remove), ctx, opts, ofp, pos)
+}
+
+// SearchContextPositions mocks base method.
+func (m *MockWebServerConfigStore) SearchContextPositions(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, kwmeta v10.SearchKeywordsMeta) ([]v10.ConfigContextPos, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchContextPositions", ctx, opts, ofp, kwmeta)
+	ret0, _ := ret[0].([]v10.ConfigContextPos)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchContextPositions indicates an expected call of SearchContextPositions.
+func (mr *MockWebServerConfigStoreMockRecorder) SearchContextPositions(ctx, opts, ofp, kwmeta any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContextPositions", reflect.TypeOf((*MockWebServerConfigStore)(nil).SearchContextPositions), ctx, opts, ofp, kwmeta)
 }

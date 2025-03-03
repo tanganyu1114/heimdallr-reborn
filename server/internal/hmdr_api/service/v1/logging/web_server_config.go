@@ -38,26 +38,37 @@ func (w *webServerConfigService) GetConfig(ctx context.Context, opts metav1.WebS
 	return w.svc.WebServerConfigs().GetConfig(ctx, opts)
 }
 
-func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (ngCtx nginx_context.Context, err error) {
+func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (ngCtx nginx_context.Context, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "查询目标配置上下文", map[string]any{"web-server-options": opts, "config-context-position": pos}, ngCtx, err)
+		log(level, "查询目标配置上下文", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-position": pos}, ngCtx, err)
 	}()
-	return w.svc.WebServerConfigs().GetContext(ctx, opts, pos)
+	return w.svc.WebServerConfigs().GetContext(ctx, opts, ofp, pos)
 }
 
-func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (includedConfigs []string, err error) {
+func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (includedConfigs []string, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.WarnLevel
 		}
-		log(level, "查询目标`Include`上下文包含的配置文件路径列表", map[string]any{"web-server-options": opts, "config-context-position": pos}, includedConfigs, err)
+		log(level, "查询目标`Include`上下文包含的配置文件路径列表", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-position": pos}, includedConfigs, err)
 	}()
-	return w.svc.WebServerConfigs().GetIncludedConfigs(ctx, opts, pos)
+	return w.svc.WebServerConfigs().GetIncludedConfigs(ctx, opts, ofp, pos)
+}
+
+func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) (poses []metav1.ConfigContextPos, err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.WarnLevel
+		}
+		log(level, "按关键字搜索匹配的上下文的坐标位置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "search-keywords-meta": kwmeta}, poses, err)
+	}()
+	return w.svc.WebServerConfigs().SearchContextPositions(ctx, opts, ofp, kwmeta)
 }
 
 func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {

@@ -28,12 +28,16 @@ func (w WebServerConfigService) GetConfig(ctx context.Context, opts metav1.WebSe
 	}, nil
 }
 
-func (w WebServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
-	return new(storefake.WebServerConfigStore).GetContext(ctx, opts, pos)
+func (w WebServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+	return new(storefake.WebServerConfigStore).GetContext(ctx, opts, ofp, pos)
 }
 
-func (w WebServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) ([]string, error) {
-	return new(storefake.WebServerConfigStore).GetIncludedConfigs(ctx, opts, pos)
+func (w WebServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) ([]string, error) {
+	return new(storefake.WebServerConfigStore).GetIncludedConfigs(ctx, opts, ofp, pos)
+}
+
+func (w WebServerConfigService) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) ([]metav1.ConfigContextPos, error) {
+	return new(storefake.WebServerConfigStore).SearchContextPositions(ctx, opts, ofp, kwmeta)
 }
 
 func (w WebServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {

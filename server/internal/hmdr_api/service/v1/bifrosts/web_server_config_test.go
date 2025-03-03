@@ -3,12 +3,15 @@ package bifrosts
 import (
 	"context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
+	"gin-vue-admin/global"
 	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	"gin-vue-admin/internal/hmdr_api/store/v1/cache"
 	storefake "gin-vue-admin/internal/hmdr_api/store/v1/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
+	log "github.com/ClessLi/component-base/pkg/log/v1"
+	"github.com/marmotedu/errors"
 	"go.uber.org/mock/gomock"
 	"reflect"
 	"strings"
@@ -631,7 +634,28 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 }
 
 func Test_webServerConfigService_GetContext(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
@@ -643,40 +667,47 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	//if err != nil {
 	//	t.Fatal(err)
 	//}
-	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0},
 	}))
-	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0, 1},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0, 1},
 	}))
-	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{},
 	}))
-	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: nil,
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: nil,
 	}))
-	wscstore.EXPECT().GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
+	}))
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\location.conf",
+		ContextPosPath: []int{0, 1},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\location.conf",
+		ContextPosPath: []int{0, 1},
 	}))
 	type fields struct {
 		store storev1.Factory
@@ -684,20 +715,23 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	type args struct {
 		ctx  context.Context
 		opts metav1.WebServerOptions
+		ofp  utilsV3.ConfigFingerprints
 		pos  metav1.ConfigContextPos
 	}
 	tests := []struct {
-		name            string
-		fields          fields
-		args            args
-		wantConfigLines []string
-		wantErr         bool
+		name                    string
+		fields                  fields
+		args                    args
+		wantConfigLines         []string
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "one level pos path",
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\location.conf",
 					ContextPosPath: []int{0},
@@ -716,6 +750,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\location.conf",
 					ContextPosPath: []int{0, 1},
@@ -731,6 +766,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{},
@@ -1138,6 +1174,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: nil,
@@ -1545,6 +1582,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
@@ -1552,15 +1590,32 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{store: cacheStore},
+			args: args{
+				opts: webSrvOpts,
+				ofp:  difffp,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\conf.d\\location.conf",
+					ContextPosPath: []int{0, 1},
+				},
+			},
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			got, err := w.GetContext(tt.args.ctx, tt.args.opts, tt.args.pos)
+			got, err := w.GetContext(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.pos)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetContext() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+				t.Errorf("GetContext() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 				return
 			}
 			gotConfigLines, _ := got.ConfigLines(false)
@@ -1575,7 +1630,28 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 }
 
 func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
 	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
@@ -1587,26 +1663,33 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	//if err != nil {
 	//	t.Fatal(err)
 	//}
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 2},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 2},
 	}))
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.con",
 		ContextPosPath: nil,
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.con",
 		ContextPosPath: nil,
 	}))
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 1},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, metav1.ConfigContextPos{
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 		ContextPosPath: []int{0, 1},
+	}))
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 2},
+	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+		ContextPosPath: []int{0, 2},
 	}))
 	type fields struct {
 		store storev1.Factory
@@ -1614,20 +1697,23 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	type args struct {
 		ctx  context.Context
 		opts metav1.WebServerOptions
+		ofp  utilsV3.ConfigFingerprints
 		pos  metav1.ConfigContextPos
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []string
-		wantErr bool
+		name                    string
+		fields                  fields
+		args                    args
+		want                    []string
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
 	}{
 		{
 			name:   "normal test",
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 					ContextPosPath: []int{0, 2},
@@ -1644,6 +1730,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\server_test1.con",
 					ContextPosPath: nil,
@@ -1656,6 +1743,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 			fields: fields{store: cacheStore},
 			args: args{
 				opts: webSrvOpts,
+				ofp:  ofp,
 				pos: metav1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
 					ContextPosPath: []int{0, 1},
@@ -1663,15 +1751,32 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{store: cacheStore},
+			args: args{
+				opts: webSrvOpts,
+				ofp:  difffp,
+				pos: metav1.ConfigContextPos{
+					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+					ContextPosPath: []int{0, 2},
+				},
+			},
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
-			got, err := w.GetIncludedConfigs(tt.args.ctx, tt.args.opts, tt.args.pos)
+			got, err := w.GetIncludedConfigs(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.pos)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetIncludedConfigs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+				t.Errorf("GetIncludedConfigs() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -2158,6 +2263,208 @@ func Test_webServerConfigService_Move(t *testing.T) {
 			}
 			if err := w.Move(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
 				t.Errorf("Move() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
+	global.GVA_LOG = log.ZapLogger()
+	webSrvOpts := metav1.WebServerOptions{}
+	ofp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+	}
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
+		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
+		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
+		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
+		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
+		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
+		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	store := storev1.NewMockFactory(ctrl)
+	cacheStore := cache.GetCacheStore(store, time.Second)
+	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
+	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+	type fields struct {
+		store storev1.Factory
+	}
+	type args struct {
+		ctx    context.Context
+		opts   metav1.WebServerOptions
+		fp     utilsV3.ConfigFingerprints
+		kwmeta metav1.SearchKeywordsMeta
+	}
+	tests := []struct {
+		name                    string
+		fields                  fields
+		args                    args
+		want                    []metav1.ConfigContextPos
+		wantErr                 bool
+		wantErrIsInconsistentFP bool
+	}{
+		{
+			name:   "string match rule, only in current config",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf"}},
+					Keywords:             "listen 80",
+					IsRegexpRule:         false,
+					IsOnlyInCurrent:      true,
+				},
+			},
+			want: []metav1.ConfigContextPos{
+				{"C:\\config_test\\nginx.conf", []int{8, 13, 0}},
+				{"C:\\config_test\\nginx.conf", []int{8, 17, 0}},
+			},
+		},
+		{
+			name:   "regexp match rule, only in current config",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf"}},
+					Keywords:             `^server_name\s+local.*$`,
+					IsRegexpRule:         true,
+					IsOnlyInCurrent:      true,
+				},
+			},
+			want: []metav1.ConfigContextPos{
+				{"C:\\config_test\\nginx.conf", []int{8, 13, 1}},
+				{"C:\\config_test\\nginx.conf", []int{8, 14, 1}},
+				{"C:\\config_test\\nginx.conf", []int{8, 20, 1}},
+			},
+		},
+		{
+			name:   "string match rule, not only in current config",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+					Keywords:             "listen 80",
+					IsRegexpRule:         false,
+					IsOnlyInCurrent:      false,
+				},
+			},
+			want: []metav1.ConfigContextPos{
+				{"C:\\config_test\\nginx.conf", []int{8, 13, 0}},
+				{"C:\\config_test\\nginx.conf", []int{8, 17, 0}},
+				{"conf.d\\server_test1.conf", []int{0, 0}},
+				{"conf.d\\server_test2.conf", []int{0, 0}},
+				{"conf.d\\server_test2.conf", []int{1, 0}},
+				{"conf.d\\test1.com.conf", []int{0, 1}},
+				{"conf.d\\test2.com.conf", []int{0, 0}},
+			},
+		},
+		{
+			name:   "regexp match rule, not only in current config",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+					Keywords:             `^server_name\s+test.*$`,
+					IsRegexpRule:         true,
+					IsOnlyInCurrent:      false,
+				},
+			},
+			want: []metav1.ConfigContextPos{
+				{"conf.d\\server_test1.conf", []int{0, 1}},
+				{"conf.d\\server_test2.conf", []int{0, 1}},
+				{"conf.d\\server_test2.conf", []int{1, 1}},
+				{"conf.d\\test1.com.conf", []int{0, 2}},
+				{"conf.d\\test2.com.conf", []int{0, 1}},
+			},
+		},
+		{
+			name:   "context not found",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+					Keywords:             ".*not found.*",
+					IsRegexpRule:         true,
+					IsOnlyInCurrent:      false,
+				},
+			},
+			want: []metav1.ConfigContextPos{},
+		},
+		{
+			name:   "config not found",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   ofp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\unknown.conf", ContextPosPath: []int{8}}},
+					Keywords:             ".*not found.*",
+					IsRegexpRule:         true,
+					IsOnlyInCurrent:      false,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:  nil,
+				opts: webSrvOpts,
+				fp:   difffp,
+				kwmeta: metav1.SearchKeywordsMeta{
+					StartingPositionList: []metav1.ConfigContextPos{{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{8}}},
+					Keywords:             "listen 80",
+					IsRegexpRule:         false,
+					IsOnlyInCurrent:      false,
+				},
+			},
+			wantErr:                 true,
+			wantErrIsInconsistentFP: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigService{
+				store: tt.fields.store,
+			}
+			got, err := w.SearchContextPositions(tt.args.ctx, tt.args.opts, tt.args.fp, tt.args.kwmeta)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchContextPositions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+				t.Errorf("SearchContextPositions() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SearchContextPositions() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

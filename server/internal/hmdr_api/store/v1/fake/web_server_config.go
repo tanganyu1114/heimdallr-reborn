@@ -3,6 +3,7 @@ package fake
 import (
 	"context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
+	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
@@ -28,8 +29,19 @@ func (f WebServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServ
 	return new(fake.ServiceClient).WebServerConfig().Get(opts.ServerName)
 }
 
-func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
-	config, _, err := f.GetConfig(ctx, opts)
+func (f WebServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
+	config, ofp, err := f.GetConfig(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	if ofp.Diff(fp) {
+		return nil, errors.Wrapf(metav1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
+	}
+	return config, nil
+}
+
+func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+	config, err := f.getConfigAndVerifyOFP(ctx, opts, fp)
 	if err != nil {
 		return nginx_context.NullContext(), err
 	}
@@ -48,8 +60,8 @@ func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebSer
 	return target, target.Error()
 }
 
-func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, pos metav1.ConfigContextPos) ([]string, error) {
-	c, err := f.GetContext(ctx, opts, pos)
+func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) ([]string, error) {
+	c, err := f.GetContext(ctx, opts, ofp, pos)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +74,20 @@ func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav
 		includedConfigs = append(includedConfigs, config.FullPath())
 	}
 	return includedConfigs, nil
+}
+
+func (f WebServerConfigStore) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) ([]metav1.ConfigContextPos, error) {
+	starting := nginx_context.NewPosSet()
+
+	for _, ccp := range kwmeta.StartingPositionList {
+		c, err := f.GetContext(ctx, opts, fp, ccp)
+		if err != nil {
+			return nil, err
+		}
+		starting.AppendWithPosSet(c.ChildrenPosSet())
+	}
+
+	return storev1utils.SearchContextPoses(starting, kwmeta.IsOnlyInCurrent, kwmeta.Keywords, kwmeta.IsRegexpRule)
 }
 
 func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {

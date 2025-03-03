@@ -51,10 +51,16 @@ type WebServerConfig struct {
 	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints"`
 }
 
+type WebServerConfigContextPosSearchOptions struct {
+	WebServerOptions     `json:"web-server-options" binding:"required"`
+	SearchKeywordsMeta   `json:",inline"`
+	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints" binding:"required"`
+}
+
 type WebServerConfigTargetContextOptions struct {
 	WebServerOptions     `json:",inline"`
 	ConfigContextPos     `json:",inline"`
-	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints"`
+	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints" binding:"required"`
 }
 
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
@@ -71,6 +77,13 @@ type TargetConfigContextOptions[TargetContextMeta CloneConfigContextMeta | NewCo
 type ConfigContextPos struct {
 	Config         string `json:"config" binding:"required"`
 	ContextPosPath []int  `json:"context-pos-path"`
+}
+
+type SearchKeywordsMeta struct {
+	StartingPositionList []ConfigContextPos `json:"starting-position-list" binding:"required"`
+	Keywords             string             `json:"keywords" binding:"required"`
+	IsRegexpRule         bool               `json:"is-regexp-rule"`
+	IsOnlyInCurrent      bool               `json:"is-only-in-current"`
 }
 
 type NewConfigContextMeta struct {
