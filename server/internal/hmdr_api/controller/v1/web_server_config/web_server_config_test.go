@@ -1519,7 +1519,7 @@ func TestWebServerConfigController_SearchContextPositions(t *testing.T) {
 			}
 			resp := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(resp)
-			c.Request = httptest.NewRequest("POST", "/api/conf/search-ctx-pos", bytes.NewBuffer(reqBodyBytes))
+			c.Request = httptest.NewRequest("POST", "/api/conf/search-ctx-poses", bytes.NewBuffer(reqBodyBytes))
 			w.SearchContextPositions(c)
 			var respBody response.Response
 			if err = json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {

@@ -62,7 +62,17 @@ func SearchContextPoses(set nginx_context.PosSet, isonlycurrent bool, keywords s
 			)
 		}
 
+		parsedPosMap := make(map[nginx_context.Context]bool)
 		err := set.QueryAll(kw).
+			Filter(
+				func(pos nginx_context.Pos) bool {
+					if parsedPosMap[pos.Target()] {
+						return false
+					}
+					parsedPosMap[pos.Target()] = true
+					return true
+				},
+			).
 			Map(
 				func(pos nginx_context.Pos) (nginx_context.Pos, error) {
 					ctxPos, err := parseContextPos(pos)

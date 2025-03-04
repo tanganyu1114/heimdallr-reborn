@@ -74,6 +74,22 @@ export const getIncludes = (data) => {
 }
 
 // @Tags conf
+// @Summary 搜索上下文坐标列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce  application/json
+// @Success 200 {string} string "{"code":0,"data":[{"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,13,0]},
+// {"config":"C:\\config_test\\nginx.conf","context-pos-path":[8,17,0]}],"msg":"搜索成功"}"
+// @Router /conf/search-ctx-poses [post]
+export const searchCtxPoses = (data) => {
+  return service({
+    url: '/conf/search-ctx-poses',
+    method: 'post',
+    data
+  })
+}
+
+// @Tags conf
 // @Summary 删除指定配置上下文
 // @Security ApiKeyAuth
 // @accept application/json

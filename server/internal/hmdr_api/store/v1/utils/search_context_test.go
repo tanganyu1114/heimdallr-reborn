@@ -117,6 +117,10 @@ func TestSearchContextPoses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	multiSet := testMain.ChildrenPosSet().QueryAll(nginx_context.NewKeyWords(context_type.TypeConfig).SetStringMatchingValue("conf.d/disabled.conf")).
+		AppendWithPosSet(
+			testMain.ChildrenPosSet().QueryAll(nginx_context.NewKeyWords(context_type.TypeLocation).SetStringMatchingValue("test")),
+		)
 	type args struct {
 		set           nginx_context.PosSet
 		isonlycurrent bool
@@ -160,6 +164,18 @@ func TestSearchContextPoses(t *testing.T) {
 				{"C:\\test\\nginx.conf", []int{0, 4, 0}},
 				{"C:\\test\\nginx.conf", []int{0, 4, 1}},
 				{"C:\\test\\nginx.conf", []int{0, 5, 0}},
+			},
+		},
+		{
+			name: "string match rule and multi targets searching, not only in the current config",
+			args: args{
+				set:           multiSet,
+				isonlycurrent: false,
+				keywords:      "404",
+				isregexp:      false,
+			},
+			want: []metav1.ConfigContextPos{
+				{"conf.d/disabled.conf", []int{1, 0}},
 			},
 		},
 		{

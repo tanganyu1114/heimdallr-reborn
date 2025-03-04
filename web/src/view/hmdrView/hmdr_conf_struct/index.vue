@@ -27,6 +27,25 @@
           </el-col>
         </el-form>
       </el-row>
+      <el-row>
+        <el-input
+          v-if="currentConfStruct.length > 0"
+          v-model="searchRequestData.searchKeywords"
+          placeholder="请输入搜索关键字"
+          @keyup.enter.native="() => handleSearch()"
+        >
+          <el-checkbox slot="prepend" v-model="searchRequestData.onlyInCurrentConfig">仅在当前配置搜索</el-checkbox>
+          <el-checkbox slot="prepend" v-model="searchRequestData.isRegExp">使用正则表达式搜索</el-checkbox>
+          <i v-if="searchResponse.total >= 0" slot="suffix">{{ searchResponse.index + 1 }} / {{ searchResponse.total }} </i>
+          <el-radio-group v-if="searchResponse.total >= 0" slot="suffix" v-model="searchRequestData.searchTypeRadio">
+            <el-radio :label="1">重新搜索</el-radio>
+            <el-radio :label="2">在当前结果中搜索</el-radio>
+          </el-radio-group>
+          <el-button v-if="searchResponse.total >= 0" slot="append" icon="el-icon-arrow-left" @click="handleSearchPrev">上一个</el-button>
+          <el-button v-if="searchResponse.total >= 0" slot="append" icon="el-icon-arrow-right" @click="handleSearchNext">下一个</el-button>
+          <el-button slot="append" icon="el-icon-search" @click="() => handleSearch()">搜索</el-button>
+        </el-input>
+      </el-row>
     </el-card>
     <el-row>
       <el-col :span="6">
@@ -99,7 +118,9 @@
             @node-drop="handleTreeNodeDrop"
           >
             <span
+              :id="data.id"
               slot-scope="{ node, data }"
+              :style="handleSearchHighlight(node, data)"
               @mouseleave="() => handleTreeNodeMouseLeave(node)"
               @mouseenter="() => handleTreeNodeMouseEnter(node)"
             >
@@ -107,9 +128,10 @@
                 <el-button size="mini" type="info" icon="el-icon-position" @click="() => changeConfStructTo(node.label)">跳转至该配置</el-button>
               </span><span v-else v-show="node.data.contextHoverButtonsShow">
                 <el-switch :value="node.data.enabled" :disabled="!configStructEditable" @change="() => handleTreeNodeEnabledStateChanges(node, data)" /> <span /> <span />
-                <el-button size="mini" type="info" icon="el-icon-more" circle @click="() => handleTreeNodeDetailedConfigDisplay(node, data)" />
-                <el-button v-if="configStructEditable && isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="() => handleTreeNodeModify(node, data)" />
-                <el-button v-if="configStructEditable" size="mini" type="danger" icon="el-icon-delete" circle @click="() => handleTreeNodeDelete(node, data)" />
+                <el-button size="mini" type="info" icon="el-icon-search" circle @click="event => handleTargetCtxSearch(event, node)" />
+                <el-button size="mini" type="info" icon="el-icon-more" circle @click="event => handleTreeNodeDetailedConfigDisplay(event, node, data)" />
+                <el-button v-if="configStructEditable && isCtxWithValue(data)" size="mini" type="primary" icon="el-icon-edit" circle @click="event => handleTreeNodeModify(event, node, data)" />
+                <el-button v-if="configStructEditable" size="mini" type="danger" icon="el-icon-delete" circle @click="event => handleTreeNodeDelete(event, node, data)" />
               </span>
             </span>
           </el-tree>
@@ -197,6 +219,29 @@
 <script>
 
 import WebServerReloadButton from './component/webServerReloadButton.vue'
+import {
+  changeCtxEnabledState,
+  getConfStruct,
+  getContextText,
+  getIncludes,
+  getOptions,
+  insertCloneCtx,
+  insertNewCtx,
+  modifyCtxValue,
+  moveCtx,
+  removeCtx,
+  searchCtxPoses
+} from '@/api/hmdr_conf.js'
+import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
+import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
+import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
+import HttpCreator from '@/view/hmdrView/hmdr_conf_struct/component/httpCreator.vue'
+import IfCreator from '@/view/hmdrView/hmdr_conf_struct/component/ifCreator.vue'
+import LocationCreator from '@/view/hmdrView/hmdr_conf_struct/component/locationCreator.vue'
+import ServerCreator from '@/view/hmdrView/hmdr_conf_struct/component/serverCreator.vue'
+import StreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/streamCreator.vue'
+import UpstreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/upstreamCreator.vue'
+import ElCardCollapse from '@/components/ElCardCollapse.vue'
 
 class ConfigPathTreeStruct {
   constructor(mainConfigPath, configPaths) {
@@ -379,17 +424,7 @@ class LocationCtx extends ContextStruct {
   }
 }
 
-import { getOptions, getContextText, getConfStruct, getIncludes, removeCtx, changeCtxEnabledState, moveCtx, modifyCtxValue, insertCloneCtx, insertNewCtx } from '@/api/hmdr_conf.js'
-import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
-import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
-import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
-import HttpCreator from '@/view/hmdrView/hmdr_conf_struct/component/httpCreator.vue'
-import IfCreator from '@/view/hmdrView/hmdr_conf_struct/component/ifCreator.vue'
-import LocationCreator from '@/view/hmdrView/hmdr_conf_struct/component/locationCreator.vue'
-import ServerCreator from '@/view/hmdrView/hmdr_conf_struct/component/serverCreator.vue'
-import StreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/streamCreator.vue'
-import UpstreamCreator from '@/view/hmdrView/hmdr_conf_struct/component/upstreamCreator.vue'
-import ElCardCollapse from '@/components/ElCardCollapse.vue'
+// import ContextPosesSearcher from '@/view/hmdrView/hmdr_conf_struct/component/contextPosesSearcher.vue'
 
 export default {
   name: 'HmdrConfStruct',
@@ -469,6 +504,17 @@ export default {
       isConfirmingDrag: false,
       ctxCreatorsCardIsCollapse: true,
       ctxCreatorCompMetaList: this.ctxCreatorComponentsMeta(),
+      searchRequestData: {
+        searchKeywords: '',
+        onlyInCurrentConfig: true,
+        isRegExp: false,
+        searchTypeRadio: 1
+      },
+      searchResponse: {
+        total: -1,
+        index: 0,
+        posList: []
+      },
       floatingButtonContainerStyle: {
         position: 'absolute',
         top: '30px',
@@ -510,7 +556,7 @@ export default {
           const configFullPath = this.configsData.configPathTreeNodeKeyMap[c]
           this.configsData.configStructs[configFullPath] = []
           for (let i = 0; i < res.data.config.configs[c].params.length; i++) {
-            var childCtx = this.formatConfStruct([i], res.data.config.configs[c].params[i])
+            var childCtx = this.formatConfStruct([i], res.data.config.configs[c].params[i], configFullPath)
             if (childCtx !== {}) {
               this.configsData.configStructs[configFullPath].push(childCtx)
             }
@@ -532,40 +578,65 @@ export default {
           this.currentTreeExpandedKeysMap = {}
           await this.changeConfStructTo(this.configsData.mainConfig)
         }
+        this.searchRequestData = {
+          searchKeywords: '',
+          onlyInCurrentConfig: true,
+          isRegExp: false,
+          searchTypeRadio: 1
+        }
+        this.searchResponse = {
+          total: -1,
+          index: 0,
+          posList: []
+        }
       })
     },
     async changeCurrentConfStruct() {
-      // loading child include context
-      for (let i = 0; i < this.configsData.configStructs[this.currentConfig].length; i++) {
-        await this.handleParseIncludes(this.configsData.configStructs[this.currentConfig][i], this.currentConfig)
-      }
-
-      this.currentConfStruct = JSON.parse(JSON.stringify(this.configsData.configStructs[this.currentConfig]))
+      const p = await this.currentConfigTreeRerender()
       this.$refs.configPathTree.setCurrentKey(this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
       this.accordionExpandTreeNode(this.$refs.configPathTree, this.configsData.configPathTreeNodeKeyMap[this.currentConfig])
+      return p
+    },
+    async currentConfigTreeRerender() {
+      let p
+      // loading child include context
+      const configFullPath = this.currentConfig
+      for (let i = 0; i < this.configsData.configStructs[configFullPath].length; i++) {
+        p = await this.handleParseIncludes(this.configsData.configStructs[configFullPath][i], configFullPath)
+      }
+      this.currentConfStruct = JSON.parse(JSON.stringify(this.configsData.configStructs[configFullPath]))
+      return p
+    },
+    changeCurrentConfig(configName) {
+      this.currentConfig = this.configsData.configPathTreeNodeKeyMap[configName]
     },
     async changeConfStructTo(configName) {
-      this.currentConfig = this.configsData.configPathTreeNodeKeyMap[configName]
-      await this.changeCurrentConfStruct()
+      this.changeCurrentConfig(configName)
+      const p = await this.changeCurrentConfStruct()
       this.configsData.stackCursor++
       this.configsData.cachedConfigStack.splice(this.configsData.stackCursor)
       this.configsData.cachedConfigStack.push(this.configsData.configPathTreeNodeKeyMap[configName])
+      return p
     },
     async changeBackConfStruct() {
+      let p
       if (this.configsData.stackCursor > 0 && this.configsData.cachedConfigStack.length > 1) {
-        this.currentConfig = this.configsData.cachedConfigStack[this.configsData.stackCursor - 1]
-        await this.changeCurrentConfStruct()
+        this.changeCurrentConfig(this.configsData.cachedConfigStack[this.configsData.stackCursor - 1])
+        p = await this.changeCurrentConfStruct()
         this.configsData.stackCursor--
       }
+      return p
     },
     async changeForwardConfStruct() {
+      let p
       if (this.configsData.stackCursor >= 0 && this.configsData.cachedConfigStack.length - 1 > this.configsData.stackCursor) {
-        this.currentConfig = this.configsData.cachedConfigStack[this.configsData.stackCursor + 1]
-        await this.changeCurrentConfStruct()
+        this.changeCurrentConfig(this.configsData.cachedConfigStack[this.configsData.stackCursor + 1])
+        p = await this.changeCurrentConfStruct()
         this.configsData.stackCursor++
       }
+      return p
     },
-    formatConfStruct(pos, contextNode) {
+    formatConfStruct(pos, contextNode, configFullPath) {
       if (Array.isArray(pos) && typeof contextNode !== 'string') {
         var formattedContext = {
           enabled: contextNode['enabled'],
@@ -573,6 +644,7 @@ export default {
           value: contextNode['value'],
           pos: pos,
           id: pos.toString(),
+          configFullPath: configFullPath,
           children: [],
           contextHoverButtonsShow: false,
           labelStyle: {
@@ -585,7 +657,7 @@ export default {
         if ('params' in contextNode) {
           for (let i = 0; i < contextNode.params.length; i++) {
             const childPos = pos.concat(i)
-            const childCtx = this.formatConfStruct(childPos, contextNode.params[i])
+            const childCtx = this.formatConfStruct(childPos, contextNode.params[i], configFullPath)
             if (childCtx !== {}) {
               formattedContext.children.push(childCtx)
             }
@@ -607,34 +679,44 @@ export default {
       }
     },
     async handleParseIncludes(data, wbConfig) {
-      if (data.ctxType === 'include' && !data.isFormatted) {
-        var reqOpts = {
+      if (data.ctxType === 'include' && !data.isFormatted && !data.isFormatting) {
+        data.isFormatting = true
+        const reqOpts = {
           group_id: this.serverOptions.group_id,
           host_id: this.serverOptions.host_id,
           srv_name: this.serverOptions.srv_name,
           config: wbConfig,
           'context-pos-path': data.pos
         }
-        var res = await getIncludes(reqOpts)
+        this.setOFP2RequestData(reqOpts)
+        // console.log(this.currentTreeExpandedKeysMap[this.currentConfig].toString())
+        // console.log(wbConfig)
+        const res = await getIncludes(reqOpts)
         if (res.code === 0) {
           for (let i = 0; i < res.data.length; i++) {
             data.children.push(this.formatConfStruct(data.pos.concat(i), res.data[i]))
           }
-          var children = this.configsData.configStructs[this.currentConfig]
+          let children = this.configsData.configStructs[wbConfig]
           for (let i = 0; i < data.pos.length - 1; i++) {
             children = children[data.pos[i]].children
           }
           data.isFormatted = true
           children[data.pos[data.pos.length - 1]] = data
         }
+        data.isFormatting = false
+        return res.code
       }
     },
     async handleTreeNodeLazyLoad(node, resolve) {
       if (!node.data.children) return
+      let p
+      // console.log('expanding... ' + node.data.id)
       for (let i = 0; i < node.data.children.length; i++) {
-        await this.handleParseIncludes(node.data.children[i], this.currentConfig)
+        // p = await this.handleParseIncludes(node.data.children[i], this.currentConfig)
+        p = await this.handleParseIncludes(node.data.children[i], node.data.configFullPath)
       }
       resolve(node.data.children)
+      return p
     },
     allowTreeDrop(draggingNode, dropNode, type) {
       if (dropNode.data.isLeaf) {
@@ -717,10 +799,14 @@ export default {
       node.data.contextHoverButtonsShow = false
     },
     handleTreeNodeExpand(data) {
-      if (this.currentTreeExpandedKeysMap[this.currentConfig] === undefined) this.currentTreeExpandedKeysMap[this.currentConfig] = []
-      if (this.currentTreeExpandedKeysMap[this.currentConfig].indexOf(data.id) === -1) {
-        // console.log('expand: ' + data.id)
-        this.currentTreeExpandedKeysMap[this.currentConfig].push(data.id)
+      // console.log('expand: ' + data.id)
+      this.configTreeExpandedKeysMapPush(this.currentConfig, data.id)
+    },
+    configTreeExpandedKeysMapPush(configFullPath, key) {
+      if (!this.currentTreeExpandedKeysMap) this.currentTreeExpandedKeysMap = {}
+      if (!this.currentTreeExpandedKeysMap[configFullPath]) this.currentTreeExpandedKeysMap[configFullPath] = []
+      if (!this.currentTreeExpandedKeysMap[configFullPath].includes(key)) {
+        this.currentTreeExpandedKeysMap[configFullPath].push(key)
       }
     },
     handleTreeNodeCollapse(data) {
@@ -758,7 +844,8 @@ export default {
       this.enabledStateChangeTreeNodeLabel = data.label
       this.enabledStateChangeTreeNodeDialogVisible = true
     },
-    async handleTreeNodeDetailedConfigDisplay(node, data) {
+    async handleTreeNodeDetailedConfigDisplay(event, node, data) {
+      event.stopPropagation()
       if (data) {
         var reqOpts = {
           group_id: this.serverOptions.group_id,
@@ -767,6 +854,7 @@ export default {
           config: this.currentConfig,
           'context-pos-path': data.pos
         }
+        this.setOFP2RequestData(reqOpts)
         var res = await getContextText(reqOpts)
         if (res.code === 0) {
           this.currentCtxText = res.data
@@ -780,7 +868,8 @@ export default {
         this.currentCtxText = ''
       })
     },
-    handleTreeNodeModify(node, data) {
+    handleTreeNodeModify(event, node, data) {
+      event.stopPropagation()
       if (data === undefined) return
       this.updateRequestData = {
         'web-server-options': {
@@ -803,7 +892,8 @@ export default {
       this.modifyTreeNodeLabel = data.label
       this.modifyTreeNodeDialogVisible = true
     },
-    handleTreeNodeDelete(node, data) {
+    handleTreeNodeDelete(event, node, data) {
+      event.stopPropagation()
       if (data === undefined) return
       this.deleteRequestData = {
         group_id: this.serverOptions.group_id,
@@ -1079,13 +1169,16 @@ export default {
       if (await this.refreshConfStruct()) {
         // 置空当前配置树节点展开状态
         this.currentTreeExpandedKeysMap[currentConfName] = []
-        this.changeConfStructTo(currentConfName)
+        await this.changeConfStructTo(currentConfName)
       }
       cb(true)
     },
     resetUpdateRequest() {
       this.updateRequestData = {}
       this.changeCurrentConfStruct()
+    },
+    setOFP2RequestData(data) {
+      data['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
     },
     setOFP2UpdateRequest() {
       this.updateRequestData['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
@@ -1095,6 +1188,132 @@ export default {
     },
     setOFP2EnabledStateChangeRequest() {
       this.enabledStateChangeRequestData['original-fingerprints'] = JSON.parse(JSON.stringify(this.configsData.originalFingerprints))
+    },
+    async handleTargetCtxSearch(event, node) {
+      event.stopPropagation()
+      this.searchRequestData.searchTypeRadio = 1
+      const startpos = {
+        config: node.data.configFullPath,
+        'context-pos-path': node.data.pos
+      }
+      return await this.handleSearch(startpos)
+    },
+    async handleSearch(startpos) {
+      const reqData = {
+        'web-server-options': {
+          group_id: this.serverOptions.group_id,
+          host_id: this.serverOptions.host_id,
+          srv_name: this.serverOptions.srv_name
+        },
+        keywords: this.searchRequestData.searchKeywords,
+        'is-regexp-rule': this.searchRequestData.isRegExp,
+        'is-only-in-current': this.searchRequestData.onlyInCurrentConfig,
+        'starting-position-list': []
+      }
+      this.setOFP2RequestData(reqData)
+      if (this.searchRequestData.searchTypeRadio === 2) {
+        reqData['starting-position-list'] = this.searchResponse.posList
+      } else {
+        if (!startpos) {
+          reqData['starting-position-list'][0] = {
+            config: this.currentConfig,
+            'context-pos-path': []
+          }
+        } else {
+          reqData['starting-position-list'][0] = startpos
+        }
+      }
+      const resp = await searchCtxPoses(reqData)
+      if (resp.code === 0) {
+        this.searchResponse.total = resp.data.length
+        this.searchResponse.index = this.searchResponse.total - 1
+        this.searchResponse.posList = resp.data
+      } else {
+        this.searchResponse.total = -1
+        this.searchResponse.index = 0
+        this.searchResponse.posList = []
+        return resp.code
+      }
+      for (let i = 0; i < this.searchResponse.total; i++) {
+        this.setConfigTreeDefExpandedNodeByPos(this.searchResponse.posList[i])
+      }
+      // this.$nextTick(async() => {
+      //   return await this.changeCurrentConfStruct()
+      // })
+      this.$nextTick(async() => {
+        return await this.handleSearchNext()
+      })
+    },
+    setConfigTreeDefExpandedNodeByPos(pos) {
+      if (!pos) return
+      if (pos['context-pos-path'] && Array.isArray(pos['context-pos-path'])) {
+        for (let i = 0; i < pos['context-pos-path'].length - 1; i++) {
+          this.configTreeExpandedKeysMapPush(this.configsData.configPathTreeNodeKeyMap[pos.config], pos['context-pos-path'].slice(0, i + 1).toString())
+        }
+        // this.configTreeExpandedKeysMapPush(this.configsData.configPathTreeNodeKeyMap[pos.config], pos['context-pos-path'].slice(0, pos['context-pos-path'].length).toString())
+      }
+    },
+    async handleSearchIndexChange(pos) {
+      let p
+      if (this.configsData.configPathTreeNodeKeyMap[pos.config] !== this.currentConfig) {
+        p = await this.changeConfStructTo(pos.config)
+      } else {
+        for (let i = 0; i < pos['context-pos-path'].length - 1; i++) {
+          if (!this.$refs.configTree.getNode(pos['context-pos-path'].slice(0, i + 1).toString()).expanded) {
+            p = await this.changeCurrentConfStruct()
+            break
+            // this.$refs.configTree.getNode(pos['context-pos-path'].slice(0, i + 1).toString()).expanded = true
+          }
+        }
+      }
+      this.$nextTick(() => {
+        this.$refs.configTree.setCurrentKey(pos['context-pos-path'].toString())
+        // const ctxnode = this.$refs.configTree.getNode(pos['context-pos-path'].toString())
+        // if (ctxnode) {
+        //   this.$refs.configTree.setCurrentKey(ctxnode.data.id)
+        //   this.scrollToNode(ctxnode.data.id)
+        // }
+      })
+      this.$nextTick(() => {
+        this.scrollToNode(pos['context-pos-path'].toString())
+      })
+      return p
+    },
+    async handleSearchPrev() {
+      if (this.searchResponse.index > 0) {
+        this.searchResponse.index--
+      } else {
+        this.searchResponse.index = this.searchResponse.total - 1
+      }
+      return await this.handleSearchIndexChange(this.searchResponse.posList[this.searchResponse.index])
+    },
+    async handleSearchNext() {
+      if (this.searchResponse.total <= 0) {
+        this.searchResponse.index = -1
+        return
+      }
+      if (this.searchResponse.total - 1 > this.searchResponse.index) {
+        this.searchResponse.index++
+      } else {
+        this.searchResponse.index = 0
+      }
+      return await this.handleSearchIndexChange(this.searchResponse.posList[this.searchResponse.index])
+    },
+    scrollToNode(nodeId) {
+      const nodeElement = document.getElementById(nodeId)
+      if (nodeElement) {
+        nodeElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    },
+    handleSearchHighlight(node, data) {
+      for (let i = 0; i < this.searchResponse.total; i++) {
+        const pos = this.searchResponse.posList[i]
+        if (this.currentConfig === this.configsData.configPathTreeNodeKeyMap[pos.config] && data.id === pos['context-pos-path'].toString()) {
+          if (this.searchResponse.posList[this.searchResponse.index]['context-pos-path'].toString() === data.id) return 'background-color: #FFFF77'
+          return 'background-color: #EEFFBB'
+        }
+      }
+      return ''
     }
   }
 }
