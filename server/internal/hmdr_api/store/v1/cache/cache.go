@@ -109,7 +109,7 @@ func (h *hostsCache) GetHost(hostid uint) *serversCache {
 }
 func (h *hostsCache) ReleaseHost(hostid uint) *hostsCache {
 	h.lock.Lock()
-	defer h.lock.RLock()
+	defer h.lock.Unlock()
 	delete(h.cache, hostid)
 	return h
 }

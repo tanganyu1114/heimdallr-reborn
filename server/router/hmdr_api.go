@@ -42,44 +42,47 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 	{
 		groupController := group.NewController(svcIns)
 
-		groupRoutes.POST("createHmdrGroup", groupController.Create)                   // 新建HmdrGroup
-		groupRoutes.DELETE("deleteHmdrGroup", groupController.Delete)                 // 删除HmdrGroup
-		groupRoutes.DELETE("deleteHmdrGroupByIds", groupController.DeleteCollections) // 批量删除HmdrGroup
-		groupRoutes.PUT("updateHmdrGroup", groupController.Update)                    // 更新HmdrGroup
-		groupRoutes.GET("findHmdrGroup", groupController.Get)                         // 根据ID获取HmdrGroup
-		groupRoutes.GET("getHmdrGroupList", groupController.List)                     // 获取HmdrGroup列表
+		groupRoutes.
+			POST("createHmdrGroup", groupController.Create).                   // 新建HmdrGroup
+			DELETE("deleteHmdrGroup", groupController.Delete).                 // 删除HmdrGroup
+			DELETE("deleteHmdrGroupByIds", groupController.DeleteCollections). // 批量删除HmdrGroup
+			PUT("updateHmdrGroup", groupController.Update).                    // 更新HmdrGroup
+			GET("findHmdrGroup", groupController.Get).                         // 根据ID获取HmdrGroup
+			GET("getHmdrGroupList", groupController.List)                      // 获取HmdrGroup列表
 	}
 
 	hostRoutes := rg.Group("hmdrHost").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
 	{
 		hostController := host.NewController(svcIns)
 
-		hostRoutes.POST("createHmdrHost", hostController.Create)                  // 新建HmdrHost
-		hostRoutes.DELETE("deleteHmdrHost", hostController.Delete)                // 删除HmdrHost
-		hostRoutes.DELETE("deleteHmdrHostByIds", hostController.DeleteCollection) // 批量删除HmdrHost
-		hostRoutes.PUT("updateHmdrHost", hostController.Update)                   // 更新HmdrHost
-		hostRoutes.GET("findHmdrHost", hostController.Get)                        // 根据ID获取HmdrHost
-		hostRoutes.GET("getHmdrHostList", hostController.List)                    // 获取HmdrHost列表
+		hostRoutes.
+			POST("createHmdrHost", hostController.Create).                  // 新建HmdrHost
+			DELETE("deleteHmdrHost", hostController.Delete).                // 删除HmdrHost
+			DELETE("deleteHmdrHostByIds", hostController.DeleteCollection). // 批量删除HmdrHost
+			PUT("updateHmdrHost", hostController.Update).                   // 更新HmdrHost
+			GET("findHmdrHost", hostController.Get).                        // 根据ID获取HmdrHost
+			GET("getHmdrHostList", hostController.List)                     // 获取HmdrHost列表
 	}
 
 	webSrvConfRoutes := rg.Group("conf").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
 	{
 		webSrvConfController := web_server_config.NewController(svcIns)
 
-		webSrvConfRoutes.GET("getOptions", webSrvConfController.GetOptions)                    // 获取options选择参数信息
-		webSrvConfRoutes.POST("getConfInfo", webSrvConfController.GetConfigTextLines)          // 获取配置文件信息
-		webSrvConfRoutes.POST("get-context-text", webSrvConfController.GetContextTextLines)    // 获取上下文配置明细
-		webSrvConfRoutes.POST("get-conf-struct", webSrvConfController.GetConfig)               // 获取配置文件JSON数据
-		webSrvConfRoutes.POST("get-includes", webSrvConfController.GetIncludedConfigs)         // 获取包含的配置文件路径列表
-		webSrvConfRoutes.POST("search-ctx-poses", webSrvConfController.SearchContextPositions) // 搜索上下文坐标列表
-		webSrvConfRoutes.POST("insert-clone-ctx", webSrvConfController.InsertWithClone)
-		webSrvConfRoutes.POST("insert-new-ctx", webSrvConfController.InsertWithNew)
-		webSrvConfRoutes.DELETE("remove-ctx", webSrvConfController.Remove)
-		webSrvConfRoutes.POST("modify-ctx-value", webSrvConfController.ModifyContextValue)
-		webSrvConfRoutes.POST("modify-clone-ctx", webSrvConfController.ModifyWithClone)
-		webSrvConfRoutes.POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState)
-		webSrvConfRoutes.POST("modify-new-ctx", webSrvConfController.ModifyWithNew)
-		webSrvConfRoutes.POST("move-ctx", webSrvConfController.Move)
+		webSrvConfRoutes.
+			GET("getOptions", webSrvConfController.GetOptions).                    // 获取options选择参数信息
+			POST("getConfInfo", webSrvConfController.GetConfigTextLines).          // 获取配置文件信息
+			POST("get-context-text", webSrvConfController.GetContextTextLines).    // 获取上下文配置明细
+			POST("get-conf-struct", webSrvConfController.GetConfig).               // 获取配置文件JSON数据
+			POST("get-includes", webSrvConfController.GetIncludedConfigs).         // 获取包含的配置文件路径列表
+			POST("search-ctx-poses", webSrvConfController.SearchContextPositions). // 搜索上下文坐标列表
+			POST("insert-clone-ctx", webSrvConfController.InsertWithClone).
+			POST("insert-new-ctx", webSrvConfController.InsertWithNew).
+			DELETE("remove-ctx", webSrvConfController.Remove).
+			POST("modify-ctx-value", webSrvConfController.ModifyContextValue).
+			POST("modify-clone-ctx", webSrvConfController.ModifyWithClone).
+			POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState).
+			POST("modify-new-ctx", webSrvConfController.ModifyWithNew).
+			POST("move-ctx", webSrvConfController.Move)
 	}
 
 	webSrvBinCMDRoutes := rg.Group("bin-cmd").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
