@@ -90,14 +90,14 @@ func (f WebServerConfigStore) SearchContextPositions(ctx context.Context, opts m
 	return storev1utils.SearchContextPoses(starting, kwmeta.IsOnlyInCurrent, kwmeta.Keywords, kwmeta.IsRegexpRule)
 }
 
-func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	if len(ctxmeta.TargetContext.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse context posision to be cloned: %v", errors.New("nginx config context pos path is null"))
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (f WebServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
 	if err := newConfigContext(ctxmeta.TargetContext).Error(); err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav
 	})
 }
 
-func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := f.parseContextPos(conf, ctxmeta.Position)
 		if err != nil {
@@ -230,6 +230,9 @@ func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOpt
 		if err = targetFather.Insert(toBeMovedCtx, targetIdx).Error(); err != nil {
 			return conf, errors.Errorf("failed to insert context to be moved: %v", err)
 		}
-		return conf, nil
+		if disabledTarget {
+			err = toBeMovedCtx.Disable().Error()
+		}
+		return conf, err
 	})
 }

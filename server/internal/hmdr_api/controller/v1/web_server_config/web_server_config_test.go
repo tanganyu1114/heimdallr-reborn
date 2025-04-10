@@ -582,6 +582,7 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		DisableTheTarget:     true,
 		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
@@ -1237,6 +1238,7 @@ func TestWebServerConfigController_Move(t *testing.T) {
 				ContextPosPath: []int{4},
 			}},
 		},
+		DisableTheTarget:     true,
 		OriginalFingerprints: ofp,
 	}
 	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{

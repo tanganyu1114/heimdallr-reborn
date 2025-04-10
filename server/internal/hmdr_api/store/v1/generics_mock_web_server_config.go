@@ -120,31 +120,31 @@ func (mr *MockWebServerConfigStoreMockRecorder) GetOptions(ctx any) *gomock.Call
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigStore) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithClone indicates an expected call of InsertWithClone.
-func (mr *MockWebServerConfigStoreMockRecorder) InsertWithClone(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigStoreMockRecorder) InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigStore)(nil).InsertWithClone), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigStore)(nil).InsertWithClone), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigStore) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithNew indicates an expected call of InsertWithNew.
-func (mr *MockWebServerConfigStoreMockRecorder) InsertWithNew(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigStoreMockRecorder) InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigStore)(nil).InsertWithNew), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigStore)(nil).InsertWithNew), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // ModifyContextValue mocks base method.
@@ -190,17 +190,17 @@ func (mr *MockWebServerConfigStoreMockRecorder) ModifyWithNew(ctx, opts, ofp, ct
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigStore) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Move indicates an expected call of Move.
-func (mr *MockWebServerConfigStoreMockRecorder) Move(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigStoreMockRecorder) Move(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigStore)(nil).Move), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigStore)(nil).Move), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // Remove mocks base method.

@@ -43,12 +43,12 @@ func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opt
 	return w.store.WebServerConfigs().SearchContextPositions(ctx, opts, ofp, kwmeta)
 }
 
-func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
-	return w.store.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta)
+func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+	return w.store.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
-	return w.store.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta)
+func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
+	return w.store.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
@@ -71,8 +71,8 @@ func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts me
 	return w.store.WebServerConfigs().ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
-	return w.store.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta)
+func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+	return w.store.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func newWebServerConfigs(svc *service) svcv1.WebServerConfigSrv {

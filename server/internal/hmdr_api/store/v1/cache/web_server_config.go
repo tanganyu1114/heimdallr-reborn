@@ -96,14 +96,14 @@ func (w *webServerConfigStore) SearchContextPositions(ctx context.Context, opts 
 	return storev1utils.SearchContextPoses(starting, kwmeta.IsOnlyInCurrent, kwmeta.Keywords, kwmeta.IsRegexpRule)
 }
 
-func (w *webServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (w *webServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
-	return w.cacheStore.next.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta)
+	return w.cacheStore.next.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (w *webServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
-	return w.cacheStore.next.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta)
+	return w.cacheStore.next.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func (w *webServerConfigStore) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
@@ -131,9 +131,9 @@ func (w *webServerConfigStore) ModifyContextValue(ctx context.Context, opts meta
 	return w.cacheStore.next.WebServerConfigs().ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (w *webServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
-	return w.cacheStore.next.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta)
+	return w.cacheStore.next.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func newWebServerConfigStore(cacheStore *cacheStore) *webServerConfigStore {

@@ -1723,10 +1723,11 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 		bm bifrosts.Manager
 	}
 	type args struct {
-		in0     context.Context
-		opts    metav1.WebServerOptions
-		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		in0            context.Context
+		opts           metav1.WebServerOptions
+		ofp            utilsV3.ConfigFingerprints
+		ctxmeta        metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		disabledTarget bool
 	}
 	tests := []struct {
 		name    string
@@ -1750,6 +1751,7 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 						ContextPosPath: []int{4},
 					}},
 				},
+				disabledTarget: true,
 			},
 			wantErr: false,
 		},
@@ -1759,7 +1761,7 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.InsertWithClone(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithClone(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta, tt.args.disabledTarget); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithClone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1796,10 +1798,11 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 		bm bifrosts.Manager
 	}
 	type args struct {
-		in0     context.Context
-		opts    metav1.WebServerOptions
-		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+		in0            context.Context
+		opts           metav1.WebServerOptions
+		ofp            utilsV3.ConfigFingerprints
+		ctxmeta        metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+		disabledTarget bool
 	}
 	tests := []struct {
 		name                    string
@@ -1824,6 +1827,7 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 						ContextValue: "~ /normal-test",
 					},
 				},
+				disabledTarget: true,
 			},
 			wantErr: false,
 		},
@@ -1843,6 +1847,7 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 						ContextValue: "~ /normal-test",
 					},
 				},
+				disabledTarget: true,
 			},
 			wantErr:                 true,
 			wantErrIsInconsistentFP: true,
@@ -1853,7 +1858,7 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.InsertWithNew(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.InsertWithNew(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta, tt.args.disabledTarget); (err != nil) != tt.wantErr {
 				t.Errorf("InsertWithNew() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
 				t.Errorf("InsertWithNew() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
@@ -2147,10 +2152,11 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 		bm bifrosts.Manager
 	}
 	type args struct {
-		in0     context.Context
-		opts    metav1.WebServerOptions
-		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		in0            context.Context
+		opts           metav1.WebServerOptions
+		ofp            utilsV3.ConfigFingerprints
+		ctxmeta        metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		disabledTarget bool
 	}
 	tests := []struct {
 		name    string
@@ -2174,6 +2180,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 						ContextPosPath: []int{4},
 					}},
 				},
+				disabledTarget: true,
 			},
 			wantErr: false,
 		},
@@ -2194,6 +2201,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 						ContextPosPath: []int{8},
 					}},
 				},
+				disabledTarget: true,
 			},
 			wantErr: true,
 		},
@@ -2203,7 +2211,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 			w := &webServerConfigStore{
 				bm: tt.fields.bm,
 			}
-			if err := w.Move(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta); (err != nil) != tt.wantErr {
+			if err := w.Move(tt.args.in0, tt.args.opts, tt.args.ofp, tt.args.ctxmeta, tt.args.disabledTarget); (err != nil) != tt.wantErr {
 				t.Errorf("Move() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

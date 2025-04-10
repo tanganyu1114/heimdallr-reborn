@@ -205,7 +205,7 @@ func (w *webServerConfigStore) updateConfig(opts metav1.WebServerOptions, fp uti
 	return client.WebServerConfig().Update(opts.ServerName, updating, fp)
 }
 
-func (w *webServerConfigStore) InsertWithClone(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (w *webServerConfigStore) InsertWithClone(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	return w.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := w.parseContextPos(conf, ctxmeta.Position)
 		if err != nil {
@@ -217,18 +217,26 @@ func (w *webServerConfigStore) InsertWithClone(_ context.Context, opts metav1.We
 		if err != nil {
 			return conf, errors.Errorf("failed to parse the context posision to be cloned: %v", err)
 		}
-		return conf, father.Insert(toBeClonedPos.Target().Clone(), targetIdx).Error()
+		targetCtx := father.Insert(toBeClonedPos.Target().Clone(), targetIdx).Child(targetIdx)
+		if disabledTarget {
+			targetCtx.Disable()
+		}
+		return conf, targetCtx.Error()
 	})
 }
 
-func (w *webServerConfigStore) InsertWithNew(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (w *webServerConfigStore) InsertWithNew(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
 	return w.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := w.parseContextPos(conf, ctxmeta.Position)
 		if err != nil {
 			return conf, errors.Errorf("failed to parse the target position: %v", err)
 		}
 		father, targetIdx := targetPos.Position()
-		return conf, father.Insert(newConfigContext(ctxmeta.TargetContext), targetIdx).Error()
+		targetCtx := father.Insert(newConfigContext(ctxmeta.TargetContext), targetIdx).Child(targetIdx)
+		if disabledTarget {
+			targetCtx.Disable()
+		}
+		return conf, targetCtx.Error()
 	})
 }
 
@@ -304,7 +312,7 @@ func (w *webServerConfigStore) ModifyContextValue(_ context.Context, opts metav1
 	})
 }
 
-func (w *webServerConfigStore) Move(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (w *webServerConfigStore) Move(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	return w.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := w.parseContextPos(conf, ctxmeta.Position)
 		if err != nil {
@@ -334,7 +342,10 @@ func (w *webServerConfigStore) Move(_ context.Context, opts metav1.WebServerOpti
 				return conf, errors.Errorf("failed to removed the context to be moved: %v", err)
 			}
 		}
-		return conf, nil
+		if disabledTarget {
+			err = toBeMovedCtx.Disable().Error()
+		}
+		return conf, err
 	})
 }
 

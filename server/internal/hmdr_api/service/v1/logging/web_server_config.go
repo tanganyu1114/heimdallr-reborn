@@ -71,26 +71,26 @@ func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opt
 	return w.svc.WebServerConfigs().SearchContextPositions(ctx, opts, ofp, kwmeta)
 }
 
-func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
+func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "插入克隆的配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta}, nil, err)
+		log(level, "插入克隆的配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta, "disable-the-target": disabledTarget}, nil, err)
 	}()
-	return w.svc.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta)
+	return w.svc.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) (err error) {
+func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "插入新增的配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta}, nil, err)
+		log(level, "插入新增的配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta, "disable-the-target": disabledTarget}, nil, err)
 	}()
-	return w.svc.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta)
+	return w.svc.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (err error) {
@@ -148,15 +148,15 @@ func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts me
 	return w.svc.WebServerConfigs().ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
+func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
 			level = zapcore.ErrorLevel
 		}
-		log(level, "移动目标配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta}, nil, err)
+		log(level, "移动目标配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-context-meta": ctxmeta, "disable-the-target": disabledTarget}, nil, err)
 	}()
-	return w.svc.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta)
+	return w.svc.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 func newWebServerConfigs(svc svcv1.Factory) *webServerConfigService {

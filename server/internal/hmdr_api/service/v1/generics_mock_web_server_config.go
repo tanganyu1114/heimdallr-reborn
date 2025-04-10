@@ -118,31 +118,31 @@ func (mr *MockWebServerConfigSrvMockRecorder) GetOptions(ctx any) *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigSrv) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithClone indicates an expected call of InsertWithClone.
-func (mr *MockWebServerConfigSrvMockRecorder) InsertWithClone(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithClone), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithClone", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithClone), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigSrv) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertWithNew indicates an expected call of InsertWithNew.
-func (mr *MockWebServerConfigSrvMockRecorder) InsertWithNew(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithNew), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithNew", reflect.TypeOf((*MockWebServerConfigSrv)(nil).InsertWithNew), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // ModifyContextValue mocks base method.
@@ -188,17 +188,17 @@ func (mr *MockWebServerConfigSrvMockRecorder) ModifyWithNew(ctx, opts, ofp, ctxm
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigSrv) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigSrv) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta)
+	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Move indicates an expected call of Move.
-func (mr *MockWebServerConfigSrvMockRecorder) Move(ctx, opts, ofp, ctxmeta any) *gomock.Call {
+func (mr *MockWebServerConfigSrvMockRecorder) Move(ctx, opts, ofp, ctxmeta, disabledTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Move), ctx, opts, ofp, ctxmeta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockWebServerConfigSrv)(nil).Move), ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
 // Remove mocks base method.

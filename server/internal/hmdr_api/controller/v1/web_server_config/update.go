@@ -45,7 +45,7 @@ func (w *WebServerConfigController) InsertWithClone(c *gin.Context) {
 	}
 	updateErrorHandle(
 		c,
-		w.svc.WebServerConfigs().InsertWithClone(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		w.svc.WebServerConfigs().InsertWithClone(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions, r.DisableTheTarget),
 		"新增成功",
 		"新增失败",
 	)
@@ -62,7 +62,7 @@ func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
 	}
 	updateErrorHandle(
 		c,
-		w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions, r.DisableTheTarget),
 		"新增成功",
 		"新增失败",
 	)
@@ -161,7 +161,7 @@ func (w *WebServerConfigController) Move(c *gin.Context) {
 	}
 	updateErrorHandle(
 		c,
-		w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions),
+		w.svc.WebServerConfigs().Move(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions, r.DisableTheTarget),
 		"修改成功",
 		"修改失败",
 	)

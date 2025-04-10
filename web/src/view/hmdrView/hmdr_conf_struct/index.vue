@@ -167,6 +167,7 @@
               <el-radio label="cp">复制</el-radio>
             </el-radio-group>
             <span slot="footer" class="dialog-footer">
+              <el-checkbox v-model="dragTreeNodeDisableTheTarget">禁用拖放点上下文</el-checkbox>
               <el-button @click="cancelDragDialog">取 消</el-button>
               <el-button type="primary" :loading="isConfirmingDrag" @click.stop="confirmDragDialog">确 定</el-button>
             </span>
@@ -500,6 +501,7 @@ export default {
       isConfirmingDel: false,
       dragTreeNodeRadio: '',
       dragTreeNodeDialogVisible: false,
+      dragTreeNodeDisableTheTarget: false,
       ctxDetailDrawerVisible: false,
       isConfirmingDrag: false,
       ctxCreatorsCardIsCollapse: true,
@@ -1070,6 +1072,9 @@ export default {
       this.changeConfStructTo(this.currentConfig)
       this.dragTreeNodeDialogVisible = false
       this.isConfirmingDrag = false
+      this.$nextTick(() => {
+        this.dragTreeNodeDisableTheTarget = false
+      })
     },
     async confirmDragDialog() {
       if (this.isConfirmingDrag) return
@@ -1080,6 +1085,8 @@ export default {
       }
       var currentConfName = this.currentConfig
       this.setOFP2UpdateRequest()
+      // set `DisableTheTarget` to update request data
+      this.updateRequestData['disable-the-target'] = this.dragTreeNodeDisableTheTarget
       switch (this.dragTreeNodeRadio) {
         case 'mv': {
           res = await moveCtx(this.updateRequestData)
@@ -1110,6 +1117,9 @@ export default {
       }
       this.dragTreeNodeDialogVisible = false
       this.isConfirmingDrag = false
+      this.$nextTick(() => {
+        this.dragTreeNodeDisableTheTarget = false
+      })
     },
     ctxCreatorComponentsMeta() {
       var meta = []
