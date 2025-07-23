@@ -14,6 +14,7 @@ import (
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"regexp"
+	"strings"
 	"sync"
 )
 
@@ -63,6 +64,23 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 	return proxySvcInfos, nil
 }
 
+func getCommentInfo(pos nginx_context.Pos) string {
+	father, targetIdx := pos.Position()
+	if c := pos.Target().Child(0); c.Type() == context_type.TypeInlineComment {
+		return c.Value()
+	}
+	if n := father.Child(targetIdx + 1); n.Type() == context_type.TypeInlineComment {
+		return n.Value()
+	}
+	if targetIdx > 0 {
+		b := father.Child(targetIdx - 1)
+		if b.Type() == context_type.TypeComment {
+			return b.Value()
+		}
+	}
+	return ""
+}
+
 func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
 	var streamSrvsProxyBrief []v1.ProxyServiceInfo
 	streamPos := conf.Main().ChildrenPosSet().
@@ -78,6 +96,7 @@ func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceI
 		).
 		Map(
 			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
+				srvComment := getCommentInfo(srvPos)
 				// get listening port
 				port := configuration.Port(srvPos.Target())
 				return srvPos, srvPos.QueryAll(proxyPassKW).
@@ -104,11 +123,20 @@ func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceI
 								)
 								return directivePos, nil
 							}
+							proxyComment := getCommentInfo(directivePos)
+							cmts := make([]string, 0)
+							if len(srvComment) > 0 {
+								cmts = append(cmts, srvComment)
+							}
+							if len(proxyComment) > 0 {
+								cmts = append(cmts, proxyComment)
+							}
 							for _, proxyAddr := range proxyAddrs {
 								streamSrvsProxyBrief = append(streamSrvsProxyBrief, v1.ProxyServiceInfo{
-									ProxyType:    "TCP/UDP",
-									Port:         port,
-									ProxyAddress: proxyAddr,
+									ProxyType:           "TCP/UDP",
+									Port:                port,
+									ProxyAddress:        proxyAddr,
+									ProxyServiceComment: strings.Join(cmts, "\t|\t"),
 								})
 							}
 							return directivePos, nil
@@ -137,6 +165,7 @@ func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInf
 			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
 				// get server name
 				var srvname string
+				srvComment := getCommentInfo(srvPos)
 				if p := srvPos.QueryOne(nginx_context.NewKeyWords(context_type.TypeDirective).
 					SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
 					SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)); p.Target().Error() == nil {
@@ -153,6 +182,7 @@ func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInf
 					).
 					Map(
 						func(locPos nginx_context.Pos) (nginx_context.Pos, error) {
+							locComment := getCommentInfo(locPos)
 							return locPos, locPos.QueryAll(proxyPassKW).
 								Filter( // filter out the normal "proxy_pass" directive
 									func(directivePos nginx_context.Pos) bool {
@@ -177,13 +207,25 @@ func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInf
 											)
 											return directivePos, nil
 										}
+										proxyComment := getCommentInfo(directivePos)
+										cmts := make([]string, 0)
+										if len(srvComment) > 0 {
+											cmts = append(cmts, srvComment)
+										}
+										if len(locComment) > 0 {
+											cmts = append(cmts, locComment)
+										}
+										if len(proxyComment) > 0 {
+											cmts = append(cmts, proxyComment)
+										}
 										for _, proxyAddr := range proxyAddrs {
 											httpSrvsProxyBrief = append(httpSrvsProxyBrief, v1.ProxyServiceInfo{
-												ProxyType:    "HTTP",
-												ServerName:   srvname,
-												Port:         port,
-												Location:     locPos.Target().Value(),
-												ProxyAddress: proxyAddr,
+												ProxyType:           "HTTP",
+												ServerName:          srvname,
+												Port:                port,
+												Location:            locPos.Target().Value(),
+												ProxyAddress:        proxyAddr,
+												ProxyServiceComment: strings.Join(cmts, "\t|\t"),
 											})
 										}
 										return directivePos, nil

@@ -27,9 +27,10 @@ package v1
 //}
 
 type ProxyServiceInfo struct {
-	ProxyType    string `json:"proxy-type"`
-	ServerName   string `json:"server-name"`
-	Port         int    `json:"port"`
-	Location     string `json:"location"`
-	ProxyAddress string `json:"proxy-address"`
+	ProxyType           string `json:"proxy-type"`
+	ServerName          string `json:"server-name"`
+	Port                int    `json:"port"`
+	Location            string `json:"location"`
+	ProxyAddress        string `json:"proxy-address"`
+	ProxyServiceComment string `json:"proxy-service-comment"`
 }

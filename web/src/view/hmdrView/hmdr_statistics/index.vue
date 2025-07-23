@@ -37,6 +37,7 @@
         tooltip-effect="dark"
         :default-sort="{prop: 'port'}"
       >
+        <el-table-column sortable label="服务描述" prop="proxy-service-comment" />
         <el-table-column sortable label="代理类型" prop="proxy-type" width="120" />
         <el-table-column sortable label="服务名" prop="server-name" />
         <el-table-column sortable label="服务侦听端口" prop="port" width="140" />
