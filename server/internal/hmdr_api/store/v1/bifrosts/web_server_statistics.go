@@ -3,6 +3,7 @@ package bifrosts
 import (
 	"context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
+	"gin-vue-admin/global"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
 	"gin-vue-admin/internal/pkg/bifrosts"
@@ -15,6 +16,7 @@ import (
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
 	"github.com/marmotedu/errors"
+	"go.uber.org/zap"
 )
 
 var (
@@ -62,6 +64,7 @@ type proxyServiceInfoHandlerMultiPipe struct {
 func (p *proxyServiceInfoHandlerMultiPipe) Handle(target nginx_context.Context, in v1.ProxyServiceInfo) (out []v1.ProxyServiceInfo, err error) {
 	next, tmpOut, err := p.PosMapHandle(target, in)
 	if err != nil {
+		global.GVA_LOG.Debug("坐标获取异常", zap.Any("err", err))
 		return nil, err
 	}
 
@@ -77,6 +80,7 @@ func (p *proxyServiceInfoHandlerMultiPipe) Handle(target nginx_context.Context, 
 		}
 		o, err := nextPipe.Handle(pos.Target(), tmpOut[setIdx])
 		if err != nil {
+			global.GVA_LOG.Debug("坐标获取异常", zap.Any("err", err))
 			return pos, err
 		}
 		out = append(out, o...)
@@ -115,6 +119,7 @@ func httpAndStreamProxyBriefHandlerPipe() *proxyServiceInfoHandlerMultiPipe {
 				return pos, nil
 			})
 			err = next.Error()
+			global.GVA_LOG.Debug("http stream查询", zap.Any("err", err))
 
 			return
 		},
@@ -155,8 +160,6 @@ func httpServerProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 							SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
 							SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)); snPos.Target().Error() == nil {
 							proxySvcInfo.ServerName = snPos.Target().(*local.Directive).Params
-						} else {
-							return srvPos, snPos.Target().Error()
 						}
 
 						// get listening port
@@ -171,6 +174,7 @@ func httpServerProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 					},
 				)
 			err = next.Error()
+			global.GVA_LOG.Debug("httpserver查询", zap.Any("err", err))
 			return
 		},
 	}
@@ -197,6 +201,7 @@ func httpLocProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 					},
 				)
 			err = next.Error()
+			global.GVA_LOG.Debug("location查询", zap.Any("err", err))
 			return
 		},
 	}
@@ -225,6 +230,7 @@ func httpIfProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 						},
 					))
 			err = next.Error()
+			global.GVA_LOG.Debug("http的if查询", zap.Any("err", err))
 			return
 		},
 	}
@@ -247,6 +253,7 @@ func httpPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 						proxyPass := ppPos.Target().(*local.HTTPProxyPass)
 						ctxPos, err := local.PosBasedOnConfig(proxyPass)
 						if err != nil {
+							global.GVA_LOG.Debug("解析坐标异常", zap.Any("err", err))
 							return ppPos, err
 						}
 						proxySvcInfo.ContextPos = storev1utils.ConvertToConfigContextPos(ctxPos)
@@ -266,6 +273,7 @@ func httpPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 					},
 				)
 			err = next.Error()
+			global.GVA_LOG.Debug("http proxy_pass解析", zap.Any("err", err))
 			return
 		},
 	}
@@ -292,6 +300,7 @@ func streamServerProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 					},
 				)
 			err = next.Error()
+			global.GVA_LOG.Debug("streamserver查询", zap.Any("err", err))
 			return
 		},
 	}
@@ -307,6 +316,7 @@ func streamPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 						proxyPass := ppPos.Target().(*local.StreamProxyPass)
 						ctxPos, err := local.PosBasedOnConfig(proxyPass)
 						if err != nil {
+							global.GVA_LOG.Debug("解析坐标异常", zap.Any("err", err))
 							return ppPos, err
 						}
 						proxySvcInfo.ContextPos = storev1utils.ConvertToConfigContextPos(ctxPos)
@@ -325,6 +335,7 @@ func streamPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
 					},
 				)
 			err = next.Error()
+			global.GVA_LOG.Debug("stream prox_pass解析", zap.Any("err", err))
 			return
 		},
 	}
@@ -391,10 +402,12 @@ func (w *webServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.C
 func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	bc, err := w.bm.GetBifrostClient(opts)
 	if err != nil {
+		global.GVA_LOG.Debug("获取bifrost managers客户端失败", zap.Any("err", err))
 		return nil, err
 	}
 	conf, _, err := bc.WebServerConfig().Get(opts.ServerName)
 	if err != nil {
+		global.GVA_LOG.Debug("获取配置异常", zap.Any("err", err))
 		return nil, err
 	}
 
@@ -402,6 +415,7 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 	pipeline := httpAndStreamProxyBriefHandlerPipe()
 	infos, err := pipeline.Handle(conf.Main(), v1.ProxyServiceInfo{})
 	if err != nil {
+		global.GVA_LOG.Debug("查询代理配置异常", zap.Any("err", err))
 		return nil, err
 	}
 
