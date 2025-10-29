@@ -235,8 +235,10 @@ import {
 } from '@/api/hmdr_conf.js'
 import CommentCreator from '@/view/hmdrView/hmdr_conf_struct/component/commentCreator.vue'
 import DirectiveCreator from '@/view/hmdrView/hmdr_conf_struct/component/directiveCreator.vue'
+import DirHTTPProxyPassCreator from '@/view/hmdrView/hmdr_conf_struct/component/dirHTTPProxyPassCreator.vue'
+import DirStreamProxyPassCreator from '@/view/hmdrView/hmdr_conf_struct/component/dirStreamProxyPassCreator.vue'
 import EventsCreator from '@/view/hmdrView/hmdr_conf_struct/component/eventsCreator.vue'
-import HttpCreator from '@/view/hmdrView/hmdr_conf_struct/component/httpCreator.vue'
+import HTTPCreator from '@/view/hmdrView/hmdr_conf_struct/component/httpCreator.vue'
 import IfCreator from '@/view/hmdrView/hmdr_conf_struct/component/ifCreator.vue'
 import LocationCreator from '@/view/hmdrView/hmdr_conf_struct/component/locationCreator.vue'
 import ServerCreator from '@/view/hmdrView/hmdr_conf_struct/component/serverCreator.vue'
@@ -338,6 +340,12 @@ class ContextStructBuilder {
       },
       'location': function(data) {
         return new LocationCtx(data)
+      },
+      'dir_http_proxy_pass': function(data) {
+        return new HTTPProxyPassCtx(data)
+      },
+      'dir_stream_proxy_pass': function(data) {
+        return new StreamProxyPassCtx(data)
       }
     }
   }
@@ -364,10 +372,14 @@ class ServerCtx extends ContextStruct {
     super(data)
     this.ports = []
     this.server_names = []
+    this.stream_proxy = ''
     const listenRE = /^listen\s+(.*)/
     const serverNameRE = /^server_name\s+(.*)/
     for (let i = 0; i < this.data.children.length; i++) {
-      if (this.data.children[i].enabled && this.data.children[i].ctxType === 'directive') {
+      if (!this.data.children[i].enabled) {
+        continue
+      }
+      if (this.data.children[i].ctxType === 'directive') {
         switch (true) {
           case listenRE.test(this.data.children[i].value): {
             this.ports.push(listenRE.exec(this.data.children[i].value)[1].split(/\s+/))
@@ -378,6 +390,8 @@ class ServerCtx extends ContextStruct {
             break
           }
         }
+      } else if (this.data.children[i].ctxType === 'dir_stream_proxy_pass') {
+        this.stream_proxy = this.data.children[i].value + ' (' + this.data.children[i].extendLabelOriginalData + ')'
       }
     }
     this.el = '<=='
@@ -389,6 +403,9 @@ class ServerCtx extends ContextStruct {
     if (this.server_names.length > 0) {
       this.el += '，服务名：“' + this.server_names.join('”，“') + '”'
     }
+    if (this.stream_proxy !== '') {
+      this.el += '，代理至：“' + this.stream_proxy + '”'
+    }
   }
 }
 
@@ -396,32 +413,49 @@ class LocationCtx extends ContextStruct {
   constructor(data) {
     super(data)
     // TODO: 支持if上下文内的代理或静态资源配置
-    this.proxy = ''
+    this.http_proxy = ''
     this.root = ''
-    const proxyPassRE = /^proxy_pass\s+(.*)/
     const rootRE = /^root\s+(.*)/
     for (let i = 0; i < this.data.children.length; i++) {
-      if (this.data.children[i].enabled && this.data.children[i].ctxType === 'directive') {
-        switch (true) {
-          case proxyPassRE.test(this.data.children[i].value): {
-            this.proxy = proxyPassRE.exec(this.data.children[i].value)[1]
-            break
-          }
-          case rootRE.test(this.data.children[i].value): {
-            this.root = rootRE.exec(this.data.children[i].value)[1]
-            break
-          }
-        }
+      if (!this.data.children[i].enabled) {
+        continue
+      }
+      if (this.data.children[i].ctxType === 'directive' && rootRE.test(this.data.children[i].value)) {
+        this.root = rootRE.exec(this.data.children[i].value)[1]
+        break
+      } else if (this.data.children[i].ctxType === 'dir_http_proxy_pass') {
+        this.http_proxy = this.data.children[i].value + ' (' + this.data.children[i].extendLabelOriginalData + ')'
+        break
       }
     }
     this.el = '<=='
-    if (this.proxy !== '') {
-      this.el += ' 代理至：“' + this.proxy + '”'
+    if (this.http_proxy !== '') {
+      this.el += ' 代理至：“' + this.http_proxy + '”'
     } else if (this.root !== '') {
       this.el += ' 静态资源路径：“' + this.root + '”'
     } else {
       this.el += ' 默认静态资源路径：“html”？'
     }
+  }
+}
+
+class HTTPProxyPassCtx extends ContextStruct {
+  constructor(data) {
+    super(data)
+    this.extendLabelOriginalData = data.extendLabelOriginalData
+  }
+  genExtendLabel() {
+    return this.disabledCtxExtendLabel + '<== HTTP(s)反向代理至：' + this.extendLabelOriginalData
+  }
+}
+
+class StreamProxyPassCtx extends ContextStruct {
+  constructor(data) {
+    super(data)
+    this.extendLabelOriginalData = data.extendLabelOriginalData
+  }
+  genExtendLabel() {
+    return this.disabledCtxExtendLabel + '<== TCP/UDP反向代理至：' + this.extendLabelOriginalData
   }
 }
 
@@ -433,8 +467,10 @@ export default {
     WebServerReloadButton,
     CommentCreator,
     DirectiveCreator,
+    DirHTTPProxyPassCreator,
+    DirStreamProxyPassCreator,
     EventsCreator,
-    HttpCreator,
+    HTTPCreator,
     IfCreator,
     LocationCreator,
     ServerCreator,
@@ -652,8 +688,10 @@ export default {
           labelStyle: {
             color: '#000000'
           },
-          extendLabel: ''
+          extendLabel: '',
+          extendLabelOriginalData: ''
         }
+        formattedContext.extendLabelOriginalData = this.formatExtendLabel(contextNode)
         formattedContext.label = this.toTreeLabel(formattedContext)
         formattedContext.isLeaf = this.isTreeLeaf(formattedContext)
         if ('params' in contextNode) {
@@ -729,7 +767,7 @@ export default {
       return !(node.data.isLeaf && node.parent.data.ctxType === 'include')
     },
     isTreeLeaf(data, node) {
-      return !(data !== {} && typeof data !== 'string' && data.ctxType !== undefined && !['directive', 'inline_comment', 'comment'].includes(data.ctxType))
+      return !(data !== {} && typeof data !== 'string' && data.ctxType !== undefined && !['directive', 'inline_comment', 'comment', 'dir_http_proxy_pass', 'dir_stream_proxy_pass'].includes(data.ctxType))
     },
     toTreeLabel(data, node) {
       if (data) {
@@ -742,6 +780,24 @@ export default {
                 data.labelStyle.color = '#C0C4CC'
               }
               return data.value + ';'
+            }
+            case 'dir_http_proxy_pass': {
+              if (data.enabled) {
+                data.labelStyle.color = '#03b16b'
+                return 'proxy_pass ' + data.value + ';'
+              } else {
+                data.labelStyle.color = '#b9d3c9'
+                return 'proxy_pass ' + data.value + ';'
+              }
+            }
+            case 'dir_stream_proxy_pass': {
+              if (data.enabled) {
+                data.labelStyle.color = '#c29a07'
+                return 'proxy_pass ' + data.value + ';'
+              } else {
+                data.labelStyle.color = '#d3cbb2'
+                return '# proxy_pass ' + data.value + ';'
+              }
             }
             case 'inline_comment': {
               data.labelStyle.color = '#C0C4CC'
@@ -951,8 +1007,8 @@ export default {
         case 'create': { // 新建上下文
           // this.$refs[draggingNode.data.ctxType + 'Creator'].openDialog()
           // component组件动态注入的组件，动态生成的ref是list
-          this.$refs[draggingNode.data.ctxType + 'Creator'][0].$refs.creator.initFormDataWithTargetNode(dropNode, dropType) // 初始化注入目标节点信息
-          this.$refs[draggingNode.data.ctxType + 'Creator'][0].$refs.creator.openDialog() // 打开对话框
+          this.$refs[draggingNode.data.className][0].$refs.creator.initFormDataWithTargetNode(dropNode, dropType) // 初始化注入目标节点信息
+          this.$refs[draggingNode.data.className][0].$refs.creator.openDialog() // 打开对话框
           break
         }
         default: {
@@ -1129,8 +1185,8 @@ export default {
         ctxName = ctxName.charAt(0).toLowerCase() + ctxName.slice(1)
         meta.push({
           comp: name,
-          refName: ctxName + 'Creator',
-          key: ctxName + '-creator'
+          refName: name,
+          key: ctxName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() + '-creator'
         })
       }
       return meta
@@ -1322,6 +1378,22 @@ export default {
           if (this.searchResponse.posList[this.searchResponse.index]['context-pos-path'].toString() === data.id) return 'background-color: #FFFF77'
           return 'background-color: #EEFFBB'
         }
+      }
+      return ''
+    },
+    formatExtendLabel(contextNode) {
+      const proxy = []
+      if (contextNode['context-type'] === 'dir_http_proxy_pass') {
+        for (let i = 0; i < contextNode['proxy-pass'].addresses.length; i++) {
+          proxy.push(contextNode['proxy-pass'].addresses[i]['domain-name'] + ':' + contextNode['proxy-pass'].addresses[i].port.toString())
+        }
+      } else if (contextNode['context-type'] === 'dir_stream_proxy_pass') {
+        for (let i = 0; i < contextNode['proxy-pass'].addresses.length; i++) {
+          proxy.push(contextNode['proxy-pass'].addresses[i]['domain-name'] + ':' + contextNode['proxy-pass'].addresses[i].port.toString())
+        }
+      }
+      if (proxy.length > 0) {
+        return proxy.join(', ')
       }
       return ''
     }

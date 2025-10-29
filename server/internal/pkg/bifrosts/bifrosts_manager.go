@@ -6,10 +6,11 @@ import (
 	"gin-vue-admin/global"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/pkg/sort_map"
+	"sync"
+
 	bifrost "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
-	"sync"
 )
 
 //go:generate mockgen -self_package=gin-vue-admin/internal/pkg/bifrosts -destination mock_bifrosts_manager.go -package bifrosts gin-vue-admin/internal/pkg/bifrosts Manager
@@ -131,7 +132,7 @@ func (m *manager) InsertHost(host v1.Host) error {
 	return nil
 }
 
-func (m manager) GetGroup(groupid uint) (*Group, error) {
+func (m *manager) GetGroup(groupid uint) (*Group, error) {
 	g, ok := m.bgs.GetByKey(groupid)
 	if !ok {
 		return nil, errors.Errorf("there is no group %d", groupid)
@@ -139,7 +140,7 @@ func (m manager) GetGroup(groupid uint) (*Group, error) {
 	return g.(*Group), nil
 }
 
-func (m manager) GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client, error) {
+func (m *manager) GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client, error) {
 	g, err := m.GetGroup(opts.GroupID)
 	if err != nil {
 		return nil, err

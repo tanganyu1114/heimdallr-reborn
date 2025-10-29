@@ -23,6 +23,7 @@ import (
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockManagerMockRecorder is the mock recorder for MockManager.
@@ -43,33 +44,33 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // GetBifrostClient mocks base method.
-func (m *MockManager) GetBifrostClient(arg0 v10.WebServerOptions) (*v11.Client, error) {
+func (m *MockManager) GetBifrostClient(opts v10.WebServerOptions) (*v11.Client, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBifrostClient", arg0)
+	ret := m.ctrl.Call(m, "GetBifrostClient", opts)
 	ret0, _ := ret[0].(*v11.Client)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBifrostClient indicates an expected call of GetBifrostClient.
-func (mr *MockManagerMockRecorder) GetBifrostClient(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) GetBifrostClient(opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBifrostClient", reflect.TypeOf((*MockManager)(nil).GetBifrostClient), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBifrostClient", reflect.TypeOf((*MockManager)(nil).GetBifrostClient), opts)
 }
 
 // GetGroup mocks base method.
-func (m *MockManager) GetGroup(arg0 uint) (*Group, error) {
+func (m *MockManager) GetGroup(groupid uint) (*Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroup", arg0)
+	ret := m.ctrl.Call(m, "GetGroup", groupid)
 	ret0, _ := ret[0].(*Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGroup indicates an expected call of GetGroup.
-func (mr *MockManagerMockRecorder) GetGroup(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) GetGroup(groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroup", reflect.TypeOf((*MockManager)(nil).GetGroup), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroup", reflect.TypeOf((*MockManager)(nil).GetGroup), groupid)
 }
 
 // GetServersStatus mocks base method.
@@ -87,31 +88,31 @@ func (mr *MockManagerMockRecorder) GetServersStatus() *gomock.Call {
 }
 
 // InsertGroup mocks base method.
-func (m *MockManager) InsertGroup(arg0 v1.Group) error {
+func (m *MockManager) InsertGroup(group v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertGroup", arg0)
+	ret := m.ctrl.Call(m, "InsertGroup", group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertGroup indicates an expected call of InsertGroup.
-func (mr *MockManagerMockRecorder) InsertGroup(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) InsertGroup(group any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertGroup", reflect.TypeOf((*MockManager)(nil).InsertGroup), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertGroup", reflect.TypeOf((*MockManager)(nil).InsertGroup), group)
 }
 
 // InsertHost mocks base method.
-func (m *MockManager) InsertHost(arg0 v1.Host) error {
+func (m *MockManager) InsertHost(host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertHost", arg0)
+	ret := m.ctrl.Call(m, "InsertHost", host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InsertHost indicates an expected call of InsertHost.
-func (mr *MockManagerMockRecorder) InsertHost(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) InsertHost(host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertHost", reflect.TypeOf((*MockManager)(nil).InsertHost), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertHost", reflect.TypeOf((*MockManager)(nil).InsertHost), host)
 }
 
 // Range mocks base method.
@@ -141,31 +142,31 @@ func (mr *MockManagerMockRecorder) RemoveAll() *gomock.Call {
 }
 
 // RemoveGroupByID mocks base method.
-func (m *MockManager) RemoveGroupByID(arg0 uint) error {
+func (m *MockManager) RemoveGroupByID(groupid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveGroupByID", arg0)
+	ret := m.ctrl.Call(m, "RemoveGroupByID", groupid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveGroupByID indicates an expected call of RemoveGroupByID.
-func (mr *MockManagerMockRecorder) RemoveGroupByID(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) RemoveGroupByID(groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveGroupByID", reflect.TypeOf((*MockManager)(nil).RemoveGroupByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveGroupByID", reflect.TypeOf((*MockManager)(nil).RemoveGroupByID), groupid)
 }
 
 // RemoveHost mocks base method.
-func (m *MockManager) RemoveHost(arg0 v1.Host) error {
+func (m *MockManager) RemoveHost(host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveHost", arg0)
+	ret := m.ctrl.Call(m, "RemoveHost", host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveHost indicates an expected call of RemoveHost.
-func (mr *MockManagerMockRecorder) RemoveHost(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) RemoveHost(host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveHost", reflect.TypeOf((*MockManager)(nil).RemoveHost), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveHost", reflect.TypeOf((*MockManager)(nil).RemoveHost), host)
 }
 
 // SyncServersStatus mocks base method.
@@ -181,29 +182,29 @@ func (mr *MockManagerMockRecorder) SyncServersStatus() *gomock.Call {
 }
 
 // UpdateGroup mocks base method.
-func (m *MockManager) UpdateGroup(arg0, arg1 v1.Group) error {
+func (m *MockManager) UpdateGroup(old, new v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGroup", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateGroup", old, new)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateGroup indicates an expected call of UpdateGroup.
-func (mr *MockManagerMockRecorder) UpdateGroup(arg0, arg1 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) UpdateGroup(old, new any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroup", reflect.TypeOf((*MockManager)(nil).UpdateGroup), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroup", reflect.TypeOf((*MockManager)(nil).UpdateGroup), old, new)
 }
 
 // UpdateHost mocks base method.
-func (m *MockManager) UpdateHost(arg0, arg1 v1.Host) error {
+func (m *MockManager) UpdateHost(old, new v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateHost", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateHost", old, new)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateHost indicates an expected call of UpdateHost.
-func (mr *MockManagerMockRecorder) UpdateHost(arg0, arg1 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) UpdateHost(old, new any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateHost", reflect.TypeOf((*MockManager)(nil).UpdateHost), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateHost", reflect.TypeOf((*MockManager)(nil).UpdateHost), old, new)
 }

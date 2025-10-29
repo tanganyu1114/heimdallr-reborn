@@ -35,14 +35,50 @@
         stripe
         height="600"
         tooltip-effect="dark"
-        :default-sort="{prop: 'port'}"
+        :default-sort="{prop: 'server-port'}"
       >
         <el-table-column sortable label="服务描述" prop="proxy-service-comment" />
-        <el-table-column sortable label="代理类型" prop="proxy-type" width="120" />
         <el-table-column sortable label="服务名" prop="server-name" />
-        <el-table-column sortable label="服务侦听端口" prop="port" width="140" />
-        <el-table-column label="服务路径" prop="location" />
-        <el-table-column sortable label="代理地址" prop="proxy-address" />
+        <el-table-column sortable label="服务侦听端口" prop="server-port" width="140" />
+        <el-table-column sortable label="反向代理协议" prop="proxy-protocol" width="140" />
+        <el-table-column label="反向代理路由路径" prop="location" />
+        <el-table-column label="特殊判断条件" prop="if-condition" />
+        <el-table-column sortable label="反向代理原始地址" prop="proxy-original-url" />
+        <el-table-column label="反向代理地址集">
+          <template slot-scope="props">
+            <div v-for="address in props.row['proxy-address']" :key="address['domain-name'] + ':' + address['port']" class="tag-group">
+              <span class="tag-group__title">{{ parseUpstreamServerAddresses(address) }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="反向代理网络状态">
+          <template slot-scope="props">
+            <div v-for="address in props.row['proxy-address']" :key="address['domain-name'] + ':' + address['port']" class="tag-group">
+              <el-tooltip
+                v-for="item in parseSocketBrief(address, props.row['proxy-protocol'])"
+                :key="item.label"
+                :content="item.state"
+                placement="top"
+                size="medium"
+                effect="dark"
+              >
+                <el-tag
+                  :type="item.type"
+                  size="medium"
+                  effect="dark"
+                >
+                  {{ item.label }}
+                </el-tag>
+              </el-tooltip>
+            </div>
+            <div><el-button
+              icon="el-icon-refresh"
+              @click="connectivityCheck(props.row['context-pos'])"
+            >
+              代理连通性检查
+            </el-button></div>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
   </div>
@@ -50,7 +86,7 @@
 
 <script>
 import { getOptions } from '@/api/hmdr_conf.js'
-import { getProxyServiceInfo } from '@/api/hmdr_statistics.js'
+import { getProxyServiceInfo, connectivityCheckOfProxyService } from '@/api/hmdr_statistics.js'
 
 export default {
   name: 'HmdrStatistics',
@@ -95,6 +131,74 @@ export default {
           this.proxySvcInfos = res.data
         }
       })
+    },
+    parseConnectivityLabel(state) {
+      switch (state) {
+        case 0: return '网络连通性未知'
+        case 1: return '网络可达'
+        case 2: return '网络不可达'
+      }
+    },
+    parseConnectivityType(state) {
+      switch (state) {
+        case 0: return 'info'
+        case 1: return 'success'
+        case 2: return 'danger'
+      }
+    },
+    parseSocketBrief(address, protocol) {
+      const ret = []
+      const isStream = (protocol === 'TCP/UDP')
+      for (let i = 0; i < address.sockets.length; i++) {
+        const socket = address.sockets[i]
+        if (isStream) {
+          ret.push({
+            'label': socket['ipv4'] + ':' + socket.port + '(TCP)',
+            'state': this.parseConnectivityLabel(socket['tcp-connectivity']),
+            'type': this.parseConnectivityType(socket['tcp-connectivity'])
+          })
+          ret.push({
+            'label': socket['ipv4'] + ':' + socket.port + '(UDP)',
+            'state': this.parseConnectivityLabel(socket['udp-connectivity']),
+            'type': this.parseConnectivityType(socket['udp-connectivity'])
+          })
+        } else {
+          ret.push({
+            'label': socket['ipv4'] + ':' + socket.port,
+            'state': this.parseConnectivityLabel(socket['tcp-connectivity']),
+            'type': this.parseConnectivityType(socket['tcp-connectivity'])
+          })
+        }
+      }
+      return ret
+    },
+    connectivityCheck(ctxPos) {
+      this.$refs['elForm'].validate(async(valid) => {
+        if (!valid) return
+        const reqOpts = {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2],
+          config: ctxPos.config,
+          'context-pos-path': ctxPos['context-pos-path']
+        }
+        const res = await connectivityCheckOfProxyService(reqOpts)
+        if (res.code === 0) {
+          await this.getProxySvcInfo()
+        }
+      })
+    },
+    parseUpstreamServerAddresses(address) {
+      const addr = address['domain-name'] + ':' + address.port
+      let upsrv = ''
+      for (let i = 0; i < address.sockets.length; i++) {
+        const socket = address.sockets[i]
+        upsrv += socket['ipv4'] + ':' + socket.port + ', '
+      }
+      if (upsrv !== '') {
+        return addr + '(' + upsrv.slice(0, -2) + ')'
+      }
+      return addr
     }
   }
 }

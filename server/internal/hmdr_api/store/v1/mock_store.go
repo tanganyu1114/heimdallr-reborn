@@ -12,9 +12,10 @@ package v1
 import (
 	context "context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	v11 "gin-vue-admin/internal/pkg/meta/v1"
+	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	reflect "reflect"
 
+	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -22,6 +23,7 @@ import (
 type MockFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockFactoryMockRecorder is the mock recorder for MockFactory.
@@ -157,6 +159,7 @@ func (mr *MockFactoryMockRecorder) WebServerStatistics() *gomock.Call {
 type MockAgentInfoStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockAgentInfoStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockAgentInfoStoreMockRecorder is the mock recorder for MockAgentInfoStore.
@@ -177,18 +180,18 @@ func (m *MockAgentInfoStore) EXPECT() *MockAgentInfoStoreMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockAgentInfoStore) Get(arg0 context.Context) ([]v1.GroupInfo, error) {
+func (m *MockAgentInfoStore) Get(ctx context.Context) ([]v1.GroupInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0)
+	ret := m.ctrl.Call(m, "Get", ctx)
 	ret0, _ := ret[0].([]v1.GroupInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAgentInfoStoreMockRecorder) Get(arg0 any) *gomock.Call {
+func (mr *MockAgentInfoStoreMockRecorder) Get(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAgentInfoStore)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAgentInfoStore)(nil).Get), ctx)
 }
 
 // SyncAgentInfos mocks base method.
@@ -207,6 +210,7 @@ func (mr *MockAgentInfoStoreMockRecorder) SyncAgentInfos() *gomock.Call {
 type MockGroupStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockGroupStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockGroupStoreMockRecorder is the mock recorder for MockGroupStore.
@@ -227,95 +231,96 @@ func (m *MockGroupStore) EXPECT() *MockGroupStoreMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockGroupStore) Create(arg0 context.Context, arg1 v1.Group) error {
+func (m *MockGroupStore) Create(ctx context.Context, group v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockGroupStoreMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) Create(ctx, group any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupStore)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupStore)(nil).Create), ctx, group)
 }
 
 // Delete mocks base method.
-func (m *MockGroupStore) Delete(arg0 context.Context, arg1 uint) error {
+func (m *MockGroupStore) Delete(ctx context.Context, groupid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, groupid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockGroupStoreMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) Delete(ctx, groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupStore)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupStore)(nil).Delete), ctx, groupid)
 }
 
 // DeleteCollections mocks base method.
-func (m *MockGroupStore) DeleteCollections(arg0 context.Context, arg1 v11.IDsOptions) error {
+func (m *MockGroupStore) DeleteCollections(ctx context.Context, ids v10.IDsOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCollections", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteCollections", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCollections indicates an expected call of DeleteCollections.
-func (mr *MockGroupStoreMockRecorder) DeleteCollections(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) DeleteCollections(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollections", reflect.TypeOf((*MockGroupStore)(nil).DeleteCollections), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollections", reflect.TypeOf((*MockGroupStore)(nil).DeleteCollections), ctx, ids)
 }
 
 // Get mocks base method.
-func (m *MockGroupStore) Get(arg0 context.Context, arg1 uint) (v1.Group, error) {
+func (m *MockGroupStore) Get(ctx context.Context, groupid uint) (v1.Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, groupid)
 	ret0, _ := ret[0].(v1.Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGroupStoreMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) Get(ctx, groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupStore)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupStore)(nil).Get), ctx, groupid)
 }
 
 // List mocks base method.
-func (m *MockGroupStore) List(arg0 context.Context, arg1 v11.ListOptions) (v1.GroupList, error) {
+func (m *MockGroupStore) List(ctx context.Context, opts v10.ListOptions) (v1.GroupList, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.GroupList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockGroupStoreMockRecorder) List(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) List(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGroupStore)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGroupStore)(nil).List), ctx, opts)
 }
 
 // Update mocks base method.
-func (m *MockGroupStore) Update(arg0 context.Context, arg1 v1.Group) error {
+func (m *MockGroupStore) Update(ctx context.Context, group v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", ctx, group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockGroupStoreMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupStoreMockRecorder) Update(ctx, group any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockGroupStore)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockGroupStore)(nil).Update), ctx, group)
 }
 
 // MockHostStore is a mock of HostStore interface.
 type MockHostStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockHostStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockHostStoreMockRecorder is the mock recorder for MockHostStore.
@@ -336,95 +341,96 @@ func (m *MockHostStore) EXPECT() *MockHostStoreMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockHostStore) Create(arg0 context.Context, arg1 v1.Host) error {
+func (m *MockHostStore) Create(ctx context.Context, host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockHostStoreMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) Create(ctx, host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockHostStore)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockHostStore)(nil).Create), ctx, host)
 }
 
 // Delete mocks base method.
-func (m *MockHostStore) Delete(arg0 context.Context, arg1 uint) error {
+func (m *MockHostStore) Delete(ctx context.Context, hostid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, hostid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockHostStoreMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) Delete(ctx, hostid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockHostStore)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockHostStore)(nil).Delete), ctx, hostid)
 }
 
 // DeleteCollection mocks base method.
-func (m *MockHostStore) DeleteCollection(arg0 context.Context, arg1 v11.IDsOptions) error {
+func (m *MockHostStore) DeleteCollection(ctx context.Context, ids v10.IDsOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCollection", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteCollection", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCollection indicates an expected call of DeleteCollection.
-func (mr *MockHostStoreMockRecorder) DeleteCollection(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) DeleteCollection(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollection", reflect.TypeOf((*MockHostStore)(nil).DeleteCollection), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollection", reflect.TypeOf((*MockHostStore)(nil).DeleteCollection), ctx, ids)
 }
 
 // Get mocks base method.
-func (m *MockHostStore) Get(arg0 context.Context, arg1 uint) (v1.Host, error) {
+func (m *MockHostStore) Get(ctx context.Context, hostid uint) (v1.Host, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, hostid)
 	ret0, _ := ret[0].(v1.Host)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockHostStoreMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) Get(ctx, hostid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHostStore)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHostStore)(nil).Get), ctx, hostid)
 }
 
 // List mocks base method.
-func (m *MockHostStore) List(arg0 context.Context, arg1 v11.ListOptions) (v1.HostList, error) {
+func (m *MockHostStore) List(ctx context.Context, opts v10.ListOptions) (v1.HostList, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.HostList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockHostStoreMockRecorder) List(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) List(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHostStore)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHostStore)(nil).List), ctx, opts)
 }
 
 // Update mocks base method.
-func (m *MockHostStore) Update(arg0 context.Context, arg1 v1.Host) error {
+func (m *MockHostStore) Update(ctx context.Context, host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", ctx, host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockHostStoreMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostStoreMockRecorder) Update(ctx, host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockHostStore)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockHostStore)(nil).Update), ctx, host)
 }
 
 // MockWebServerLogWatcherStore is a mock of WebServerLogWatcherStore interface.
 type MockWebServerLogWatcherStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerLogWatcherStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerLogWatcherStoreMockRecorder is the mock recorder for MockWebServerLogWatcherStore.
@@ -445,9 +451,9 @@ func (m *MockWebServerLogWatcherStore) EXPECT() *MockWebServerLogWatcherStoreMoc
 }
 
 // Watch mocks base method.
-func (m *MockWebServerLogWatcherStore) Watch(arg0 context.Context, arg1 v11.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
+func (m *MockWebServerLogWatcherStore) Watch(ctx context.Context, opts v10.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0, arg1)
+	ret := m.ctrl.Call(m, "Watch", ctx, opts)
 	ret0, _ := ret[0].(<-chan []byte)
 	ret1, _ := ret[1].(context.CancelFunc)
 	ret2, _ := ret[2].(error)
@@ -455,15 +461,16 @@ func (m *MockWebServerLogWatcherStore) Watch(arg0 context.Context, arg1 v11.WebS
 }
 
 // Watch indicates an expected call of Watch.
-func (mr *MockWebServerLogWatcherStoreMockRecorder) Watch(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebServerLogWatcherStoreMockRecorder) Watch(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockWebServerLogWatcherStore)(nil).Watch), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockWebServerLogWatcherStore)(nil).Watch), ctx, opts)
 }
 
 // MockWebServerStatisticsStore is a mock of WebServerStatisticsStore interface.
 type MockWebServerStatisticsStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerStatisticsStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerStatisticsStoreMockRecorder is the mock recorder for MockWebServerStatisticsStore.
@@ -483,25 +490,41 @@ func (m *MockWebServerStatisticsStore) EXPECT() *MockWebServerStatisticsStoreMoc
 	return m.recorder
 }
 
-// GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsStore) GetProxyServiceInfo(arg0 context.Context, arg1 v11.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+// ConnectivityCheckOfProxyService mocks base method.
+func (m *MockWebServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, proxyPassPos v10.ConfigContextPos) (v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProxyServiceInfo", arg0, arg1)
+	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService", ctx, opts, ofp, proxyPassPos)
+	ret0, _ := ret[0].(v1.ProxyServiceInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConnectivityCheckOfProxyService indicates an expected call of ConnectivityCheckOfProxyService.
+func (mr *MockWebServerStatisticsStoreMockRecorder) ConnectivityCheckOfProxyService(ctx, opts, ofp, proxyPassPos any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnectivityCheckOfProxyService", reflect.TypeOf((*MockWebServerStatisticsStore)(nil).ConnectivityCheckOfProxyService), ctx, opts, ofp, proxyPassPos)
+}
+
+// GetProxyServiceInfo mocks base method.
+func (m *MockWebServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts v10.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProxyServiceInfo", ctx, opts)
 	ret0, _ := ret[0].([]v1.ProxyServiceInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetProxyServiceInfo indicates an expected call of GetProxyServiceInfo.
-func (mr *MockWebServerStatisticsStoreMockRecorder) GetProxyServiceInfo(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebServerStatisticsStoreMockRecorder) GetProxyServiceInfo(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyServiceInfo", reflect.TypeOf((*MockWebServerStatisticsStore)(nil).GetProxyServiceInfo), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyServiceInfo", reflect.TypeOf((*MockWebServerStatisticsStore)(nil).GetProxyServiceInfo), ctx, opts)
 }
 
 // MockWebServerBinCMDStore is a mock of WebServerBinCMDStore interface.
 type MockWebServerBinCMDStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerBinCMDStoreMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerBinCMDStoreMockRecorder is the mock recorder for MockWebServerBinCMDStore.
@@ -522,21 +545,21 @@ func (m *MockWebServerBinCMDStore) EXPECT() *MockWebServerBinCMDStoreMockRecorde
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDStore) Exec(arg0 context.Context, arg1 v11.WebServerOptions, arg2 ...string) (v11.WebServerBinCMDExecResponse, error) {
+func (m *MockWebServerBinCMDStore) Exec(ctx context.Context, opts v10.WebServerOptions, arg ...string) (v10.WebServerBinCMDExecResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, opts}
+	for _, a := range arg {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Exec", varargs...)
-	ret0, _ := ret[0].(v11.WebServerBinCMDExecResponse)
+	ret0, _ := ret[0].(v10.WebServerBinCMDExecResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Exec indicates an expected call of Exec.
-func (mr *MockWebServerBinCMDStoreMockRecorder) Exec(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockWebServerBinCMDStoreMockRecorder) Exec(ctx, opts any, arg ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, opts}, arg...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockWebServerBinCMDStore)(nil).Exec), varargs...)
 }

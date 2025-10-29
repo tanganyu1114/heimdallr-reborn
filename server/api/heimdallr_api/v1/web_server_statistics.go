@@ -1,36 +1,22 @@
 package v1
 
-//type LocationProxyInfo struct {
-//	Location     string   `json:"location"`
-//	ProxyAddress []string `json:"proxy-address"`
-//}
-//
-//type HttpSrvProxyBrief struct {
-//	ServerName string              `json:"server-name"`
-//	Port       int                 `json:"port"`
-//	ProxyInfos []LocationProxyInfo `json:"proxy-infos"`
-//}
-//
-//type FourthLevelProxyInfo struct {
-//	ProxyAddress []string `json:"proxy-address"`
-//}
-//
-//type StreamSrvProxyBrief struct {
-//	Port                 int `json:"port"`
-//	FourthLevelProxyInfo `json:",inline"`
-//}
-//
-//type ProxyServiceInfoStatistics struct {
-//	//bifrostapiv1.Statistics `json:",inline"`
-//	HttpSrvsProxyBrief   []HttpSrvProxyBrief   `json:"http-srvs-proxy-brief"`
-//	StreamSrvsProxyBrief []StreamSrvProxyBrief `json:"stream-srvs-proxy-brief"`
-//}
+import (
+	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
+)
 
 type ProxyServiceInfo struct {
-	ProxyType           string `json:"proxy-type"`
-	ServerName          string `json:"server-name"`
-	Port                int    `json:"port"`
-	Location            string `json:"location"`
-	ProxyAddress        string `json:"proxy-address"`
-	ProxyServiceComment string `json:"proxy-service-comment"`
+	ServerName          string                 `json:"server-name"`
+	ServerPort          int                    `json:"server-port"`
+	Location            string                 `json:"location"`
+	IfCondition         string                 `json:"if-condition"`
+	ProxyOriginalURL    string                 `json:"proxy-original-url"`
+	ProxyURI            string                 `json:"proxy-uri"`
+	ProxyProtocol       string                 `json:"proxy-protocol"`
+	ProxyAddress        []local.ProxiedAddress `json:"proxy-address"`
+	ProxyServiceComment string                 `json:"proxy-service-comment"`
+	TmpComments         []string               `json:"-"`
+
+	ContextPos metav1.ConfigContextPos `json:"context-pos"`
 }

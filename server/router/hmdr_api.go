@@ -13,8 +13,9 @@ import (
 	bifrostsstore "gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	cachestore "gin-vue-admin/internal/hmdr_api/store/v1/cache"
 	"gin-vue-admin/middleware"
-	"github.com/gin-gonic/gin"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitPublicHeimdallrApi(rg *gin.RouterGroup) {
@@ -96,6 +97,7 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 	{
 		webSrvStatisticsController := web_server_statistics.NewController(svcIns)
 
-		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo) // 获取代理配置信息
+		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo)                     // 获取代理配置信息
+		webSrvStatisticsRoutes.POST("conn-check-of-proxy-svc", webSrvStatisticsController.ConnectivityCheckOfProxyService) // 代理服务网络连通性检查
 	}
 }

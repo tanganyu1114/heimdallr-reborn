@@ -5,11 +5,12 @@ import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/global"
 	"gin-vue-admin/pkg/sort_map"
+	"sync"
+
 	bifrost "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"sync"
 )
 
 type Bifrost struct {
@@ -42,7 +43,7 @@ func NewBifrosts() sort_map.SortMap {
 	}
 }
 
-func (bs Bifrosts) checkValueType(v interface{}) (*Bifrost, error) {
+func (bs *Bifrosts) checkValueType(v interface{}) (*Bifrost, error) {
 	value, ok := v.(*Bifrost)
 	if !ok {
 		return nil, errors.Errorf("value type(%T) is not *Bifrost", v)
@@ -67,7 +68,7 @@ func (bs *Bifrosts) Insert(keyer sort_map.Keyer, v interface{}) error {
 	return nil
 }
 
-func (bs Bifrosts) GetByKey(key interface{}) (v interface{}, ok bool) {
+func (bs *Bifrosts) GetByKey(key interface{}) (v interface{}, ok bool) {
 	bs.mu.RLock()
 	defer bs.mu.RUnlock()
 

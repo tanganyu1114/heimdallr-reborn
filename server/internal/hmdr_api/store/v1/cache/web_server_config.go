@@ -6,6 +6,7 @@ import (
 	"gin-vue-admin/global"
 	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
@@ -26,22 +27,6 @@ func (w *webServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebSer
 	return w.cacheStore.GetConfig(ctx, opts)
 }
 
-func (w *webServerConfigStore) parseContext(nginxconfig configuration.NginxConfig, configPath string, ctxPosPath []int) (nginx_context.Context, error) {
-	posConfigPath, err := nginx_context.NewRelConfigPath(nginxconfig.Main().MainConfig().BaseDir(), configPath)
-	if err != nil {
-		return nginx_context.NullContext(), errors.Errorf("failed to parse the nginx config path(%s), cased by: %s", configPath, err)
-	}
-	target := nginx_context.NullContext()
-	target, err = nginxconfig.Main().GetConfig(posConfigPath.FullPath())
-	if err != nil {
-		return nginx_context.NullContext(), err
-	}
-	for _, idx := range ctxPosPath {
-		target = target.Child(idx)
-	}
-	return target, target.Error()
-}
-
 func (w *webServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
 	config, ofp, err := w.cacheStore.GetConfig(ctx, opts)
 	if err != nil {
@@ -59,7 +44,7 @@ func (w *webServerConfigStore) GetContext(ctx context.Context, opts metav1.WebSe
 	if err != nil {
 		return nginx_context.NullContext(), err
 	}
-	nginxCtx, err := w.parseContext(config, pos.Config, pos.ContextPosPath)
+	nginxCtx, err := storev1utils.ParseContext(config, pos.Config, pos.ContextPosPath)
 	if err != nil {
 		return nginxCtx, errors.Errorf("failed to parse the target context: %v", err)
 	}

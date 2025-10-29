@@ -8,4 +8,5 @@ import (
 
 type WebServerStatisticsStore interface {
 	GetProxyServiceInfo(ctx context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error)
+	ConnectivityCheckOfProxyService(ctx context.Context, opts metav1.WebServerOptions, proxyPassPos metav1.ConfigContextPos) (v1.ProxyServiceInfo, error)
 }

@@ -12,7 +12,7 @@ package v1
 import (
 	context "context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	v11 "gin-vue-admin/internal/pkg/meta/v1"
+	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -22,6 +22,7 @@ import (
 type MockFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockFactoryMockRecorder is the mock recorder for MockFactory.
@@ -143,6 +144,7 @@ func (mr *MockFactoryMockRecorder) WebServerStatistics() *gomock.Call {
 type MockAgentInfoSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockAgentInfoSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockAgentInfoSrvMockRecorder is the mock recorder for MockAgentInfoSrv.
@@ -163,24 +165,25 @@ func (m *MockAgentInfoSrv) EXPECT() *MockAgentInfoSrvMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockAgentInfoSrv) Get(arg0 context.Context) ([]v1.GroupInfo, error) {
+func (m *MockAgentInfoSrv) Get(ctx context.Context) ([]v1.GroupInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0)
+	ret := m.ctrl.Call(m, "Get", ctx)
 	ret0, _ := ret[0].([]v1.GroupInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAgentInfoSrvMockRecorder) Get(arg0 any) *gomock.Call {
+func (mr *MockAgentInfoSrvMockRecorder) Get(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAgentInfoSrv)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAgentInfoSrv)(nil).Get), ctx)
 }
 
 // MockGroupSrv is a mock of GroupSrv interface.
 type MockGroupSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockGroupSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockGroupSrvMockRecorder is the mock recorder for MockGroupSrv.
@@ -201,95 +204,96 @@ func (m *MockGroupSrv) EXPECT() *MockGroupSrvMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockGroupSrv) Create(arg0 context.Context, arg1 v1.Group) error {
+func (m *MockGroupSrv) Create(ctx context.Context, group v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockGroupSrvMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) Create(ctx, group any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupSrv)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupSrv)(nil).Create), ctx, group)
 }
 
 // Delete mocks base method.
-func (m *MockGroupSrv) Delete(arg0 context.Context, arg1 uint) error {
+func (m *MockGroupSrv) Delete(ctx context.Context, groupid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, groupid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockGroupSrvMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) Delete(ctx, groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupSrv)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupSrv)(nil).Delete), ctx, groupid)
 }
 
 // DeleteCollections mocks base method.
-func (m *MockGroupSrv) DeleteCollections(arg0 context.Context, arg1 v11.IDsOptions) error {
+func (m *MockGroupSrv) DeleteCollections(ctx context.Context, ids v10.IDsOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCollections", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteCollections", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCollections indicates an expected call of DeleteCollections.
-func (mr *MockGroupSrvMockRecorder) DeleteCollections(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) DeleteCollections(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollections", reflect.TypeOf((*MockGroupSrv)(nil).DeleteCollections), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollections", reflect.TypeOf((*MockGroupSrv)(nil).DeleteCollections), ctx, ids)
 }
 
 // Get mocks base method.
-func (m *MockGroupSrv) Get(arg0 context.Context, arg1 uint) (v1.Group, error) {
+func (m *MockGroupSrv) Get(ctx context.Context, groupid uint) (v1.Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, groupid)
 	ret0, _ := ret[0].(v1.Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGroupSrvMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) Get(ctx, groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupSrv)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupSrv)(nil).Get), ctx, groupid)
 }
 
 // List mocks base method.
-func (m *MockGroupSrv) List(arg0 context.Context, arg1 v11.ListOptions) (v1.GroupList, error) {
+func (m *MockGroupSrv) List(ctx context.Context, opts v10.ListOptions) (v1.GroupList, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.GroupList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockGroupSrvMockRecorder) List(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) List(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGroupSrv)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGroupSrv)(nil).List), ctx, opts)
 }
 
 // Update mocks base method.
-func (m *MockGroupSrv) Update(arg0 context.Context, arg1 v1.Group) error {
+func (m *MockGroupSrv) Update(ctx context.Context, group v1.Group) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", ctx, group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockGroupSrvMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *MockGroupSrvMockRecorder) Update(ctx, group any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockGroupSrv)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockGroupSrv)(nil).Update), ctx, group)
 }
 
 // MockHostSrv is a mock of HostSrv interface.
 type MockHostSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockHostSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockHostSrvMockRecorder is the mock recorder for MockHostSrv.
@@ -310,95 +314,96 @@ func (m *MockHostSrv) EXPECT() *MockHostSrvMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockHostSrv) Create(arg0 context.Context, arg1 v1.Host) error {
+func (m *MockHostSrv) Create(ctx context.Context, host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", ctx, host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockHostSrvMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) Create(ctx, host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockHostSrv)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockHostSrv)(nil).Create), ctx, host)
 }
 
 // Delete mocks base method.
-func (m *MockHostSrv) Delete(arg0 context.Context, arg1 uint) error {
+func (m *MockHostSrv) Delete(ctx context.Context, hostid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, hostid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockHostSrvMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) Delete(ctx, hostid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockHostSrv)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockHostSrv)(nil).Delete), ctx, hostid)
 }
 
 // DeleteCollection mocks base method.
-func (m *MockHostSrv) DeleteCollection(arg0 context.Context, arg1 v11.IDsOptions) error {
+func (m *MockHostSrv) DeleteCollection(ctx context.Context, ids v10.IDsOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCollection", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteCollection", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCollection indicates an expected call of DeleteCollection.
-func (mr *MockHostSrvMockRecorder) DeleteCollection(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) DeleteCollection(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollection", reflect.TypeOf((*MockHostSrv)(nil).DeleteCollection), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollection", reflect.TypeOf((*MockHostSrv)(nil).DeleteCollection), ctx, ids)
 }
 
 // Get mocks base method.
-func (m *MockHostSrv) Get(arg0 context.Context, arg1 uint) (v1.Host, error) {
+func (m *MockHostSrv) Get(ctx context.Context, hostid uint) (v1.Host, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", ctx, hostid)
 	ret0, _ := ret[0].(v1.Host)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockHostSrvMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) Get(ctx, hostid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHostSrv)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHostSrv)(nil).Get), ctx, hostid)
 }
 
 // List mocks base method.
-func (m *MockHostSrv) List(arg0 context.Context, arg1 v11.ListOptions) (v1.HostList, error) {
+func (m *MockHostSrv) List(ctx context.Context, opts v10.ListOptions) (v1.HostList, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.HostList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockHostSrvMockRecorder) List(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) List(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHostSrv)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockHostSrv)(nil).List), ctx, opts)
 }
 
 // Update mocks base method.
-func (m *MockHostSrv) Update(arg0 context.Context, arg1 v1.Host) error {
+func (m *MockHostSrv) Update(ctx context.Context, host v1.Host) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", ctx, host)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockHostSrvMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *MockHostSrvMockRecorder) Update(ctx, host any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockHostSrv)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockHostSrv)(nil).Update), ctx, host)
 }
 
 // MockWebServerLogWatcherSrv is a mock of WebServerLogWatcherSrv interface.
 type MockWebServerLogWatcherSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerLogWatcherSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerLogWatcherSrvMockRecorder is the mock recorder for MockWebServerLogWatcherSrv.
@@ -419,9 +424,9 @@ func (m *MockWebServerLogWatcherSrv) EXPECT() *MockWebServerLogWatcherSrvMockRec
 }
 
 // Watch mocks base method.
-func (m *MockWebServerLogWatcherSrv) Watch(arg0 context.Context, arg1 v11.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
+func (m *MockWebServerLogWatcherSrv) Watch(ctx context.Context, opts v10.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0, arg1)
+	ret := m.ctrl.Call(m, "Watch", ctx, opts)
 	ret0, _ := ret[0].(<-chan []byte)
 	ret1, _ := ret[1].(context.CancelFunc)
 	ret2, _ := ret[2].(error)
@@ -429,15 +434,16 @@ func (m *MockWebServerLogWatcherSrv) Watch(arg0 context.Context, arg1 v11.WebSer
 }
 
 // Watch indicates an expected call of Watch.
-func (mr *MockWebServerLogWatcherSrvMockRecorder) Watch(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebServerLogWatcherSrvMockRecorder) Watch(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockWebServerLogWatcherSrv)(nil).Watch), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockWebServerLogWatcherSrv)(nil).Watch), ctx, opts)
 }
 
 // MockWebServerStatisticsSrv is a mock of WebServerStatisticsSrv interface.
 type MockWebServerStatisticsSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerStatisticsSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerStatisticsSrvMockRecorder is the mock recorder for MockWebServerStatisticsSrv.
@@ -457,25 +463,41 @@ func (m *MockWebServerStatisticsSrv) EXPECT() *MockWebServerStatisticsSrvMockRec
 	return m.recorder
 }
 
-// GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsSrv) GetProxyServiceInfo(arg0 context.Context, arg1 v11.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+// ConnectivityCheckOfProxyService mocks base method.
+func (m *MockWebServerStatisticsSrv) ConnectivityCheckOfProxyService(ctx context.Context, opts v10.WebServerOptions, proxyPassPos v10.ConfigContextPos) (v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProxyServiceInfo", arg0, arg1)
+	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService", ctx, opts, proxyPassPos)
+	ret0, _ := ret[0].(v1.ProxyServiceInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConnectivityCheckOfProxyService indicates an expected call of ConnectivityCheckOfProxyService.
+func (mr *MockWebServerStatisticsSrvMockRecorder) ConnectivityCheckOfProxyService(ctx, opts, proxyPassPos any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnectivityCheckOfProxyService", reflect.TypeOf((*MockWebServerStatisticsSrv)(nil).ConnectivityCheckOfProxyService), ctx, opts, proxyPassPos)
+}
+
+// GetProxyServiceInfo mocks base method.
+func (m *MockWebServerStatisticsSrv) GetProxyServiceInfo(ctx context.Context, opts v10.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProxyServiceInfo", ctx, opts)
 	ret0, _ := ret[0].([]v1.ProxyServiceInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetProxyServiceInfo indicates an expected call of GetProxyServiceInfo.
-func (mr *MockWebServerStatisticsSrvMockRecorder) GetProxyServiceInfo(arg0, arg1 any) *gomock.Call {
+func (mr *MockWebServerStatisticsSrvMockRecorder) GetProxyServiceInfo(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyServiceInfo", reflect.TypeOf((*MockWebServerStatisticsSrv)(nil).GetProxyServiceInfo), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyServiceInfo", reflect.TypeOf((*MockWebServerStatisticsSrv)(nil).GetProxyServiceInfo), ctx, opts)
 }
 
 // MockWebServerBinCMDSrv is a mock of WebServerBinCMDSrv interface.
 type MockWebServerBinCMDSrv struct {
 	ctrl     *gomock.Controller
 	recorder *MockWebServerBinCMDSrvMockRecorder
+	isgomock struct{}
 }
 
 // MockWebServerBinCMDSrvMockRecorder is the mock recorder for MockWebServerBinCMDSrv.
@@ -496,21 +518,21 @@ func (m *MockWebServerBinCMDSrv) EXPECT() *MockWebServerBinCMDSrvMockRecorder {
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDSrv) Exec(arg0 context.Context, arg1 v11.WebServerOptions, arg2 ...string) (v11.WebServerBinCMDExecResponse, error) {
+func (m *MockWebServerBinCMDSrv) Exec(ctx context.Context, opts v10.WebServerOptions, arg ...string) (v10.WebServerBinCMDExecResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, opts}
+	for _, a := range arg {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Exec", varargs...)
-	ret0, _ := ret[0].(v11.WebServerBinCMDExecResponse)
+	ret0, _ := ret[0].(v10.WebServerBinCMDExecResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Exec indicates an expected call of Exec.
-func (mr *MockWebServerBinCMDSrvMockRecorder) Exec(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockWebServerBinCMDSrvMockRecorder) Exec(ctx, opts any, arg ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, opts}, arg...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockWebServerBinCMDSrv)(nil).Exec), varargs...)
 }

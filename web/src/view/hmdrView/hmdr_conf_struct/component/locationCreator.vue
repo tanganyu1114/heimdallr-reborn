@@ -45,8 +45,8 @@ export class NewLocationGenerator extends NewContextGenerator {
         }
         formatData['children-context-meta'].push({
           'enabled': true,
-          'context-type': 'directive',
-          'context-value': 'proxy_pass ' + data.proxyURL
+          'context-type': 'http_dir_proxy_pass',
+          'context-value': data.proxyURL
         })
         break
       }

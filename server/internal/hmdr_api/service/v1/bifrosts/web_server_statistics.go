@@ -18,6 +18,10 @@ func (w *webServerStatisticsService) GetProxyServiceInfo(ctx context.Context, op
 	return w.store.WebServerStatistics().GetProxyServiceInfo(ctx, opts)
 }
 
+func (w *webServerStatisticsService) ConnectivityCheckOfProxyService(ctx context.Context, opts metav1.WebServerOptions, proxyPassPos metav1.ConfigContextPos) (v1.ProxyServiceInfo, error) {
+	return w.store.WebServerStatistics().ConnectivityCheckOfProxyService(ctx, opts, proxyPassPos)
+}
+
 func newWebServerStatistics(svc *service) svcv1.WebServerStatisticsSrv {
 	return &webServerStatisticsService{
 		store: svc.store,

@@ -33,6 +33,7 @@ export class _ContextCreator {
         id: 'new-' + this.contextName(),
         label: this.contextName(),
         ctxType: this.contextName(),
+        className: this.className(),
         dragType: 'create',
         isLeaf: false
       }

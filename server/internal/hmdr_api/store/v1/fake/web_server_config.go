@@ -6,6 +6,7 @@ import (
 	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
@@ -125,40 +126,6 @@ func (f WebServerConfigStore) ModifyWithNew(ctx context.Context, opts metav1.Web
 	return nil
 }
 
-func (f WebServerConfigStore) parseContext(nginxconfig configuration.NginxConfig, configPath string, ctxPosPath []int) (nginx_context.Context, error) {
-	posConfigPath, err := nginx_context.NewRelConfigPath(nginxconfig.Main().MainConfig().BaseDir(), configPath)
-	if err != nil {
-		return nginx_context.NullContext(), errors.Errorf("failed to parse the nginx config path(%s), cased by: %s", configPath, err)
-	}
-	target := nginx_context.NullContext()
-	target, err = nginxconfig.Main().GetConfig(posConfigPath.FullPath())
-	if err != nil {
-		return nginx_context.NullContext(), err
-	}
-	for _, idx := range ctxPosPath {
-		target = target.Child(idx)
-	}
-	return target, target.Error()
-}
-
-func (f WebServerConfigStore) parseContextPos(nginxconfig configuration.NginxConfig, pos metav1.ConfigContextPos) (nginx_context.Pos, error) {
-	if len(pos.ContextPosPath) == 0 {
-		return nginx_context.NullPos(), errors.New("nginx config context pos path is null")
-	}
-
-	nextFather := nginx_context.NullContext()
-	nextFather, err := nginxconfig.Main().GetConfig(pos.Config)
-	if err != nil {
-		return nginx_context.NullPos(), err
-	}
-	targetIdx := pos.ContextPosPath[len(pos.ContextPosPath)-1]
-	posPath := pos.ContextPosPath[:len(pos.ContextPosPath)-1]
-	for _, idx := range posPath {
-		nextFather = nextFather.Child(idx)
-	}
-	return nginx_context.SetPos(nextFather, targetIdx), nil
-}
-
 func (f WebServerConfigStore) updateConfig(opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, operfn func(conf configuration.NginxConfig) (configuration.NginxConfig, error)) error {
 	nginxConfig, ofp, err := new(fake.ServiceClient).WebServerConfig().Get(opts.ServerName)
 	if err != nil {
@@ -177,7 +144,7 @@ func (f WebServerConfigStore) updateConfig(opts metav1.WebServerOptions, fp util
 
 func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
-		target, err := f.parseContext(conf, ctxmeta.Position.Config, ctxmeta.Position.ContextPosPath)
+		target, err := storev1utils.ParseContext(conf, ctxmeta.Position.Config, ctxmeta.Position.ContextPosPath)
 		if err != nil {
 			return conf, errors.Errorf("failed to parse the target position: %v", err)
 		}
@@ -193,7 +160,7 @@ func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opt
 
 func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
-		targetPos, err := f.parseContextPos(conf, ctxmeta.Position)
+		targetPos, err := storev1utils.ParseContextPos(conf, ctxmeta.Position)
 		if err != nil {
 			return conf, errors.Errorf("failed to parse target position: %v", err)
 		}
@@ -210,12 +177,12 @@ func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav
 
 func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
-		targetPos, err := f.parseContextPos(conf, ctxmeta.Position)
+		targetPos, err := storev1utils.ParseContextPosModifyTO(conf, ctxmeta.Position)
 		if err != nil {
 			return conf, errors.Errorf("failed to parse target position: %v", err)
 		}
 		targetFather, targetIdx := targetPos.Position()
-		toBeMovedPos, err := f.parseContextPos(conf, ctxmeta.TargetContext.ConfigContextPos)
+		toBeMovedPos, err := storev1utils.ParseContextPos(conf, ctxmeta.TargetContext.ConfigContextPos)
 		if err != nil {
 			return conf, errors.Errorf("failed to parse context posision to be moved: %v", err)
 		}

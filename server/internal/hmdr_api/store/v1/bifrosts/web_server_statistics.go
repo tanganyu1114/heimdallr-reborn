@@ -3,37 +3,389 @@ package bifrosts
 import (
 	"context"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
+	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
 	"gin-vue-admin/internal/pkg/bifrosts"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	"strings"
+	"sync"
+
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
 	"github.com/marmotedu/errors"
-	"go.uber.org/zap"
-	"regexp"
-	"strings"
-	"sync"
 )
 
 var (
 	wssOnce           = new(sync.Once)
 	singletonWSSStore *webServerStatisticsStore
-
-	regexpProxyPassValue = regexp.MustCompile(`^proxy_pass\s+(.+)$`)
-	regexpHttpURL        = regexp.MustCompile(`^http://([^/]+)(/\S*)?$`)
-	regexpHttpsURL       = regexp.MustCompile(`^https://([^/]+)(/\S*)?$`)
-	regexpOtherURL       = regexp.MustCompile(`^(?:[^/:]+?://)?([^/\s]+)(/\S*)?$`)
-	regexpAddrWithPort   = regexp.MustCompile(`^(\S+):(\d+)`)
-	regexpIPAddr         = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
-
-	regexpUpstreamSrvDirective = regexp.MustCompile(`^server\s+(\S+)`)
 )
+
+type proxyServiceInfoHandlerPipe struct {
+	handlerPipe func(target nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error)
+	nextPipe    v1.HandlerPipe[v1.ProxyServiceInfo, []v1.ProxyServiceInfo]
+}
+
+func (p *proxyServiceInfoHandlerPipe) Handle(target nginx_context.Context, in v1.ProxyServiceInfo) (out []v1.ProxyServiceInfo, err error) {
+	next, tmpOut, err := p.PosMapHandle(target, in)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.nextPipe == nil {
+		return tmpOut, nil
+	}
+
+	setIdx := 0
+	return out, next.Map(func(pos nginx_context.Pos) (nginx_context.Pos, error) {
+		o, err := p.nextPipe.Handle(pos.Target(), tmpOut[setIdx])
+		if err != nil {
+			return pos, err
+		}
+		out = append(out, o...)
+		setIdx++
+		return pos, nil
+	}).Error()
+}
+
+func (p *proxyServiceInfoHandlerPipe) PosMapHandle(target nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+	return p.handlerPipe(target, in)
+}
+
+type proxyServiceInfoHandlerMultiPipe struct {
+	handlerPipe func(target nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error)
+	selectPipe  func(target nginx_context.Context) string
+	nextPipes   map[string]v1.HandlerPipe[v1.ProxyServiceInfo, []v1.ProxyServiceInfo]
+}
+
+func (p *proxyServiceInfoHandlerMultiPipe) Handle(target nginx_context.Context, in v1.ProxyServiceInfo) (out []v1.ProxyServiceInfo, err error) {
+	next, tmpOut, err := p.PosMapHandle(target, in)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(p.nextPipes) == 0 {
+		return tmpOut, nil
+	}
+
+	setIdx := 0
+	return out, next.Map(func(pos nginx_context.Pos) (nginx_context.Pos, error) {
+		nextPipe, has := p.nextPipes[p.selectPipe(pos.Target())]
+		if !has {
+			return pos, errors.Errorf("cannot find next pipe for %s", p.selectPipe(pos.Target()))
+		}
+		o, err := nextPipe.Handle(pos.Target(), tmpOut[setIdx])
+		if err != nil {
+			return pos, err
+		}
+		out = append(out, o...)
+		setIdx++
+		return pos, nil
+	}).Error()
+}
+
+func (p *proxyServiceInfoHandlerMultiPipe) PosMapHandle(target nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+	return p.handlerPipe(target, in)
+}
+
+func newProxyServiceInfoHandlerSinglePipeline(singlePipes ...*proxyServiceInfoHandlerPipe) *proxyServiceInfoHandlerPipe {
+	pipe := new(proxyServiceInfoHandlerPipe)
+	next := pipe
+	for i, singlePipe := range singlePipes {
+		next.handlerPipe = singlePipe.handlerPipe
+		if i == len(singlePipes)-1 {
+			break
+		}
+		next.nextPipe = singlePipes[i+1]
+
+		next = singlePipes[i+1]
+	}
+
+	return pipe
+}
+
+func httpAndStreamProxyBriefHandlerPipe() *proxyServiceInfoHandlerMultiPipe {
+	return &proxyServiceInfoHandlerMultiPipe{
+		handlerPipe: func(config nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = config.ChildrenPosSet().QueryAll(nginx_context.NewKeyWords(func(targetCtx nginx_context.Context) bool {
+				return targetCtx.Type() == context_type.TypeHttp || targetCtx.Type() == context_type.TypeStream
+			})).Map(func(pos nginx_context.Pos) (nginx_context.Pos, error) {
+				out = append(out, v1.ProxyServiceInfo{})
+				return pos, nil
+			})
+			err = next.Error()
+
+			return
+		},
+		selectPipe: func(target nginx_context.Context) string {
+			switch target.Type() {
+			case context_type.TypeHttp:
+				return "http"
+			case context_type.TypeStream:
+				return "stream"
+			default:
+				return "unknown"
+			}
+		},
+		nextPipes: map[string]v1.HandlerPipe[v1.ProxyServiceInfo, []v1.ProxyServiceInfo]{
+			"http": newProxyServiceInfoHandlerSinglePipeline(
+				httpServerProxyBriefHandlerPipe(),
+				httpLocProxyBriefHandlerPipe(),
+				httpIfProxyBriefHandlerPipe(),
+				httpPPProxyBriefHandlerPipe(),
+			),
+			"stream": newProxyServiceInfoHandlerSinglePipeline(
+				streamServerProxyBriefHandlerPipe(),
+				streamPPProxyBriefHandlerPipe(),
+			),
+		},
+	}
+}
+
+func httpServerProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(httpCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = httpCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeServer).SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+				Map(
+					func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
+						proxySvcInfo := in
+						srvComment := getCommentInfo(srvPos)
+						if snPos := srvPos.QueryOne(nginx_context.NewKeyWordsByType(context_type.TypeDirective).
+							SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
+							SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)); snPos.Target().Error() == nil {
+							proxySvcInfo.ServerName = snPos.Target().(*local.Directive).Params
+						} else {
+							return srvPos, snPos.Target().Error()
+						}
+
+						// get listening port
+						proxySvcInfo.ServerPort = configuration.Port(srvPos.Target())
+						if len(srvComment) > 0 {
+							proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, srvComment)
+						}
+
+						out = append(out, proxySvcInfo)
+
+						return srvPos, nil
+					},
+				)
+			err = next.Error()
+			return
+		},
+	}
+}
+
+func httpLocProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(srvCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = srvCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeLocation).SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+				Map(
+					func(locPos nginx_context.Pos) (nginx_context.Pos, error) {
+						proxySvcInfo := in
+						locComment := getCommentInfo(locPos)
+
+						proxySvcInfo.Location = locPos.Target().Value()
+
+						if len(locComment) > 0 {
+							proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, locComment)
+						}
+
+						out = append(out, proxySvcInfo)
+
+						return locPos, nil
+					},
+				)
+			err = next.Error()
+			return
+		},
+	}
+}
+
+func httpIfProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(locCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			out = append(out, in) // append the info of the locPos
+			next = nginx_context.NewPosSet().Append(nginx_context.GetPos(locCtx)).
+				AppendWithPosSet(locCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeIf).SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+					Map(
+						func(ifPos nginx_context.Pos) (nginx_context.Pos, error) {
+							proxySvcInfo := in
+							ifComment := getCommentInfo(ifPos)
+
+							proxySvcInfo.IfCondition = ifPos.Target().Value()
+
+							if len(ifComment) > 0 {
+								proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, ifComment)
+							}
+
+							out = append(out, proxySvcInfo)
+
+							return ifPos, nil
+						},
+					))
+			err = next.Error()
+			return
+		},
+	}
+}
+
+func httpPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(ppFatherCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = ppFatherCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeDirHTTPProxyPass).
+				SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
+				SetSkipQueryFilter( // filter out redundant search position
+					func(targetCtx nginx_context.Context) bool {
+						return ppFatherCtx.Type() == context_type.TypeLocation && targetCtx.Type() == context_type.TypeIf
+					},
+				),
+			).
+				Map(
+					func(ppPos nginx_context.Pos) (nginx_context.Pos, error) {
+						proxySvcInfo := in
+						proxyPass := ppPos.Target().(*local.HTTPProxyPass)
+						ctxPos, err := local.PosBasedOnConfig(proxyPass)
+						if err != nil {
+							return ppPos, err
+						}
+						proxySvcInfo.ContextPos = storev1utils.ConvertToConfigContextPos(ctxPos)
+						ppComment := getCommentInfo(ppPos)
+						if len(ppComment) > 0 {
+							proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, ppComment)
+						}
+						proxySvcInfo.ProxyOriginalURL = proxyPass.OriginalURL
+						proxySvcInfo.ProxyURI = proxyPass.URI
+						proxySvcInfo.ProxyProtocol = strings.ToUpper(proxyPass.Protocol)
+						proxySvcInfo.ProxyAddress = proxyPass.Addresses
+						proxySvcInfo.ProxyServiceComment = strings.Join(proxySvcInfo.TmpComments, "\t|\t")
+
+						out = append(out, proxySvcInfo)
+
+						return ppPos, nil
+					},
+				)
+			err = next.Error()
+			return
+		},
+	}
+}
+
+func streamServerProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(streamCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = streamCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeServer).SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+				Map(
+					func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
+						proxySvcInfo := in
+						srvComment := getCommentInfo(srvPos)
+
+						// get listening port
+						proxySvcInfo.ServerPort = configuration.Port(srvPos.Target())
+						if len(srvComment) > 0 {
+							proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, srvComment)
+						}
+
+						out = append(out, proxySvcInfo)
+
+						return srvPos, nil
+					},
+				)
+			err = next.Error()
+			return
+		},
+	}
+}
+
+func streamPPProxyBriefHandlerPipe() *proxyServiceInfoHandlerPipe {
+	return &proxyServiceInfoHandlerPipe{
+		handlerPipe: func(ppFatherCtx nginx_context.Context, in v1.ProxyServiceInfo) (next nginx_context.PosSet, out []v1.ProxyServiceInfo, err error) {
+			next = ppFatherCtx.ChildrenPosSet().QueryAll(nginx_context.NewKeyWordsByType(context_type.TypeDirStreamProxyPass).SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
+				Map(
+					func(ppPos nginx_context.Pos) (nginx_context.Pos, error) {
+						proxySvcInfo := in
+						proxyPass := ppPos.Target().(*local.StreamProxyPass)
+						ctxPos, err := local.PosBasedOnConfig(proxyPass)
+						if err != nil {
+							return ppPos, err
+						}
+						proxySvcInfo.ContextPos = storev1utils.ConvertToConfigContextPos(ctxPos)
+						ppComment := getCommentInfo(ppPos)
+						if len(ppComment) > 0 {
+							proxySvcInfo.TmpComments = append(proxySvcInfo.TmpComments, ppComment)
+						}
+						proxySvcInfo.ProxyOriginalURL = proxyPass.OriginalAddress
+						proxySvcInfo.ProxyProtocol = "TCP/UDP"
+						proxySvcInfo.ProxyAddress = proxyPass.Addresses
+						proxySvcInfo.ProxyServiceComment = strings.Join(proxySvcInfo.TmpComments, "\t|\t")
+
+						out = append(out, proxySvcInfo)
+
+						return ppPos, nil
+					},
+				)
+			err = next.Error()
+			return
+		},
+	}
+}
 
 type webServerStatisticsStore struct {
 	bm bifrosts.Manager
+}
+
+func (w *webServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts metav1.WebServerOptions, proxyPassPos metav1.ConfigContextPos) (info v1.ProxyServiceInfo, err error) {
+	bc, err := w.bm.GetBifrostClient(opts)
+	if err != nil {
+		return
+	}
+	conf, ofp, err := bc.WebServerConfig().Get(opts.ServerName)
+	if err != nil {
+		return
+	}
+	proxyPassCtx, err := storev1utils.ParseContext(conf, proxyPassPos.Config, proxyPassPos.ContextPosPath)
+	if err != nil {
+		return
+	}
+
+	proxyPass, ok := proxyPassCtx.(local.ProxyPass)
+	if !ok {
+		err = errors.Errorf("invalid proxy pass context type: %s, context: %v", proxyPassCtx.Type(), proxyPassCtx)
+		return
+	}
+
+	resp, err := bc.WebServerConfig().ConnectivityCheckOfProxiedServers(opts.ServerName, proxyPass, ofp.Fingerprints())
+	if err != nil {
+		return
+	}
+
+	switch resp.Type() {
+	case context_type.TypeDirHTTPProxyPass:
+		httpProxyPass, ok := resp.(*local.HTTPProxyPass)
+		if !ok {
+			err = errors.Errorf("invalid http proxy pass response: %v", resp)
+			return
+		}
+		info.ProxyOriginalURL = httpProxyPass.OriginalURL
+		info.ProxyURI = httpProxyPass.URI
+		info.ProxyProtocol = strings.ToUpper(httpProxyPass.Protocol)
+		info.ProxyAddress = httpProxyPass.Addresses
+	case context_type.TypeDirStreamProxyPass:
+		streamProxyPass, ok := resp.(*local.StreamProxyPass)
+		if !ok {
+			err = errors.Errorf("invalid stream proxy pass response: %v", resp)
+			return
+		}
+		info.ProxyOriginalURL = streamProxyPass.OriginalAddress
+		info.ProxyProtocol = "TCP/UDP"
+		info.ProxyAddress = streamProxyPass.Addresses
+	default:
+		err = errors.Errorf("invalid proxy pass response: %v", resp)
+	}
+
+	info.ContextPos = proxyPassPos
+
+	return
 }
 
 func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
@@ -46,22 +398,14 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 		return nil, err
 	}
 
-	var proxySvcInfos = make([]v1.ProxyServiceInfo, 0)
-	// Get Http Server Proxy Brief
-	httpSrvsProxyBrief, err := getHttpSrvsProxyBrief(conf)
-	if err != nil && !errors.Is(err, nginx_context.NotFoundPos().Target().Error().(errors.Aggregate).Errors()[0]) {
-		return proxySvcInfos, err
-	}
-	// Get Stream Server Proxy Brief
-	streamSrvsProxyBrief, err := getStreamSrvsProxyBrief(conf)
-	if err != nil && !errors.Is(err, nginx_context.NotFoundPos().Target().Error().(errors.Aggregate).Errors()[0]) {
-		return proxySvcInfos, err
+	//var proxySvcInfos = make([]v1.ProxyServiceInfo, 0)
+	pipeline := httpAndStreamProxyBriefHandlerPipe()
+	infos, err := pipeline.Handle(conf.Main(), v1.ProxyServiceInfo{})
+	if err != nil {
+		return nil, err
 	}
 
-	proxySvcInfos = append(proxySvcInfos, httpSrvsProxyBrief...)
-	proxySvcInfos = append(proxySvcInfos, streamSrvsProxyBrief...)
-
-	return proxySvcInfos, nil
+	return infos, nil
 }
 
 func getCommentInfo(pos nginx_context.Pos) string {
@@ -79,265 +423,6 @@ func getCommentInfo(pos nginx_context.Pos) string {
 		}
 	}
 	return ""
-}
-
-func getStreamSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
-	var streamSrvsProxyBrief []v1.ProxyServiceInfo
-	streamPos := conf.Main().ChildrenPosSet().
-		QueryOne(nginx_context.NewKeyWords(context_type.TypeStream).
-			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc))
-	proxyPassKW := nginx_context.NewKeyWords(context_type.TypeDirective).
-		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
-		SetRegexpMatchingValue(`^proxy_pass\s+`)
-	return streamSrvsProxyBrief, streamPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeServer).
-		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
-		Filter( // filter out the proxy server
-			func(srvPos nginx_context.Pos) bool { return srvPos.QueryOne(proxyPassKW).Target().Error() == nil },
-		).
-		Map(
-			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
-				srvComment := getCommentInfo(srvPos)
-				// get listening port
-				port := configuration.Port(srvPos.Target())
-				return srvPos, srvPos.QueryAll(proxyPassKW).
-					Filter( // filter out the normal "proxy_pass" directive
-						func(directivePos nginx_context.Pos) bool {
-							if directivePos.Target().Error() != nil {
-								global.GVA_LOG.Warn(
-									"检索proxy_pass配置项异常",
-									zap.Any("err", directivePos.Target().Error()),
-								)
-								return false
-							}
-							return true
-						},
-					).
-					Map(
-						func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
-							proxyAddrs := getProxyAddresses(streamPos.Target(), directivePos.Target())
-							if len(proxyAddrs) == 0 {
-								global.GVA_LOG.Warn(
-									"获取Stream Server反向代理配置异常",
-									zap.Any("listen_port", port),
-									zap.Any("proxy_pass_value", directivePos.Target().Value()),
-								)
-								return directivePos, nil
-							}
-							proxyComment := getCommentInfo(directivePos)
-							cmts := make([]string, 0)
-							if len(srvComment) > 0 {
-								cmts = append(cmts, srvComment)
-							}
-							if len(proxyComment) > 0 {
-								cmts = append(cmts, proxyComment)
-							}
-							for _, proxyAddr := range proxyAddrs {
-								streamSrvsProxyBrief = append(streamSrvsProxyBrief, v1.ProxyServiceInfo{
-									ProxyType:           "TCP/UDP",
-									Port:                port,
-									ProxyAddress:        proxyAddr,
-									ProxyServiceComment: strings.Join(cmts, "\t|\t"),
-								})
-							}
-							return directivePos, nil
-						},
-					).
-					Error()
-			},
-		).
-		Error()
-}
-
-func getHttpSrvsProxyBrief(conf configuration.NginxConfig) ([]v1.ProxyServiceInfo, error) {
-	var httpSrvsProxyBrief []v1.ProxyServiceInfo
-	httpPos := conf.Main().ChildrenPosSet().
-		QueryOne(nginx_context.NewKeyWords(context_type.TypeHttp).
-			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc))
-	proxyPassKW := nginx_context.NewKeyWords(context_type.TypeDirective).
-		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
-		SetRegexpMatchingValue(`^proxy_pass\s+`)
-	return httpSrvsProxyBrief, httpPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeServer).
-		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
-		Filter( // filter out the proxy server
-			func(srvPos nginx_context.Pos) bool { return srvPos.QueryOne(proxyPassKW).Target().Error() == nil },
-		).
-		Map(
-			func(srvPos nginx_context.Pos) (nginx_context.Pos, error) {
-				// get server name
-				var srvname string
-				srvComment := getCommentInfo(srvPos)
-				if p := srvPos.QueryOne(nginx_context.NewKeyWords(context_type.TypeDirective).
-					SetRegexpMatchingValue(nginx_context.RegexpMatchingServerNameValue).
-					SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)); p.Target().Error() == nil {
-					srvname = p.Target().(*local.Directive).Params
-				}
-
-				// get listening port
-				port := configuration.Port(srvPos.Target())
-
-				return srvPos, srvPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeLocation).
-					SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
-					Filter( // filter out the proxy location
-						func(locPos nginx_context.Pos) bool { return locPos.QueryOne(proxyPassKW).Target().Error() == nil },
-					).
-					Map(
-						func(locPos nginx_context.Pos) (nginx_context.Pos, error) {
-							locComment := getCommentInfo(locPos)
-							return locPos, locPos.QueryAll(proxyPassKW).
-								Filter( // filter out the normal "proxy_pass" directive
-									func(directivePos nginx_context.Pos) bool {
-										if directivePos.Target().Error() != nil {
-											global.GVA_LOG.Warn(
-												"检索proxy_pass配置项异常",
-												zap.Any("err", directivePos.Target().Error()),
-											)
-											return false
-										}
-										return true
-									},
-								).
-								Map(
-									func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
-										proxyAddrs := getProxyAddresses(httpPos.Target(), directivePos.Target())
-										if len(proxyAddrs) == 0 {
-											global.GVA_LOG.Warn(
-												"获取location反向代理配置异常",
-												zap.Any("location", locPos.Target().Value()),
-												zap.Any("proxy_pass_value", directivePos.Target().Value()),
-											)
-											return directivePos, nil
-										}
-										proxyComment := getCommentInfo(directivePos)
-										cmts := make([]string, 0)
-										if len(srvComment) > 0 {
-											cmts = append(cmts, srvComment)
-										}
-										if len(locComment) > 0 {
-											cmts = append(cmts, locComment)
-										}
-										if len(proxyComment) > 0 {
-											cmts = append(cmts, proxyComment)
-										}
-										for _, proxyAddr := range proxyAddrs {
-											httpSrvsProxyBrief = append(httpSrvsProxyBrief, v1.ProxyServiceInfo{
-												ProxyType:           "HTTP",
-												ServerName:          srvname,
-												Port:                port,
-												Location:            locPos.Target().Value(),
-												ProxyAddress:        proxyAddr,
-												ProxyServiceComment: strings.Join(cmts, "\t|\t"),
-											})
-										}
-										return directivePos, nil
-									},
-								).
-								Error()
-						},
-					).
-					Error()
-			},
-		).
-		Error()
-}
-
-func getProxyAddresses(httpOrStream, proxypass nginx_context.Context) []string {
-	var url string
-	if regexpProxyPassValue.MatchString(proxypass.Value()) {
-		url = regexpProxyPassValue.FindStringSubmatch(proxypass.Value())[1]
-	} else {
-		return nil
-	}
-
-	return parseAddresses(httpOrStream, url)
-}
-
-func parseAddresses(httpOrStream nginx_context.Context, url string) []string {
-	switch httpOrStream.Type() {
-	case context_type.TypeHttp, context_type.TypeStream:
-	default:
-		global.GVA_LOG.Warn("解析代理地址异常！入参httpOrStream非http或stream上下文")
-		return nil
-	}
-
-	var host string
-	var port string
-	var defaultProxyPassPort string
-	var address string
-	// get default port, address and upstream name
-	switch {
-	case regexpHttpsURL.MatchString(url):
-		defaultProxyPassPort = "443"
-		address = regexpHttpsURL.FindStringSubmatch(url)[1]
-	case regexpHttpURL.MatchString(url):
-		defaultProxyPassPort = "80"
-		address = regexpHttpURL.FindStringSubmatch(url)[1]
-	case regexpOtherURL.MatchString(url):
-		defaultProxyPassPort = "unknown_port"
-		address = regexpOtherURL.FindStringSubmatch(url)[1]
-	default:
-		return nil
-	}
-	// parse address to host and port
-	if regexpAddrWithPort.MatchString(address) {
-		host = regexpAddrWithPort.FindStringSubmatch(address)[1]
-		port = regexpAddrWithPort.FindStringSubmatch(address)[2]
-	} else {
-		host = address
-	}
-
-	if regexpIPAddr.MatchString(host) {
-		if port == "" {
-			port = defaultProxyPassPort
-		}
-		return []string{host + ":" + port}
-	}
-
-	upstreamPos := httpOrStream.ChildrenPosSet().QueryOne(
-		nginx_context.NewKeyWords(context_type.TypeUpstream).
-			SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc).
-			SetStringMatchingValue(host),
-	)
-	if upstreamPos.Target().Error() != nil {
-		if port == "" {
-			port = defaultProxyPassPort
-		}
-		return []string{host + ":" + port}
-	}
-	var addrs []string
-	existAddrMap := make(map[string]bool)
-	upstreamPos.QueryAll(nginx_context.NewKeyWords(context_type.TypeDirective).
-		SetRegexpMatchingValue(`^server\s+`).
-		SetSkipQueryFilter(nginx_context.SkipDisabledCtxFilterFunc)).
-		Map(
-			func(directivePos nginx_context.Pos) (nginx_context.Pos, error) {
-				if regexpUpstreamSrvDirective.MatchString(directivePos.Target().Value()) {
-					srvAddr := regexpUpstreamSrvDirective.FindStringSubmatch(directivePos.Target().Value())[1]
-					var srvHost, srvPort string
-					if regexpAddrWithPort.MatchString(srvAddr) {
-						srvHost = regexpAddrWithPort.FindStringSubmatch(srvAddr)[1]
-						srvPort = regexpAddrWithPort.FindStringSubmatch(srvAddr)[2]
-					} else {
-						srvHost = srvAddr
-						if httpOrStream.Type() == context_type.TypeHttp {
-							srvPort = "80"
-						}
-					}
-					if port != "" {
-						srvPort = port
-					}
-					if srvPort == "" {
-						srvPort = defaultProxyPassPort
-					}
-					addr := srvHost + ":" + srvPort
-					if !existAddrMap[addr] {
-						addrs = append(addrs, addr)
-						existAddrMap[addr] = true
-					}
-				}
-				return directivePos, nil
-			},
-		)
-	return addrs
 }
 
 func newWebServerStatisticsStore(store *bifrostsStore) storev1.WebServerStatisticsStore {

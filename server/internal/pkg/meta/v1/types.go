@@ -63,6 +63,11 @@ type WebServerConfigTargetContextOptions struct {
 	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints" binding:"required"`
 }
 
+type ConnectivityCheckOfProxiedServersRequestOptions struct {
+	WebServerOptions `json:",inline"`
+	ConfigContextPos `json:",inline"`
+}
+
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
 	WebServerOptions                              `json:"web-server-options" binding:"required"`
 	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options" binding:"required"`
