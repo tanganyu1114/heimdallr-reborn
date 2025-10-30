@@ -19,6 +19,8 @@ func SearchContextPoses(set nginx_context.PosSet, isonlycurrent bool, keywords s
 		return true
 	}).SetSkipQueryFilter(func(targetCtx nginx_context.Context) bool {
 		return isonlycurrent && targetCtx.Type() == context_type.TypeConfig
+	}).AppendMatchingFilter(func(targetCtx nginx_context.Context) bool {
+		return targetCtx.Type() != context_type.TypeConfig
 	})
 	if isregexp {
 		kw.SetRegexpMatchingValue(keywords)

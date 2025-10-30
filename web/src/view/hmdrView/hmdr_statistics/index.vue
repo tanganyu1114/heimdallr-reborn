@@ -191,8 +191,7 @@ export default {
     parseUpstreamServerAddresses(address) {
       const addr = address['domain-name'] + ':' + address.port
       let upsrv = ''
-      for (let i = 0; i < address.sockets.length; i++) {
-        const socket = address.sockets[i]
+      for (const socket of address.sockets) {
         upsrv += socket['ipv4'] + ':' + socket.port + ', '
       }
       if (upsrv !== '') {

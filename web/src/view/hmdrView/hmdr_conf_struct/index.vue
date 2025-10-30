@@ -1383,14 +1383,16 @@ export default {
     },
     formatExtendLabel(contextNode) {
       const proxy = []
-      if (contextNode['context-type'] === 'dir_http_proxy_pass') {
-        for (let i = 0; i < contextNode['proxy-pass'].addresses.length; i++) {
-          proxy.push(contextNode['proxy-pass'].addresses[i]['domain-name'] + ':' + contextNode['proxy-pass'].addresses[i].port.toString())
-        }
-      } else if (contextNode['context-type'] === 'dir_stream_proxy_pass') {
-        for (let i = 0; i < contextNode['proxy-pass'].addresses.length; i++) {
-          proxy.push(contextNode['proxy-pass'].addresses[i]['domain-name'] + ':' + contextNode['proxy-pass'].addresses[i].port.toString())
-        }
+      // if (contextNode['proxy_pass'] === undefined) return ''
+      switch (contextNode['context-type']) {
+        case 'dir_http_proxy_pass':
+        case 'dir_stream_proxy_pass':
+          if (contextNode['proxy-pass'] === undefined || contextNode['proxy-pass'].addresses === undefined) return ''
+          for (const address of contextNode['proxy-pass'].addresses) {
+            proxy.push(address['domain-name'] + ':' + address.port.toString())
+          }
+          break
+        default: return ''
       }
       if (proxy.length > 0) {
         return proxy.join(', ')
