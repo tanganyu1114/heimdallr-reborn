@@ -1387,7 +1387,7 @@ export default {
       switch (contextNode['context-type']) {
         case 'dir_http_proxy_pass':
         case 'dir_stream_proxy_pass':
-          if (contextNode['proxy-pass'] === undefined || contextNode['proxy-pass'].addresses === undefined) return ''
+          if (contextNode['proxy-pass'] === undefined || contextNode['proxy-pass'].addresses === undefined || contextNode['proxy-pass'].addresses === null) return ''
           for (const address of contextNode['proxy-pass'].addresses) {
             proxy.push(address['domain-name'] + ':' + address.port.toString())
           }
