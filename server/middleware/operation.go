@@ -6,12 +6,14 @@ import (
 	"gin-vue-admin/model"
 	"gin-vue-admin/model/request"
 	"gin-vue-admin/service"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func OperationRecord() gin.HandlerFunc {
@@ -63,7 +65,18 @@ func OperationRecord() gin.HandlerFunc {
 		record.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
 		record.Status = c.Writer.Status()
 		record.Latency = latency
-		record.Resp = writer.body.String()
+
+		// 检查是否为二进制响应（如 Excel 文件下载）
+		contentType := c.Writer.Header().Get("Content-Type")
+		if contentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+			contentType == "application/octet-stream" ||
+			contentType == "application/pdf" ||
+			strings.HasPrefix(contentType, "image/") {
+			// 二进制文件不记录响应内容，避免数据库错误
+			record.Resp = "[Binary File - Not Logged]"
+		} else {
+			record.Resp = writer.body.String()
+		}
 
 		if err := service.CreateSysOperationRecord(record); err != nil {
 			global.GVA_LOG.Error("create operation record error:", zap.Any("err", err))

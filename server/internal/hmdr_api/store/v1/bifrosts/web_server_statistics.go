@@ -1,7 +1,9 @@
 package bifrosts
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/global"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
@@ -16,6 +18,7 @@ import (
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context_type"
 	"github.com/marmotedu/errors"
+	"github.com/xuri/excelize/v2"
 	"go.uber.org/zap"
 )
 
@@ -420,6 +423,166 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 	}
 
 	return infos, nil
+}
+
+func (w *webServerStatisticsStore) ExportProxyServiceInfoToExcel(ctx context.Context, opts metav1.WebServerOptions) ([]byte, error) {
+	proxies, err := w.GetProxyServiceInfo(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建 Excel 文件
+	f := excelize.NewFile()
+	defer func() {
+		if err := f.Close(); err != nil {
+			return
+		}
+	}()
+
+	// 设置工作表名称
+	sheetName := "代理服务信息"
+	f.SetSheetName("Sheet1", sheetName)
+
+	// 设置表头
+	headers := []string{
+		"反向代理服务描述",
+		"反向代理服务名称",
+		"反向代理服务侦听端口",
+		"反向代理路由路径",
+		"特殊判断条件",
+		"被反向代理原始 URL",
+		"被反向代理协议",
+		"被反向代理地址集",
+	}
+
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// 创建自动换行样式（包含垂直居中和文本缩进）
+	wrapStyle, err := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{
+			WrapText: true,     // 自动换行
+			Vertical: "center", // 垂直居中
+			Indent:   1,        // 缩进
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 填充数据，并记录每列的最大长度
+	colMaxLen := make([]int, len(headers)) // 记录每列的最大字符数
+	for rowIdx, info := range proxies {
+		rowNum := rowIdx + 2 // 从第 2 行开始（第 1 行是表头）
+
+		// 代理服务描述
+		cell, _ := excelize.CoordinatesToCellName(1, rowNum)
+		f.SetCellValue(sheetName, cell, info.ProxyServiceComment)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.ProxyServiceComment) > colMaxLen[0] {
+			colMaxLen[0] = len(info.ProxyServiceComment)
+		}
+
+		// 服务器名称
+		cell, _ = excelize.CoordinatesToCellName(2, rowNum)
+		f.SetCellValue(sheetName, cell, info.ServerName)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.ServerName) > colMaxLen[1] {
+			colMaxLen[1] = len(info.ServerName)
+		}
+
+		// 服务器端口
+		portStr := fmt.Sprintf("%d", info.ServerPort)
+		cell, _ = excelize.CoordinatesToCellName(3, rowNum)
+		f.SetCellValue(sheetName, cell, info.ServerPort)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(portStr) > colMaxLen[2] {
+			colMaxLen[2] = len(portStr)
+		}
+
+		// 位置
+		cell, _ = excelize.CoordinatesToCellName(4, rowNum)
+		f.SetCellValue(sheetName, cell, info.Location)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.Location) > colMaxLen[3] {
+			colMaxLen[3] = len(info.Location)
+		}
+
+		// IF 条件
+		cell, _ = excelize.CoordinatesToCellName(5, rowNum)
+		f.SetCellValue(sheetName, cell, info.IfCondition)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.IfCondition) > colMaxLen[4] {
+			colMaxLen[4] = len(info.IfCondition)
+		}
+
+		// 代理原始 URL
+		cell, _ = excelize.CoordinatesToCellName(6, rowNum)
+		f.SetCellValue(sheetName, cell, info.ProxyOriginalURL)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.ProxyOriginalURL) > colMaxLen[5] {
+			colMaxLen[5] = len(info.ProxyOriginalURL)
+		}
+
+		// 代理协议
+		cell, _ = excelize.CoordinatesToCellName(7, rowNum)
+		f.SetCellValue(sheetName, cell, info.ProxyProtocol)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(info.ProxyProtocol) > colMaxLen[6] {
+			colMaxLen[6] = len(info.ProxyProtocol)
+		}
+
+		// 代理地址
+		// 预分配切片容量，避免多次内存重新分配
+		addresses := make([]string, 0, len(info.ProxyAddress))
+		for _, addr := range info.ProxyAddress {
+			sockets := make([]string, 0, len(addr.Sockets))
+			for _, socket := range addr.Sockets {
+				sockets = append(sockets, fmt.Sprintf("%s:%d", socket.IPv4, socket.Port))
+			}
+			addresses = append(addresses, fmt.Sprintf("%s:%d(%s)", addr.DomainName, addr.Port, strings.Join(sockets, ", ")))
+		}
+		addressStr := strings.Join(addresses, "\n")
+		cell, _ = excelize.CoordinatesToCellName(8, rowNum)
+		f.SetCellValue(sheetName, cell, addressStr)
+		f.SetCellStyle(sheetName, cell, cell, wrapStyle)
+		if len(addressStr) > colMaxLen[7] {
+			colMaxLen[7] = len(addressStr)
+		}
+	}
+
+	// 设置自适应列宽（根据实际数据长度 + 表头长度）
+	colLetters := []string{"A", "B", "C", "D", "E", "F", "G", "H"}
+	for i, colLetter := range colLetters {
+		// 计算该列的最大宽度：取表头和数据的最大长度
+		maxLen := len(headers[i])
+		if colMaxLen[i] > maxLen {
+			maxLen = colMaxLen[i]
+		}
+
+		// 设置列宽：基础宽度 + 额外缓冲空间（每个字符约 0.7 个 Excel 宽度单位）
+		// 最小宽度 20，最大宽度 50
+		// 设置上限确保换行效果不会导致列过窄
+		width := float64(maxLen)*0.7 + 3
+		if width < 20 {
+			width = 20
+		}
+		if width > 50 {
+			width = 50
+		}
+
+		f.SetColWidth(sheetName, colLetter, colLetter, width)
+	}
+
+	// 将 Excel 文件写入字节数组
+	buf := new(bytes.Buffer)
+	if err := f.Write(buf); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 func getCommentInfo(pos nginx_context.Pos) string {

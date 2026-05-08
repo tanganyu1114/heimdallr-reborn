@@ -13,6 +13,7 @@
           <el-col :span="12">
             <el-form-item label-width="120px" prop="value" label="应用服务器选择">
               <el-cascader
+                ref="cascader"
                 v-model="formData.value"
                 :options="Options"
                 :props="{ expandTrigger: 'hover' }"
@@ -24,6 +25,7 @@
           </el-col>
           <el-col :span="8">
             <el-button size="medium" type="primary" icon="el-icon-search" round @click="getProxySvcInfo">查询</el-button>
+            <el-button size="medium" type="success" icon="el-icon-download" round @click="exportToExcel">导出Excel</el-button>
           </el-col>
         </el-form>
       </el-row>
@@ -86,7 +88,7 @@
 
 <script>
 import { getOptions } from '@/api/hmdr_conf.js'
-import { getProxyServiceInfo, connectivityCheckOfProxyService } from '@/api/hmdr_statistics.js'
+import { getProxyServiceInfo, connectivityCheckOfProxyService, exportProxyServiceInfoToExcel } from '@/api/hmdr_statistics.js'
 
 export default {
   name: 'HmdrStatistics',
@@ -198,6 +200,106 @@ export default {
         return addr + '(' + upsrv.slice(0, -2) + ')'
       }
       return addr
+    },
+    // 导出 Excel 文件
+    async exportToExcel() {
+      this.$refs['elForm'].validate(async(valid) => {
+        if (!valid) {
+          this.$message({
+            type: 'warning',
+            message: '请先选择应用服务器'
+          })
+          return
+        }
+
+        const reqOpts = {
+          group_id: this.formData.value[0],
+          host_id: this.formData.value[1],
+          srv_name: this.formData.value[2]
+        }
+
+        try {
+          const res = await exportProxyServiceInfoToExcel(reqOpts)
+
+          // 如果 res 是 response 对象（拦截器返回的），取 data
+          const data = res.data || res
+
+          // 尝试将 arraybuffer 转换为文本，判断是否为 JSON 错误响应
+          if (data instanceof ArrayBuffer) {
+            const decoder = new TextDecoder('utf-8')
+            const text = decoder.decode(data)
+
+            try {
+              // 尝试解析为 JSON
+              const jsonData = JSON.parse(text)
+              // 如果解析成功且有 code 字段，说明是错误响应
+              if (jsonData.code !== undefined && jsonData.code !== 0) {
+                this.$message({
+                  type: 'error',
+                  message: jsonData.msg || '导出失败'
+                })
+                return
+              }
+            } catch (e) {
+              // 解析失败，说明是真正的 Excel 二进制数据
+            }
+
+            // 使用级联选择器的 getCheckedNodes() 方法获取显示名称（O(1) 复杂度）
+            let groupName = 'unknown'
+            let hostName = 'unknown'
+
+            const nodes = this.$refs.cascader.getCheckedNodes()
+            if (nodes.length > 0) {
+              const checkedNode = nodes[0]
+              // pathNodes 包含从根到叶子的所有节点
+              if (checkedNode.pathNodes && checkedNode.pathNodes.length > 0) {
+                groupName = checkedNode.pathNodes[0].label || 'unknown'
+              }
+              if (checkedNode.pathNodes && checkedNode.pathNodes.length > 1) {
+                hostName = checkedNode.pathNodes[1].label || 'unknown'
+              }
+            }
+
+            const serviceName = this.formData.value.length > 2 ? this.formData.value[2] : 'unknown'
+            const fileName = `proxy_service_${groupName}_${hostName}_${serviceName}_${new Date().getTime()}.xlsx`
+
+            // 这是真正的 Excel 文件，创建 Blob 并下载
+            const blob = new Blob([data], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            })
+            this.downloadFile(blob, fileName)
+            this.$message({
+              type: 'success',
+              message: '导出成功'
+            })
+          } else {
+            this.$message({
+              type: 'error',
+              message: '导出失败：响应格式异常'
+            })
+          }
+        } catch (error) {
+          console.error('导出失败:', error)
+          this.$message({
+            type: 'error',
+            message: '导出失败：' + (error.message || '未知错误')
+          })
+        }
+      })
+    },
+    // 下载文件的辅助方法
+    downloadFile(blob, filename) {
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      // 延迟释放 URL 对象，确保下载完成
+      setTimeout(() => {
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      }, 1000)
     }
   }
 }

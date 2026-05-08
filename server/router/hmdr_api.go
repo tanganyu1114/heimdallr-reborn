@@ -99,5 +99,6 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 
 		webSrvStatisticsRoutes.POST("proxy-svc-brief", webSrvStatisticsController.GetProxyServiceInfo)                     // 获取代理配置信息
 		webSrvStatisticsRoutes.POST("conn-check-of-proxy-svc", webSrvStatisticsController.ConnectivityCheckOfProxyService) // 代理服务网络连通性检查
+		webSrvStatisticsRoutes.POST("export-proxy-svc-excel", webSrvStatisticsController.ExportProxyServiceInfoToExcel)    // 导出代理信息为Excel
 	}
 }

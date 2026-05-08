@@ -61,6 +61,14 @@ service.interceptors.response.use(
     if (response.headers['new-token']) {
       store.commit('user/setToken', response.headers['new-token'])
     }
+
+    // 检查是否为二进制响应（Excel 文件下载等）
+    const responseType = response.config.responseType
+    if (responseType === 'arraybuffer' || responseType === 'blob') {
+      // 直接返回响应对象，让调用方自行处理
+      return response.data
+    }
+
     if (response.data.code === 0 || response.headers.success === 'true') {
       return response.data
     } else {

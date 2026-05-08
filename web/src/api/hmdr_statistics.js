@@ -27,3 +27,18 @@ export const connectivityCheckOfProxyService = (data) => {
     data
   })
 }
+
+// @Tags HmdrStatistics
+// @Summary 导出代理服务信息为Excel
+// @Security ApiKeyAuth
+// @Produce  application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Success 200 {file} file "Excel文件"
+// @Router /hmdr-statistics/export-proxy-svc-excel [post]
+export const exportProxyServiceInfoToExcel = (data) => {
+  return service({
+    url: '/hmdr-statistics/export-proxy-svc-excel',
+    method: 'post',
+    data,
+    responseType: 'arraybuffer' // 使用 arraybuffer 而不是 blob，便于判断响应类型
+  })
+}

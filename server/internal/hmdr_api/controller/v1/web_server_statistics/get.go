@@ -50,3 +50,29 @@ func (w *WebServerStatisticsController) ConnectivityCheckOfProxyService(c *gin.C
 
 	response.OkWithDetailed(proxyInfo, "网络连通性检查成功", c)
 }
+
+func (w *WebServerStatisticsController) ExportProxyServiceInfoToExcel(c *gin.Context) {
+	var r metav1.WebServerOptions
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+
+	excelData, err := w.svc.WebServerStatistics().ExportProxyServiceInfoToExcel(c, r)
+	if err != nil {
+		global.GVA_LOG.Error("导出失败!", zap.Any("err", err))
+		response.FailWithMessage("导出失败", c)
+
+		return
+	}
+
+	// 设置响应头，触发文件下载
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Disposition", "attachment; filename=proxy_service_info.xlsx")
+	c.Header("Content-Transfer-Encoding", "binary")
+
+	c.Data(200, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelData)
+}

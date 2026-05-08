@@ -22,6 +22,10 @@ func (w *webServerStatisticsService) ConnectivityCheckOfProxyService(ctx context
 	return w.store.WebServerStatistics().ConnectivityCheckOfProxyService(ctx, opts, proxyPassPos)
 }
 
+func (w *webServerStatisticsService) ExportProxyServiceInfoToExcel(ctx context.Context, opts metav1.WebServerOptions) ([]byte, error) {
+	return w.store.WebServerStatistics().ExportProxyServiceInfoToExcel(ctx, opts)
+}
+
 func newWebServerStatistics(svc *service) svcv1.WebServerStatisticsSrv {
 	return &webServerStatisticsService{
 		store: svc.store,
