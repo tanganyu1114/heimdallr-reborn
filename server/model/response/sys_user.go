@@ -13,3 +13,8 @@ type LoginResponse struct {
 	Token     string        `json:"token"`
 	ExpiresAt int64         `json:"expiresAt"`
 }
+
+type APIKeyResponse struct {
+	APIKey    string `json:"apiKey"`
+	APISecret string `json:"apiSecret"`
+}

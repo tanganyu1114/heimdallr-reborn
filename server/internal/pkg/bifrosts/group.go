@@ -39,7 +39,7 @@ func newGroups() sort_map.SortMap {
 func (gs Groups) checkValueType(v interface{}) (*Group, error) {
 	value, ok := v.(*Group)
 	if !ok {
-		return nil, errors.Errorf("value type(%T) is not *Group", v)
+		return nil, errors.Errorf("value type(%T) is not *Groups", v)
 	}
 	return value, nil
 }

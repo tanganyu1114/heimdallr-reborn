@@ -102,7 +102,7 @@ func (mr *MockFactoryMockRecorder) Hosts() *gomock.Call {
 // WebServerBinCMD mocks base method.
 func (m *MockFactory) WebServerBinCMD() WebServerBinCMDStore {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WebServerBinCMD")
+	ret := m.ctrl.Call(m, "WebServerBinCMDs")
 	ret0, _ := ret[0].(WebServerBinCMDStore)
 	return ret0
 }
@@ -110,7 +110,7 @@ func (m *MockFactory) WebServerBinCMD() WebServerBinCMDStore {
 // WebServerBinCMD indicates an expected call of WebServerBinCMD.
 func (mr *MockFactoryMockRecorder) WebServerBinCMD() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebServerBinCMD", reflect.TypeOf((*MockFactory)(nil).WebServerBinCMD))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebServerBinCMDs", reflect.TypeOf((*MockFactory)(nil).WebServerBinCMD))
 }
 
 // WebServerConfigs mocks base method.

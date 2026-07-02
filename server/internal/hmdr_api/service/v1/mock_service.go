@@ -478,6 +478,21 @@ func (mr *MockWebServerStatisticsSrvMockRecorder) ConnectivityCheckOfProxyServic
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnectivityCheckOfProxyService", reflect.TypeOf((*MockWebServerStatisticsSrv)(nil).ConnectivityCheckOfProxyService), ctx, opts, proxyPassPos)
 }
 
+// ExportProxyServiceInfoToExcel mocks base method.
+func (m *MockWebServerStatisticsSrv) ExportProxyServiceInfoToExcel(ctx context.Context, opts v10.WebServerOptions) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel", ctx, opts)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExportProxyServiceInfoToExcel indicates an expected call of ExportProxyServiceInfoToExcel.
+func (mr *MockWebServerStatisticsSrvMockRecorder) ExportProxyServiceInfoToExcel(ctx, opts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportProxyServiceInfoToExcel", reflect.TypeOf((*MockWebServerStatisticsSrv)(nil).ExportProxyServiceInfoToExcel), ctx, opts)
+}
+
 // GetProxyServiceInfo mocks base method.
 func (m *MockWebServerStatisticsSrv) GetProxyServiceInfo(ctx context.Context, opts v10.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()

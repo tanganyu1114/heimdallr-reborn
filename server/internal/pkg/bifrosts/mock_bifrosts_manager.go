@@ -61,7 +61,7 @@ func (mr *MockManagerMockRecorder) GetBifrostClient(opts any) *gomock.Call {
 // GetGroup mocks base method.
 func (m *MockManager) GetGroup(groupid uint) (*Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroup", groupid)
+	ret := m.ctrl.Call(m, "Get", groupid)
 	ret0, _ := ret[0].(*Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -70,7 +70,7 @@ func (m *MockManager) GetGroup(groupid uint) (*Group, error) {
 // GetGroup indicates an expected call of GetGroup.
 func (mr *MockManagerMockRecorder) GetGroup(groupid any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroup", reflect.TypeOf((*MockManager)(nil).GetGroup), groupid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockManager)(nil).GetGroup), groupid)
 }
 
 // GetServersStatus mocks base method.

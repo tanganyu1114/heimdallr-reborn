@@ -20,4 +20,5 @@ type SysOperationRecord struct {
 	Resp         string        `json:"resp" form:"resp" gorm:"type:longtext;column:resp;comment:响应Body"`
 	UserID       int           `json:"user_id" form:"user_id" gorm:"column:user_id;comment:用户id"`
 	User         SysUser       `json:"user"`
+	IsSDKLogin   bool          `json:"is_sdk_login" form:"is_sdk_login" gorm:"column:is_sdk_login;default:false;comment:是否SDK登录"`
 }

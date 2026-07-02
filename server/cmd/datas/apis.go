@@ -3,9 +3,10 @@ package datas
 import (
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
-	"github.com/gookit/color"
 	"os"
 	"time"
+
+	"github.com/gookit/color"
 
 	"gorm.io/gorm"
 )
@@ -77,20 +78,30 @@ var Apis = []model.SysApi{
 	{global.GVA_MODEL{ID: 65, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/user/setUserInfo", "设置用户信息", "user", "PUT"},
 	{global.GVA_MODEL{ID: 66, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/system/getServerInfo", "获取服务器信息", "system", "POST"},
 	{global.GVA_MODEL{ID: 67, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/email/emailTest", "发送测试邮件", "email", "POST"},
+	{global.GVA_MODEL{ID: 68, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/base/sdk_login", "SDK用户登录", "base", "POST"},
+	{global.GVA_MODEL{ID: 69, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/user/generateAPIKey", "生成API Key", "user", "POST"},
+	{global.GVA_MODEL{ID: 70, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/user/toggleAPIKey", "启用/禁用API Key", "user", "POST"},
+	{global.GVA_MODEL{ID: 71, CreatedAt: time.Now(), UpdatedAt: time.Now()}, "/user/regenerateAPISecret", "重新生成API Secret", "user", "POST"},
 }
 
 func InitSysApi(db *gorm.DB) {
 	if err := db.Transaction(func(tx *gorm.DB) error {
-		if tx.Where("id IN ?", []int{1, 67}).Find(&[]model.SysApi{}).RowsAffected == 2 {
-			color.Danger.Println("sys_apis表的初始数据已存在!")
-			return nil
-		}
-		if err := tx.Create(&Apis).Error; err != nil { // 遇到错误时回滚事务
-			return err
+		for _, api := range Apis {
+			var existing model.SysApi
+			// 使用路径+方法作为唯一标识，而不是依赖固定ID
+			result := tx.Where("path = ? AND method = ?", api.Path, api.Method).First(&existing)
+			if result.Error != nil {
+				// 记录不存在，创建新记录（使用自增ID）
+				api.ID = 0 // 清空ID，让数据库自动分配
+				if err := tx.Create(&api).Error; err != nil {
+					return err
+				}
+			}
 		}
 		return nil
 	}); err != nil {
 		color.Warn.Printf("[Mysql]--> sys_apis 表的初始数据失败,err: %v\n", err)
 		os.Exit(0)
 	}
+	color.Info.Println("[Mysql]--> sys_apis 表的初始数据成功")
 }

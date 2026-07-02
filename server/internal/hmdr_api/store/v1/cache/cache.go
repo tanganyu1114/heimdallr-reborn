@@ -56,7 +56,7 @@ func (c *cacheStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions
 		// get config from the local cache
 		return cache.config, cache.ofp, nil
 	}
-	// get config from the next `WebServerConfig` store
+	// get config from the next `WebServerConfigs` store
 	config, ofp, err := c.next.WebServerConfigs().GetConfig(ctx, opts)
 	if err != nil {
 		return nil, nil, err

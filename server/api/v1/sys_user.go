@@ -8,11 +8,12 @@ import (
 	"gin-vue-admin/model/response"
 	"gin-vue-admin/service"
 	"gin-vue-admin/utils"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
-	"time"
 )
 
 // @Tags Base
@@ -38,6 +39,30 @@ func Login(c *gin.Context) {
 		}
 	} else {
 		response.FailWithMessage("验证码错误", c)
+	}
+}
+
+// @Tags Base
+// @Summary SDK用户登录（无需验证码）
+// @Produce  application/json
+// @Param data body request.SDKLogin true "API Key, API Secret"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"登陆成功"}"
+// @Router /base/sdk_login [post]
+func SDKLogin(c *gin.Context) {
+	var L request.SDKLogin
+	_ = c.ShouldBindJSON(&L)
+	if err := utils.Verify(L, utils.SDKLoginVerify); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if err, user := service.VerifyAPIKey(L.APIKey, L.APISecret); err != nil {
+		global.GVA_LOG.Error("SDK登录失败! API Key或Secret错误", zap.Any("err", err))
+		response.FailWithMessage(err.Error(), c)
+	} else {
+		// 标记为SDK登录，用于操作日志记录
+		c.Set("is_sdk_login", true)
+		tokenNext(c, *user)
 	}
 }
 
@@ -104,7 +129,7 @@ func tokenNext(c *gin.Context, user model.SysUser) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 用户注册账号
 // @Produce  application/json
 // @Param data body model.SysUser true "用户名, 昵称, 密码, 角色ID"
@@ -127,7 +152,7 @@ func Register(c *gin.Context) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 用户修改密码
 // @Security ApiKeyAuth
 // @Produce  application/json
@@ -150,7 +175,7 @@ func ChangePassword(c *gin.Context) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 分页获取用户列表
 // @Security ApiKeyAuth
 // @accept application/json
@@ -178,7 +203,7 @@ func GetUserList(c *gin.Context) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 设置用户权限
 // @Security ApiKeyAuth
 // @accept application/json
@@ -201,7 +226,7 @@ func SetUserAuthority(c *gin.Context) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 删除用户
 // @Security ApiKeyAuth
 // @accept application/json
@@ -229,7 +254,7 @@ func DeleteUser(c *gin.Context) {
 	}
 }
 
-// @Tags SysUser
+// @Tags sysUser
 // @Summary 设置用户信息
 // @Security ApiKeyAuth
 // @accept application/json
@@ -282,5 +307,87 @@ func getUserAuthorityId(c *gin.Context) string {
 	} else {
 		waitUse := claims.(*request.CustomClaims)
 		return waitUse.AuthorityId
+	}
+}
+
+// @Tags sysUser
+// @Summary 为用户生成API Key
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body request.GenerateAPIKeyRequest true "用户ID"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"生成成功"}"
+// @Router /user/generateAPIKey [post]
+func GenerateAPIKey(c *gin.Context) {
+	var req request.GenerateAPIKeyRequest
+	_ = c.ShouldBindJSON(&req)
+	if err := utils.Verify(req, utils.GenerateAPIKeyVerify); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if err, user := service.GenerateAPIKeyForUser(req.UserID); err != nil {
+		global.GVA_LOG.Error("生成API Key失败", zap.Any("err", err))
+		response.FailWithMessage(err.Error(), c)
+	} else {
+		response.OkWithDetailed(response.APIKeyResponse{
+			APIKey:    user.APIKey,
+			APISecret: user.APISecret,
+		}, "生成成功，请妥善保存Secret", c)
+	}
+}
+
+// @Tags sysUser
+// @Summary 启用/禁用API Key
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body request.ToggleAPIKeyRequest true "用户ID, 是否启用"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"操作成功"}"
+// @Router /user/toggleAPIKey [post]
+func ToggleAPIKey(c *gin.Context) {
+	var req request.ToggleAPIKeyRequest
+	_ = c.ShouldBindJSON(&req)
+	if err := utils.Verify(req, utils.ToggleAPIKeyVerify); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if err, user := service.ToggleAPIKey(req.UserID, req.Enabled); err != nil {
+		global.GVA_LOG.Error("切换API Key状态失败", zap.Any("err", err))
+		response.FailWithMessage(err.Error(), c)
+	} else {
+		status := "禁用"
+		if user.APIKeyEnabled {
+			status = "启用"
+		}
+		response.OkWithMessage("API Key已"+status, c)
+	}
+}
+
+// @Tags sysUser
+// @Summary 重新生成API Secret
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body request.RegenerateAPISecretRequest true "用户ID"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"重新生成成功"}"
+// @Router /user/regenerateAPISecret [post]
+func RegenerateAPISecret(c *gin.Context) {
+	var req request.RegenerateAPISecretRequest
+	_ = c.ShouldBindJSON(&req)
+	if err := utils.Verify(req, utils.RegenerateAPISecretVerify); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	if err, user := service.RegenerateAPISecret(req.UserID); err != nil {
+		global.GVA_LOG.Error("重新生成API Secret失败", zap.Any("err", err))
+		response.FailWithMessage(err.Error(), c)
+	} else {
+		response.OkWithDetailed(response.APIKeyResponse{
+			APIKey:    user.APIKey,
+			APISecret: user.APISecret,
+		}, "重新生成成功，请妥善保存Secret", c)
 	}
 }

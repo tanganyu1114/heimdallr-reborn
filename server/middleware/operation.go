@@ -47,6 +47,10 @@ func OperationRecord() gin.HandlerFunc {
 			Body:   string(body),
 			UserID: userId,
 		}
+		// 检查是否为SDK登录
+		if isSDKLogin, ok := c.Get("is_sdk_login"); ok && isSDKLogin.(bool) {
+			record.IsSDKLogin = true
+		}
 		// 存在某些未知错误 TODO
 		//values := c.Request.Header.Values("content-type")
 		//if len(values) >0 && strings.Contains(values[0], "boundary") {

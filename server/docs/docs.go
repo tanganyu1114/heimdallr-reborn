@@ -22,7 +22,7 @@ var doc = `{
         "license": {},
         "version": "{{.Version}}"
     },
-    "host": "{{.Host}}",
+    "host": "{{.Hosts}}",
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/createApi": {
@@ -2291,7 +2291,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "用户修改密码",
                 "parameters": [
@@ -2329,7 +2329,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "删除用户",
                 "parameters": [
@@ -2367,7 +2367,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "分页获取用户列表",
                 "parameters": [
@@ -2397,7 +2397,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "用户注册账号",
                 "parameters": [
@@ -2407,7 +2407,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.SysUser"
+                            "$ref": "#/definitions/model.sysUser"
                         }
                     }
                 ],
@@ -2435,7 +2435,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "设置用户权限",
                 "parameters": [
@@ -2473,7 +2473,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SysUser"
+                    "sysUser"
                 ],
                 "summary": "设置用户信息",
                 "parameters": [
@@ -2483,7 +2483,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.SysUser"
+                            "$ref": "#/definitions/model.sysUser"
                         }
                     }
                 ],
@@ -2778,7 +2778,7 @@ var doc = `{
                 },
                 "sysUser": {
                     "type": "object",
-                    "$ref": "#/definitions/model.SysUser"
+                    "$ref": "#/definitions/model.sysUser"
                 },
                 "sysUserAuthorityID": {
                     "type": "string"
@@ -3074,14 +3074,14 @@ var doc = `{
                 },
                 "user": {
                     "type": "object",
-                    "$ref": "#/definitions/model.SysUser"
+                    "$ref": "#/definitions/model.sysUser"
                 },
                 "user_id": {
                     "type": "integer"
                 }
             }
         },
-        "model.SysUser": {
+        "model.sysUser": {
             "type": "object",
             "properties": {
                 "authority": {
@@ -3474,7 +3474,7 @@ var doc = `{
                 },
                 "user": {
                     "type": "object",
-                    "$ref": "#/definitions/model.SysUser"
+                    "$ref": "#/definitions/model.sysUser"
                 },
                 "user_id": {
                     "type": "integer"

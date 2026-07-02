@@ -31,3 +31,25 @@ type SetUserAuth struct {
 	UUID        uuid.UUID `json:"uuid"`
 	AuthorityId string    `json:"authorityId"`
 }
+
+// SDKLogin SDK登录请求结构（无需验证码）
+type SDKLogin struct {
+	APIKey    string `json:"apiKey"`    // API密钥
+	APISecret string `json:"apiSecret"` // API密钥密码
+}
+
+// GenerateAPIKeyRequest 生成API Key请求
+type GenerateAPIKeyRequest struct {
+	UserID uint `json:"userId" binding:"required"` // 用户ID
+}
+
+// ToggleAPIKeyRequest 切换API Key状态请求
+type ToggleAPIKeyRequest struct {
+	UserID  uint `json:"userId" binding:"required"`  // 用户ID
+	Enabled bool `json:"enabled" binding:"required"` // 是否启用
+}
+
+// RegenerateAPISecretRequest 重新生成API Secret请求
+type RegenerateAPISecretRequest struct {
+	UserID uint `json:"userId" binding:"required"` // 用户ID
+}
