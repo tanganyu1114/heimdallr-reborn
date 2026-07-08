@@ -5,6 +5,7 @@ import (
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -34,7 +35,7 @@ func Test_groupMiddleware_Get(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockGroupTransport := transport.NewMockGroupTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, *v1.Group](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](ctrl)
 
 			mockFactory.EXPECT().Groups().Return(mockGroupTransport)
 			mockGroupTransport.EXPECT().Get().Return(mockClientBuilder)
@@ -73,7 +74,7 @@ func Test_groupMiddleware_List(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockGroupTransport := transport.NewMockGroupTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, *v1.GroupList](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](ctrl)
 
 			mockFactory.EXPECT().Groups().Return(mockGroupTransport)
 			mockGroupTransport.EXPECT().List().Return(mockClientBuilder)

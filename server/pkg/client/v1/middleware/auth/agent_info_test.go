@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -33,7 +34,7 @@ func Test_agentInfoMiddleware_Get(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockAgentInfoTransport := transport.NewMockAgentInfoTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, []v1.GroupInfo](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]](ctrl)
 
 			mockFactory.EXPECT().AgentInfos().Return(mockAgentInfoTransport)
 			mockAgentInfoTransport.EXPECT().Get().Return(mockClientBuilder)

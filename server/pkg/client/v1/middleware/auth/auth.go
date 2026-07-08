@@ -2,14 +2,14 @@ package auth
 
 import (
 	"context"
-	"gin-vue-admin/pkg/client/v1/middleware"
-	txpclientv1 "gin-vue-admin/pkg/client/v1/transport"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
 	"gin-vue-admin/model/request"
+	"gin-vue-admin/pkg/client/v1/middleware"
+	txpclientv1 "gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
@@ -22,8 +22,14 @@ const (
 	MiddlewareName  = "AuthMiddleware"
 )
 
-func withRequestToken(ctx context.Context, token string) context.Context {
-	return context.WithValue(ctx, RequestTokenKey, token)
+type authMiddleware struct {
+	txp        txpclientv1.Factory
+	apiKey     string
+	apiSecret  string
+	bufferTime int64
+	mu         sync.RWMutex
+	token      string
+	expiresAt  int64
 }
 
 func AuthMiddleware(apiKey, apiSecret string, bufferTime int64) middleware.Middleware {
@@ -35,16 +41,6 @@ func AuthMiddleware(apiKey, apiSecret string, bufferTime int64) middleware.Middl
 			bufferTime: bufferTime,
 		}
 	}
-}
-
-type authMiddleware struct {
-	txp        txpclientv1.Factory
-	apiKey     string
-	apiSecret  string
-	bufferTime int64
-	mu         sync.RWMutex
-	token      string
-	expiresAt  int64
 }
 
 func (a *authMiddleware) SysUsers() txpclientv1.SysUserTransport {
@@ -75,63 +71,7 @@ func (a *authMiddleware) WebServerStatistics() txpclientv1.WebServerStatisticsTr
 	return newWebServerStatisticsMiddleware(a)
 }
 
-func (a *authMiddleware) authOptions() []http_transport.ClientOption {
-	return []http_transport.ClientOption{
-		http_transport.ClientAfter(a.passiveRefreshToken),
-	}
-}
-
-func (a *authMiddleware) ensureValidTokenToCtx(ctx context.Context) (context.Context, error) {
-	if err := a.ensureValidToken(); err != nil {
-		logV1.Errorf("failed to ensure valid token: %v", err)
-		return ctx, err
-	}
-	a.mu.RLock()
-	token := a.token
-	a.mu.RUnlock()
-	return withRequestToken(ctx, token), nil
-}
-
-func (a *authMiddleware) passiveRefreshToken(ctx context.Context, response *http.Response) context.Context {
-	newToken := response.Header.Get("new-token")
-	if newToken == "" {
-		return ctx
-	}
-
-	newExpiresAtStr := response.Header.Get("new-expires-at")
-	newExpiresAt, err := strconv.ParseInt(newExpiresAtStr, 10, 64)
-	if err != nil {
-		logV1.Errorf("failed to parse new-expires-at header: %v", err)
-		return ctx
-	}
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	if newExpiresAt > a.expiresAt {
-		a.token = newToken
-		a.expiresAt = newExpiresAt
-		ctx = withRequestToken(ctx, newToken)
-	}
-
-	return ctx
-}
-
-func applyAuthOptions[REQ any, RESP any](mw *authMiddleware, clientBuilder httpclientv1.ClientBuilder[REQ, RESP]) httpclientv1.ClientBuilder[REQ, RESP] {
-	return clientBuilder.
-		Use(func(ep httpclientv1.Endpoint[REQ, RESP]) httpclientv1.Endpoint[REQ, RESP] {
-			return func(ctx context.Context, request httpclientv1.HTTPRequest[REQ]) (response RESP, err error) {
-				ctx, err = mw.ensureValidTokenToCtx(ctx)
-				if err != nil {
-					return
-				}
-				return ep(ctx, request)
-			}
-		}).
-		WithOptions(mw.authOptions()...)
-}
-
-func (a *authMiddleware) refreshToken() error {
+func (a *authMiddleware) fetchNewToken() error {
 	a.mu.RLock()
 	currentAPIKey := a.apiKey
 	currentAPISecret := a.apiSecret
@@ -174,9 +114,15 @@ func (a *authMiddleware) refreshToken() error {
 		Body: loginReq,
 	}
 
-	loginResp, err := sdkLoginEP(ctx, req)
+	resp, err := sdkLoginEP(ctx, req)
 	if err != nil {
-		logV1.Errorf("logining and refreshing token failed: %v", err)
+		logV1.Errorf("failed to login and refresh token: %v", err)
+		return err
+	}
+
+	loginResp, err := resp.Response()
+	if err != nil {
+		logV1.Errorf("failed to login and refresh token: %v", err)
 		return err
 	}
 
@@ -197,12 +143,76 @@ func (a *authMiddleware) ensureValidToken() error {
 	a.mu.RUnlock()
 
 	if !tokenExists || expiresAt-time.Now().Unix() < bufferTime {
-		if err := a.refreshToken(); err != nil {
+		if err := a.fetchNewToken(); err != nil {
 			logV1.Errorf("failed to ensure valid token: %v", err)
 			return err
 		}
 	}
 	return nil
+}
+
+func (a *authMiddleware) injectTokenToContext(ctx context.Context) (context.Context, error) {
+	if err := a.ensureValidToken(); err != nil {
+		logV1.Errorf("failed to inject token to context: %v", err)
+		return ctx, err
+	}
+	a.mu.RLock()
+	token := a.token
+	a.mu.RUnlock()
+	return context.WithValue(ctx, RequestTokenKey, token), nil
+}
+
+func (a *authMiddleware) buildClientOptions() []http_transport.ClientOption {
+	return []http_transport.ClientOption{
+		http_transport.ClientBefore(a.injectTokenToHeader),
+		http_transport.ClientAfter(a.handleTokenRefreshFromResponse),
+	}
+}
+
+func (a *authMiddleware) injectTokenToHeader(ctx context.Context, req *http.Request) context.Context {
+	if token, ok := ctx.Value(RequestTokenKey).(string); ok {
+		req.Header.Set(RequestTokenKey, token)
+	}
+	return ctx
+}
+
+func (a *authMiddleware) handleTokenRefreshFromResponse(ctx context.Context, response *http.Response) context.Context {
+	newToken := response.Header.Get("new-token")
+	if newToken == "" {
+		return ctx
+	}
+
+	newExpiresAtStr := response.Header.Get("new-expires-at")
+	newExpiresAt, err := strconv.ParseInt(newExpiresAtStr, 10, 64)
+	if err != nil {
+		logV1.Errorf("failed to parse new-expires-at header: %v", err)
+		return ctx
+	}
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if newExpiresAt > a.expiresAt {
+		a.token = newToken
+		a.expiresAt = newExpiresAt
+		ctx = context.WithValue(ctx, RequestTokenKey, newToken)
+	}
+
+	return ctx
+}
+
+func wrapWithAuth[REQ any, RESP any](mw *authMiddleware, clientBuilder httpclientv1.ClientBuilder[REQ, RESP]) httpclientv1.ClientBuilder[REQ, RESP] {
+	return clientBuilder.
+		Use(func(ep httpclientv1.Endpoint[REQ, RESP]) httpclientv1.Endpoint[REQ, RESP] {
+			return func(ctx context.Context, request httpclientv1.HTTPRequest[REQ]) (response RESP, err error) {
+				ctx, err = mw.injectTokenToContext(ctx)
+				if err != nil {
+					return
+				}
+				return ep(ctx, request)
+			}
+		}).
+		WithOptions(mw.buildClientOptions()...)
 }
 
 func (a *authMiddleware) GetToken() string {

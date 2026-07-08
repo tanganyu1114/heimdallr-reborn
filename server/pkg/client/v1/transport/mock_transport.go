@@ -14,6 +14,7 @@ import (
 	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	request "gin-vue-admin/model/request"
 	response "gin-vue-admin/model/response"
+	model "gin-vue-admin/pkg/client/v1/model"
 	reflect "reflect"
 
 	v11 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -167,10 +168,10 @@ func (m *MockSysUserTransport) EXPECT() *MockSysUserTransportMockRecorder {
 }
 
 // SDKLogin mocks base method.
-func (m *MockSysUserTransport) SDKLogin() v11.ClientBuilder[*request.SDKLogin, *response.LoginResponse] {
+func (m *MockSysUserTransport) SDKLogin() v11.ClientBuilder[*request.SDKLogin, model.ResponseBody[*response.LoginResponse]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SDKLogin")
-	ret0, _ := ret[0].(v11.ClientBuilder[*request.SDKLogin, *response.LoginResponse])
+	ret0, _ := ret[0].(v11.ClientBuilder[*request.SDKLogin, model.ResponseBody[*response.LoginResponse]])
 	return ret0
 }
 
@@ -205,10 +206,10 @@ func (m *MockAgentInfoTransport) EXPECT() *MockAgentInfoTransportMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockAgentInfoTransport) Get() v11.ClientBuilder[v11.NilBody, []v1.GroupInfo] {
+func (m *MockAgentInfoTransport) Get() v11.ClientBuilder[v11.NilBody, model.ResponseBody[[]v1.GroupInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.ClientBuilder[v11.NilBody, []v1.GroupInfo])
+	ret0, _ := ret[0].(v11.ClientBuilder[v11.NilBody, model.ResponseBody[[]v1.GroupInfo]])
 	return ret0
 }
 
@@ -243,10 +244,10 @@ func (m *MockGroupTransport) EXPECT() *MockGroupTransportMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGroupTransport) Get() v11.ClientBuilder[v10.IDOptions, *v1.Group] {
+func (m *MockGroupTransport) Get() v11.ClientBuilder[v10.IDOptions, model.ResponseBody[*v1.Group]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.IDOptions, *v1.Group])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.IDOptions, model.ResponseBody[*v1.Group]])
 	return ret0
 }
 
@@ -257,10 +258,10 @@ func (mr *MockGroupTransportMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockGroupTransport) List() v11.ClientBuilder[v10.ListOptions, *v1.GroupList] {
+func (m *MockGroupTransport) List() v11.ClientBuilder[v10.ListOptions, model.ResponseBody[*v1.GroupList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.ListOptions, *v1.GroupList])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.ListOptions, model.ResponseBody[*v1.GroupList]])
 	return ret0
 }
 
@@ -295,10 +296,10 @@ func (m *MockHostTransport) EXPECT() *MockHostTransportMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockHostTransport) Get() v11.ClientBuilder[v10.IDOptions, *v1.Host] {
+func (m *MockHostTransport) Get() v11.ClientBuilder[v10.IDOptions, model.ResponseBody[*v1.Host]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.IDOptions, *v1.Host])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.IDOptions, model.ResponseBody[*v1.Host]])
 	return ret0
 }
 
@@ -309,10 +310,10 @@ func (mr *MockHostTransportMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockHostTransport) List() v11.ClientBuilder[v10.ListOptions, *v1.HostList] {
+func (m *MockHostTransport) List() v11.ClientBuilder[v10.ListOptions, model.ResponseBody[*v1.HostList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.ListOptions, *v1.HostList])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.ListOptions, model.ResponseBody[*v1.HostList]])
 	return ret0
 }
 
@@ -347,10 +348,10 @@ func (m *MockWebServerConfigTransport) EXPECT() *MockWebServerConfigTransportMoc
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigTransport) ChangeContextEnabledState() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ChangeContextEnabledState() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeContextEnabledState")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -361,10 +362,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ChangeContextEnabledState() 
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigTransport) GetConfig() v11.ClientBuilder[v10.WebServerOptions, *v10.WebServerConfig] {
+func (m *MockWebServerConfigTransport) GetConfig() v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, *v10.WebServerConfig])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]])
 	return ret0
 }
 
@@ -375,10 +376,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetConfig() *gomock.Call {
 }
 
 // GetConfigTextLines mocks base method.
-func (m *MockWebServerConfigTransport) GetConfigTextLines() v11.ClientBuilder[v10.WebServerOptions, string] {
+func (m *MockWebServerConfigTransport) GetConfigTextLines() v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigTextLines")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, string])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -389,10 +390,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetConfigTextLines() *gomock
 }
 
 // GetContextTextLines mocks base method.
-func (m *MockWebServerConfigTransport) GetContextTextLines() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, string] {
+func (m *MockWebServerConfigTransport) GetContextTextLines() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContextTextLines")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, string])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -403,10 +404,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetContextTextLines() *gomoc
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigTransport) GetIncludedConfigs() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, []string] {
+func (m *MockWebServerConfigTransport) GetIncludedConfigs() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncludedConfigs")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, []string])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]])
 	return ret0
 }
 
@@ -417,10 +418,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetIncludedConfigs() *gomock
 }
 
 // GetOptions mocks base method.
-func (m *MockWebServerConfigTransport) GetOptions() v11.ClientBuilder[v11.NilBody, []v1.BifrostGroupMeta] {
+func (m *MockWebServerConfigTransport) GetOptions() v11.ClientBuilder[v11.NilBody, model.ResponseBody[[]v1.BifrostGroupMeta]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOptions")
-	ret0, _ := ret[0].(v11.ClientBuilder[v11.NilBody, []v1.BifrostGroupMeta])
+	ret0, _ := ret[0].(v11.ClientBuilder[v11.NilBody, model.ResponseBody[[]v1.BifrostGroupMeta]])
 	return ret0
 }
 
@@ -431,10 +432,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetOptions() *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigTransport) InsertWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) InsertWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithClone")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -445,10 +446,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) InsertWithClone() *gomock.Ca
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigTransport) InsertWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) InsertWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithNew")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -459,10 +460,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) InsertWithNew() *gomock.Call
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigTransport) ModifyContextValue() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyContextValue() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyContextValue")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -473,10 +474,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyContextValue() *gomock
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigTransport) ModifyWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithClone")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -487,10 +488,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyWithClone() *gomock.Ca
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigTransport) ModifyWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithNew")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -501,10 +502,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyWithNew() *gomock.Call
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigTransport) Move() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) Move() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -515,10 +516,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) Move() *gomock.Call {
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigTransport) Remove() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, v11.NilBody] {
+func (m *MockWebServerConfigTransport) Remove() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -529,10 +530,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) Remove() *gomock.Call {
 }
 
 // SearchContextPositions mocks base method.
-func (m *MockWebServerConfigTransport) SearchContextPositions() v11.ClientBuilder[v10.WebServerConfigContextPosSearchOptions, []v10.ConfigContextPos] {
+func (m *MockWebServerConfigTransport) SearchContextPositions() v11.ClientBuilder[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContextPositions")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextPosSearchOptions, []v10.ConfigContextPos])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]])
 	return ret0
 }
 
@@ -540,6 +541,20 @@ func (m *MockWebServerConfigTransport) SearchContextPositions() v11.ClientBuilde
 func (mr *MockWebServerConfigTransportMockRecorder) SearchContextPositions() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContextPositions", reflect.TypeOf((*MockWebServerConfigTransport)(nil).SearchContextPositions))
+}
+
+// UpdateConfig mocks base method.
+func (m *MockWebServerConfigTransport) UpdateConfig() v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v11.NilBody]] {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig")
+	ret0, _ := ret[0].(v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v11.NilBody]])
+	return ret0
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig.
+func (mr *MockWebServerConfigTransportMockRecorder) UpdateConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockWebServerConfigTransport)(nil).UpdateConfig))
 }
 
 // MockWebServerBinCMDTransport is a mock of WebServerBinCMDTransport interface.
@@ -567,10 +582,10 @@ func (m *MockWebServerBinCMDTransport) EXPECT() *MockWebServerBinCMDTransportMoc
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDTransport) Exec() v11.ClientBuilder[v10.WebServerBinCMDExecRequest, *v10.WebServerBinCMDExecResponse] {
+func (m *MockWebServerBinCMDTransport) Exec() v11.ClientBuilder[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exec")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerBinCMDExecRequest, *v10.WebServerBinCMDExecResponse])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]])
 	return ret0
 }
 
@@ -605,10 +620,10 @@ func (m *MockWebServerStatisticsTransport) EXPECT() *MockWebServerStatisticsTran
 }
 
 // ConnectivityCheckOfProxyService mocks base method.
-func (m *MockWebServerStatisticsTransport) ConnectivityCheckOfProxyService() v11.ClientBuilder[v10.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo] {
+func (m *MockWebServerStatisticsTransport) ConnectivityCheckOfProxyService() v11.ClientBuilder[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v1.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v1.ProxyServiceInfo]])
 	return ret0
 }
 
@@ -619,10 +634,10 @@ func (mr *MockWebServerStatisticsTransportMockRecorder) ConnectivityCheckOfProxy
 }
 
 // ExportProxyServiceInfoToExcel mocks base method.
-func (m *MockWebServerStatisticsTransport) ExportProxyServiceInfoToExcel() v11.ClientBuilder[v10.WebServerOptions, []byte] {
+func (m *MockWebServerStatisticsTransport) ExportProxyServiceInfoToExcel() v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[[]byte]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, []byte])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[[]byte]])
 	return ret0
 }
 
@@ -633,10 +648,10 @@ func (mr *MockWebServerStatisticsTransportMockRecorder) ExportProxyServiceInfoTo
 }
 
 // GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsTransport) GetProxyServiceInfo() v11.ClientBuilder[v10.WebServerOptions, []v1.ProxyServiceInfo] {
+func (m *MockWebServerStatisticsTransport) GetProxyServiceInfo() v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[[]v1.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyServiceInfo")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, []v1.ProxyServiceInfo])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerOptions, model.ResponseBody[[]v1.ProxyServiceInfo]])
 	return ret0
 }
 

@@ -96,6 +96,11 @@ func (w *webServerConfigStore) Remove(ctx context.Context, opts metav1.WebServer
 	return w.cacheStore.next.WebServerConfigs().Remove(ctx, opts, ofp, pos)
 }
 
+func (w *webServerConfigStore) UpdateConfig(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+	defer w.cacheStore.ReleaseConfigCache(opts)
+	return w.cacheStore.next.WebServerConfigs().UpdateConfig(ctx, opts, ofp, configJsonData)
+}
+
 func (w *webServerConfigStore) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().ModifyWithClone(ctx, opts, ofp, ctxmeta)

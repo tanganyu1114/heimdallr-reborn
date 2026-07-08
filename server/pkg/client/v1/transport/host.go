@@ -3,6 +3,7 @@ package transport
 import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	http_transport "github.com/go-kit/kit/transport/http"
@@ -11,27 +12,27 @@ import (
 // HostTransport defines the interface for host related transport
 type HostTransport interface {
 	// Get returns the get host client
-	Get() httpclientv1.ClientBuilder[metav1.IDOptions, *v1.Host]
+	Get() httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
 	// List returns the list hosts client
-	List() httpclientv1.ClientBuilder[metav1.ListOptions, *v1.HostList]
+	List() httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 }
 
 // hostTransport implements HostTransport interface
 type hostTransport struct {
-	getHostClient   httpclientv1.ClientBuilder[metav1.IDOptions, *v1.Host]
-	listHostsClient httpclientv1.ClientBuilder[metav1.ListOptions, *v1.HostList]
+	getHostClient   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
+	listHostsClient httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 }
 
 // newHostTransport creates a new Hosts transport
 func newHostTransport(transport *transport) HostTransport {
 	t := &hostTransport{
-		getHostClient: httpclientv1.NewClientBuilder[metav1.IDOptions, *v1.Host](
+		getHostClient: httpclientv1.NewClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](
 			httpclientv1.HTTPMethodGet,
 			transport.baseURL+"/hmdrHost/findHmdrHost",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		listHostsClient: httpclientv1.NewClientBuilder[metav1.ListOptions, *v1.HostList](
+		listHostsClient: httpclientv1.NewClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](
 			httpclientv1.HTTPMethodGet,
 			transport.baseURL+"/hmdrHost/getHmdrHostList",
 		).WithOptions(
@@ -42,11 +43,11 @@ func newHostTransport(transport *transport) HostTransport {
 }
 
 // Get returns the get host client
-func (h *hostTransport) Get() httpclientv1.ClientBuilder[metav1.IDOptions, *v1.Host] {
+func (h *hostTransport) Get() httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]] {
 	return h.getHostClient
 }
 
 // List returns the list hosts client
-func (h *hostTransport) List() httpclientv1.ClientBuilder[metav1.ListOptions, *v1.HostList] {
+func (h *hostTransport) List() httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]] {
 	return h.listHostsClient
 }

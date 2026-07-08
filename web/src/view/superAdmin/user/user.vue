@@ -26,8 +26,20 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="150">
+      <el-table-column label="API Key状态" min-width="120">
         <template slot-scope="scope">
+          <el-tag :type="scope.row.apiKeyEnabled ? 'success' : 'info'" size="small">
+            {{ scope.row.apiKeyEnabled ? '已启用' : '未启用' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" min-width="300">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" icon="el-icon-key" @click="handleGenerateAPIKey(scope.row)">生成API Key</el-button>
+          <el-button type="warning" size="mini" icon="el-icon-refresh" @click="handleRegenerateAPISecret(scope.row)">重新生成Secret</el-button>
+          <el-button :type="scope.row.apiKeyEnabled ? 'danger' : 'success'" size="mini" :icon="scope.row.apiKeyEnabled ? 'el-icon-turn-off' : 'el-icon-switch-button'" @click="handleToggleAPIKey(scope.row)">
+            {{ scope.row.apiKeyEnabled ? '禁用' : '启用' }}
+          </el-button>
           <el-popover v-model="scope.row.visible" placement="top" width="160">
             <p>确定要删除此用户吗</p>
             <div style="text-align: right; margin: 0">
@@ -84,6 +96,28 @@
       </div>
     </el-dialog>
     <ChooseImg ref="chooseImg" :target="userInfo" :target-key="`headerImg`" />
+
+    <el-dialog :visible.sync="apiKeyDialogVisible" title="API Key信息" width="600px">
+      <el-alert v-if="apiKeyResult" :title="'API Key已生成，请妥善保存，关闭后将无法再次查看'" type="warning" :closable="false" show-icon style="margin-bottom: 20px;" />
+      <el-descriptions v-if="apiKeyResult" :column="1" border>
+        <el-descriptions-item label="API Key">
+          <el-input v-model="apiKeyResult.apiKey" readonly>
+            <el-button slot="append" icon="el-icon-document-copy" @click="copyToClipboard(apiKeyResult.apiKey)">复制</el-button>
+          </el-input>
+        </el-descriptions-item>
+        <el-descriptions-item label="API Secret" v-if="apiKeyResult.apiSecret">
+          <el-input v-model="apiKeyResult.apiSecret" readonly>
+            <el-button slot="append" icon="el-icon-document-copy" @click="copyToClipboard(apiKeyResult.apiSecret)">复制</el-button>
+          </el-input>
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="apiKeyResult.enabled ? 'success' : 'info'">{{ apiKeyResult.enabled ? '已启用' : '已禁用' }}</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="apiKeyDialogVisible = false">我已保存</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -94,7 +128,10 @@ import {
   getUserList,
   setUserAuthority,
   register,
-  deleteUser
+  deleteUser,
+  generateAPIKey,
+  toggleAPIKey,
+  regenerateAPISecret
 } from '@/api/user'
 import { getAuthorityList } from '@/api/authority'
 import infoList from '@/mixins/infoList'
@@ -133,7 +170,9 @@ export default {
         authorityId: [
           { required: true, message: '请选择用户角色', trigger: 'blur' }
         ]
-      }
+      },
+      apiKeyDialogVisible: false,
+      apiKeyResult: null
     }
   },
   computed: {
@@ -209,6 +248,57 @@ export default {
       if (res.code === 0) {
         this.$message({ type: 'success', message: '角色设置成功' })
       }
+    },
+    async handleGenerateAPIKey(row) {
+      this.$confirm('确定要为此用户生成API Key吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        const res = await generateAPIKey({ userId: row.ID })
+        if (res.code === 0) {
+          this.apiKeyResult = res.data
+          this.apiKeyDialogVisible = true
+          this.getTableData()
+        }
+      }).catch(() => {})
+    },
+    async handleRegenerateAPISecret(row) {
+      this.$confirm('确定要重新生成API Secret吗？旧的Secret将失效', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        const res = await regenerateAPISecret({ userId: row.ID })
+        if (res.code === 0) {
+          this.apiKeyResult = res.data
+          this.apiKeyDialogVisible = true
+          this.$message({ type: 'success', message: '重新生成成功' })
+        }
+      }).catch(() => {})
+    },
+    async handleToggleAPIKey(row) {
+      const action = row.apiKeyEnabled ? '禁用' : '启用'
+      this.$confirm(`确定要${action}此用户的API Key吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        const res = await toggleAPIKey({ userId: row.ID, enabled: !row.apiKeyEnabled })
+        if (res.code === 0) {
+          this.$message({ type: 'success', message: `${action}成功` })
+          this.getTableData()
+        }
+      }).catch(() => {})
+    },
+    copyToClipboard(text) {
+      const input = document.createElement('input')
+      input.value = text
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+      this.$message({ type: 'success', message: '已复制到剪贴板' })
     }
   }
 }

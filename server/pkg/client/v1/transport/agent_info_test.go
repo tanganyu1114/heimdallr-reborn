@@ -1,6 +1,7 @@
 package transport
 
 import (
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"reflect"
 	"testing"
 
@@ -14,15 +15,15 @@ func Test_agentInfoTransport_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, []v1.GroupInfo](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]](ctrl)
 
 	type fields struct {
-		getAgentInfoClient httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.GroupInfo]
+		getAgentInfoClient httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.GroupInfo]
+		want   httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]]
 	}{
 		{
 			name: "returns get agent info client",

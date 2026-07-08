@@ -105,6 +105,17 @@ func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServ
 	return w.svc.WebServerConfigs().Remove(ctx, opts, ofp, pos)
 }
 
+func (w *webServerConfigService) UpdateConfig(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) (err error) {
+	defer func() {
+		level := zapcore.DebugLevel
+		if err != nil {
+			level = zapcore.ErrorLevel
+		}
+		log(level, "更新服务配置", map[string]any{"web-server-options": opts, "original-fingerprints": ofp, "config-json-data": configJsonData}, nil, err)
+	}()
+	return w.svc.WebServerConfigs().UpdateConfig(ctx, opts, ofp, configJsonData)
+}
+
 func (w *webServerConfigService) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel

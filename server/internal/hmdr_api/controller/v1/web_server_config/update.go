@@ -4,6 +4,7 @@ import (
 	"gin-vue-admin/global"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/model/response"
+
 	"github.com/gin-gonic/gin"
 	"github.com/marmotedu/errors"
 	"go.uber.org/zap"
@@ -65,6 +66,23 @@ func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
 		w.svc.WebServerConfigs().InsertWithNew(c, r.WebServerOptions, r.OriginalFingerprints, r.TargetConfigContextOptions, r.DisableTheTarget),
 		"新增成功",
 		"新增失败",
+	)
+}
+
+func (w *WebServerConfigController) UpdateConfig(c *gin.Context) {
+	var r metav1.WebServerConfigUpdateOptions
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
+		response.FailWithMessage("解析失败", c)
+
+		return
+	}
+	updateErrorHandle(
+		c,
+		w.svc.WebServerConfigs().UpdateConfig(c, r.WebServerOptions, r.OriginalFingerprints, r.Data),
+		"更新成功",
+		"更新失败",
 	)
 }
 

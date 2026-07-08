@@ -6,6 +6,8 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/pkg/client/v1/transport"
 
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
 )
@@ -49,9 +51,9 @@ func Test_webServerBinCMDEndpoints_Exec(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerBinCMDTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().Exec().Return(mockClientBuilder).AnyTimes()
@@ -62,7 +64,7 @@ func Test_webServerBinCMDEndpoints_Exec(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse]
+		want   httpclientv1.Endpoint[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]]
 	}{
 		{
 			name:   "returns exec endpoint",

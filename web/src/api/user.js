@@ -109,3 +109,51 @@ export const setUserInfo = (data) => {
     data: data
   })
 }
+
+// @Tags SysUser
+// @Summary 生成API Key
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body object true "生成API Key"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"生成成功"}"
+// @Router /user/generateAPIKey [post]
+export const generateAPIKey = (data) => {
+  return service({
+    url: '/user/generateAPIKey',
+    method: 'post',
+    data: data
+  })
+}
+
+// @Tags SysUser
+// @Summary 启用/禁用API Key
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body object true "启用/禁用API Key"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"操作成功"}"
+// @Router /user/toggleAPIKey [post]
+export const toggleAPIKey = (data) => {
+  return service({
+    url: '/user/toggleAPIKey',
+    method: 'post',
+    data: data
+  })
+}
+
+// @Tags SysUser
+// @Summary 重新生成API Secret
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body object true "重新生成API Secret"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"重新生成成功"}"
+// @Router /user/regenerateAPISecret [post]
+export const regenerateAPISecret = (data) => {
+  return service({
+    url: '/user/regenerateAPISecret',
+    method: 'post',
+    data: data
+  })
+}

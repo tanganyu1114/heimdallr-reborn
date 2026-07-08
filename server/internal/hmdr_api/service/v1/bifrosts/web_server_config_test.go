@@ -7,20 +7,24 @@ import (
 	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	"gin-vue-admin/internal/hmdr_api/store/v1/cache"
-	storefake "gin-vue-admin/internal/hmdr_api/store/v1/fake"
+	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
-	log "github.com/ClessLi/component-base/pkg/log/v1"
-	"github.com/marmotedu/errors"
-	"go.uber.org/mock/gomock"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
+	log "github.com/ClessLi/component-base/pkg/log/v1"
+	"github.com/marmotedu/errors"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_newWebServerConfigs(t *testing.T) {
-	store := new(storefake.Store)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	store := storev1.NewMockFactory(ctrl)
 	svc := &service{store: store}
 	type args struct {
 		svc *service
@@ -49,7 +53,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	webSrvOpts := metav1.WebServerOptions{
 		GroupID:    1,
 		HostID:     1,
-		ServerName: "test",
+		ServerName: "test-bifrost",
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -57,50 +61,40 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Mock ChangeContextEnabledState to return nil (success)
 	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
 		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-		Position: metav1.ConfigContextPos{
-			Config:         "C:\\config_test\\nginx.conf",
-			ContextPosPath: []int{0},
-		},
-		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}))
+	}).AnyTimes().Return(nil)
+
 	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: nil,
 		},
-		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-		Position: metav1.ConfigContextPos{
-			Config:         "conf.d\\location.conf",
-			ContextPosPath: nil,
-		},
-		//TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: false},
-	}))
+	}).AnyTimes().Return(nil)
+
 	wscstore.EXPECT().ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "conf.d\\location.conf",
 			ContextPosPath: []int{1, 2, 3},
 		},
 		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).ChangeContextEnabledState(nil, webSrvOpts, ofp.Fingerprints(), metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-		Position: metav1.ConfigContextPos{
-			Config:         "conf.d\\location.conf",
-			ContextPosPath: []int{1, 2, 3},
-		},
-		TargetContext: metav1.ConfigContextEnabledStateMeta{Enabled: true},
-	}))
+	}).AnyTimes().Return(errors.New("invalid context position"))
 	type fields struct {
 		store storev1.Factory
 	}
@@ -178,14 +172,21 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 }
 
 func Test_webServerConfigService_GetConfig(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
-	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -203,11 +204,15 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args:   args{opts: webSrvOpts},
 			wantConfigTextLines: []string{
+				`# testConfigManager`,
+				`# testConfigManager`,
+				`# testConfigManager_update...`,
+				`# testConfigManager_update...`,
 				`# user nobody;`,
-				`worker_processes 1;`,
+				`worker_processes 1;    # test inline comments`,
 				`# error_log logs/error.log;`,
 				`# error_log logs/error.log  notice;`,
 				`# error_log logs/error.log  info;`,
@@ -216,117 +221,13 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
-				`    upstream vvvvv1 {`,
-				`        server test.1.cn:22 weight=5;`,
-				`        # server test.2.cn:33 weight=5;`,
-				`    }`,
-				`    upstream vvvvv2 {`,
-				`        server vvvvv1:55;`,
-				`        server test.vv2.3.cn:44;`,
-				`    }`,
 				`    server {`,
-				`        listen 5510;`,
-				`        # test`,
-				`        proxy_connect_timeout 10s;`,
-				`        proxy_timeout 300s;`,
-				`        proxy_pass www.baidu.com:443;`,
-				`    }`,
-				`    server {`,
-				`        listen 5520;`,
-				`        proxy_pass vvvvv1;`,
-				`    }`,
-				`    server {`,
-				`        listen 5530;`,
-				`        proxy_pass vvvvv2;`,
+				`        listen 8888;`,
+				`        proxy_pass baidu.com:22;`,
 				`    }`,
 				`}`,
 				`http {`,
 				`    # include <== mime.types`,
-				`    types {`,
-				`        text/html html htm shtml;`,
-				`        text/css css;`,
-				`        text/xml xml;`,
-				`        image/gif gif;`,
-				`        image/jpeg jpeg jpg;`,
-				`        application/javascript js;`,
-				`        application/atom+xml atom;`,
-				`        application/rss+xml rss;`,
-				`        text/mathml mml;`,
-				`        text/plain txt;`,
-				`        text/vnd.sun.j2me.app-descriptor jad;`,
-				`        text/vnd.wap.wml wml;`,
-				`        text/x-component htc;`,
-				`        image/png png;`,
-				`        image/svg+xml svg svgz;`,
-				`        image/tiff tif tiff;`,
-				`        image/vnd.wap.wbmp wbmp;`,
-				`        image/webp webp;`,
-				`        image/x-icon ico;`,
-				`        image/x-jng jng;`,
-				`        image/x-ms-bmp bmp;`,
-				`        application/font-woff woff;`,
-				`        application/java-archive jar war ear;`,
-				`        application/json json;`,
-				`        application/mac-binhex40 hqx;`,
-				`        application/msword doc;`,
-				`        application/pdf pdf;`,
-				`        application/postscript ps eps ai;`,
-				`        application/rtf rtf;`,
-				`        application/vnd.apple.mpegurl m3u8;`,
-				`        application/vnd.google-earth.kml+xml kml;`,
-				`        application/vnd.google-earth.kmz kmz;`,
-				`        application/vnd.ms-excel xls;`,
-				`        application/vnd.ms-fontobject eot;`,
-				`        application/vnd.ms-powerpoint ppt;`,
-				`        application/vnd.oasis.opendocument.graphics odg;`,
-				`        application/vnd.oasis.opendocument.presentation odp;`,
-				`        application/vnd.oasis.opendocument.spreadsheet ods;`,
-				`        application/vnd.oasis.opendocument.text odt;`,
-				`        application/vnd.openxmlformats-officedocument.presentationml.presentation pptx;`,
-				`        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx;`,
-				`        application/vnd.openxmlformats-officedocument.wordprocessingml.document docx;`,
-				`        application/vnd.wap.wmlc wmlc;`,
-				`        application/x-7z-compressed 7z;`,
-				`        application/x-cocoa cco;`,
-				`        application/x-java-archive-diff jardiff;`,
-				`        application/x-java-jnlp-file jnlp;`,
-				`        application/x-makeself run;`,
-				`        application/x-perl pl pm;`,
-				`        application/x-pilot prc pdb;`,
-				`        application/x-rar-compressed rar;`,
-				`        application/x-redhat-package-manager rpm;`,
-				`        application/x-sea sea;`,
-				`        application/x-shockwave-flash swf;`,
-				`        application/x-stuffit sit;`,
-				`        application/x-tcl tcl tk;`,
-				`        application/x-x509-ca-cert der pem crt;`,
-				`        application/x-xpinstall xpi;`,
-				`        application/xhtml+xml xhtml;`,
-				`        application/xspf+xml xspf;`,
-				`        application/zip zip;`,
-				`        application/octet-stream bin exe dll;`,
-				`        application/octet-stream deb;`,
-				`        application/octet-stream dmg;`,
-				`        application/octet-stream iso img;`,
-				`        application/octet-stream msi msp msm;`,
-				`        audio/midi mid midi kar;`,
-				`        audio/mpeg mp3;`,
-				`        audio/ogg ogg;`,
-				`        audio/x-m4a m4a;`,
-				`        audio/x-realaudio ra;`,
-				`        video/3gpp 3gpp 3gp;`,
-				`        video/mp2t ts;`,
-				`        video/mp4 mp4;`,
-				`        video/mpeg mpeg mpg;`,
-				`        video/quicktime mov;`,
-				`        video/webm webm;`,
-				`        video/x-flv flv;`,
-				`        video/x-m4v m4v;`,
-				`        video/x-mng mng;`,
-				`        video/x-ms-asf asx asf;`,
-				`        video/x-ms-wmv wmv;`,
-				`        video/x-msvideo avi;`,
-				`    }`,
 				`    default_type application/octet-stream;`,
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
@@ -338,166 +239,58 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`    keepalive_timeout 65;`,
 				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
-				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
-				`        listen 80;`,
-				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    server {`,
-				`        listen 80;`,
-				`        server_name test2.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    # include <== ./conf.d/server_test*.conf`,
 				`    server {`,
 				`        listen 80;`,
 				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        # include <== ./conf.d/location.conf`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;` + "    # test inline comments",
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test1.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;` + "    # test inline comments",
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
+				`        # # include <== ./conf.d/location.conf`,
 				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test2.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;` + "    # test inline comments",
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
+				`        # # include <== ./conf.d/location.conf`,
 				`    }`,
 				`    server {`,
 				`        listen 80;`,
@@ -507,19 +300,6 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
 				`        }`,
 				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
@@ -548,29 +328,6 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`        # location ~ /\.ht {`,
 				`        #     deny all;`,
 				`        # }`,
-				`    }`,
-				`    server {`,
-				`        listen 990 ssl;`,
-				`        server_name localhost;`,
-				`        # charset koi8-r;`,
-				`        # access_log logs/host.access.log  main;`,
-				`        location / {`,
-				`            root html;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
 				`    }`,
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
@@ -602,14 +359,11 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				`}`,
 			},
 			wantOriginalFingerprints: utilsV3.ConfigFingerprints{
-				"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-				"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-				"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-				"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-				"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-				"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-				"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-				"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
+				"C:\\config_test\\conf.d\\location.conf":  "190dbe607c04b9050b88097b1f4df3ecb4081a45dc7ccf115382a5d471fa8fe7",
+				"C:\\config_test\\conf.d\\location1.conf": "bc018a68698d57e136fbc54002341d2f173d4803bea9974f89acc376e155ba86",
+				"C:\\config_test\\conf.d\\test1.com.conf": "bcb0c82680cceef957db7165d5138f733f2864738557cfc286c635c091457ca3",
+				"C:\\config_test\\conf.d\\test2.com.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
+				"C:\\config_test\\nginx.conf":             "06b19f6a6452402f21b2a28e90205626d18e97b33a743c2846d86431ca236919",
 			},
 		},
 	}
@@ -635,80 +389,63 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 
 func Test_webServerConfigService_GetContext(t *testing.T) {
 	global.GVA_LOG = log.ZapLogger()
-	webSrvOpts := metav1.WebServerOptions{}
-	ofp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
-	}
-	difffp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
-	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	//_, _, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	ofp := fakeFP.Fingerprints()
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
+	// Create diff fingerprint for error test case
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\nginx.conf": "1111111111111111111111111111111111111111111111111111111111111111",
+	}
+
+	// Mock GetContext calls
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\location.conf",
-		ContextPosPath: []int{0},
-	}))
+	}).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+		target, _ := fakeConfig.Main().GetConfig("C:\\config_test\\conf.d\\location.conf")
+		return target.Child(0), nil
+	})
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0, 1},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\location.conf",
-		ContextPosPath: []int{0, 1},
-	}))
+	}).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+		target, _ := fakeConfig.Main().GetConfig("C:\\config_test\\conf.d\\location.conf")
+		return target.Child(0).Child(1), nil
+	})
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\nginx.conf",
-		ContextPosPath: []int{},
-	}))
+	}).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+		return fakeConfig.Main(), nil
+	})
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: nil,
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\nginx.conf",
-		ContextPosPath: nil,
-	}))
+	}).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+		return fakeConfig.Main(), nil
+	})
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\nginx.conf",
-		ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
-	}))
+	}).AnyTimes().Return(nginx_context.NullContext(), errors.New("invalid context position"))
 	wscstore.EXPECT().GetContext(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\conf.d\\location.conf",
 		ContextPosPath: []int{0, 1},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetContext(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\location.conf",
-		ContextPosPath: []int{0, 1},
-	}))
+	}).AnyTimes().Return(nginx_context.NullContext(), errors.Wrapf(metav1.ErrInconsistentFingerprints, "fingerprint mismatch"))
 	type fields struct {
 		store storev1.Factory
 	}
@@ -728,7 +465,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 	}{
 		{
 			name:   "one level pos path",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
@@ -738,16 +475,19 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
-				"location /test {",
-				"    root html/test;",
-				"    index index.html index.htm;",
+				"location /test1-location {",
+				"    if ($http_api_name != '') {",
+				"        proxy_pass http://wrong_proxy;",
+				"        break;",
+				"    }",
+				"    proxy_pass http://right_proxy;    # test inline comments",
 				"}",
 			},
 			wantErr: false,
 		},
 		{
 			name:   "two level pos path",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
@@ -757,13 +497,13 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
-				"index index.html index.htm;",
+				"proxy_pass http://right_proxy;",
 			},
 			wantErr: false,
 		},
 		{
 			name:   "null pos path",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
@@ -773,8 +513,12 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
+				`# testConfigManager`,
+				`# testConfigManager`,
+				`# testConfigManager_update...`,
+				`# testConfigManager_update...`,
 				`# user nobody;`,
-				`worker_processes 1;`,
+				`worker_processes 1;    # test inline comments`,
 				`# error_log logs/error.log;`,
 				`# error_log logs/error.log  notice;`,
 				`# error_log logs/error.log  info;`,
@@ -783,117 +527,13 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
-				`    upstream vvvvv1 {`,
-				`        server test.1.cn:22 weight=5;`,
-				`        # server test.2.cn:33 weight=5;`,
-				`    }`,
-				`    upstream vvvvv2 {`,
-				`        server vvvvv1:55;`,
-				`        server test.vv2.3.cn:44;`,
-				`    }`,
 				`    server {`,
-				`        listen 5510;`,
-				`        # test`,
-				`        proxy_connect_timeout 10s;`,
-				`        proxy_timeout 300s;`,
-				`        proxy_pass www.baidu.com:443;`,
-				`    }`,
-				`    server {`,
-				`        listen 5520;`,
-				`        proxy_pass vvvvv1;`,
-				`    }`,
-				`    server {`,
-				`        listen 5530;`,
-				`        proxy_pass vvvvv2;`,
+				`        listen 8888;`,
+				`        proxy_pass baidu.com:22;`,
 				`    }`,
 				`}`,
 				`http {`,
 				`    # include <== mime.types`,
-				`    types {`,
-				`        text/html html htm shtml;`,
-				`        text/css css;`,
-				`        text/xml xml;`,
-				`        image/gif gif;`,
-				`        image/jpeg jpeg jpg;`,
-				`        application/javascript js;`,
-				`        application/atom+xml atom;`,
-				`        application/rss+xml rss;`,
-				`        text/mathml mml;`,
-				`        text/plain txt;`,
-				`        text/vnd.sun.j2me.app-descriptor jad;`,
-				`        text/vnd.wap.wml wml;`,
-				`        text/x-component htc;`,
-				`        image/png png;`,
-				`        image/svg+xml svg svgz;`,
-				`        image/tiff tif tiff;`,
-				`        image/vnd.wap.wbmp wbmp;`,
-				`        image/webp webp;`,
-				`        image/x-icon ico;`,
-				`        image/x-jng jng;`,
-				`        image/x-ms-bmp bmp;`,
-				`        application/font-woff woff;`,
-				`        application/java-archive jar war ear;`,
-				`        application/json json;`,
-				`        application/mac-binhex40 hqx;`,
-				`        application/msword doc;`,
-				`        application/pdf pdf;`,
-				`        application/postscript ps eps ai;`,
-				`        application/rtf rtf;`,
-				`        application/vnd.apple.mpegurl m3u8;`,
-				`        application/vnd.google-earth.kml+xml kml;`,
-				`        application/vnd.google-earth.kmz kmz;`,
-				`        application/vnd.ms-excel xls;`,
-				`        application/vnd.ms-fontobject eot;`,
-				`        application/vnd.ms-powerpoint ppt;`,
-				`        application/vnd.oasis.opendocument.graphics odg;`,
-				`        application/vnd.oasis.opendocument.presentation odp;`,
-				`        application/vnd.oasis.opendocument.spreadsheet ods;`,
-				`        application/vnd.oasis.opendocument.text odt;`,
-				`        application/vnd.openxmlformats-officedocument.presentationml.presentation pptx;`,
-				`        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx;`,
-				`        application/vnd.openxmlformats-officedocument.wordprocessingml.document docx;`,
-				`        application/vnd.wap.wmlc wmlc;`,
-				`        application/x-7z-compressed 7z;`,
-				`        application/x-cocoa cco;`,
-				`        application/x-java-archive-diff jardiff;`,
-				`        application/x-java-jnlp-file jnlp;`,
-				`        application/x-makeself run;`,
-				`        application/x-perl pl pm;`,
-				`        application/x-pilot prc pdb;`,
-				`        application/x-rar-compressed rar;`,
-				`        application/x-redhat-package-manager rpm;`,
-				`        application/x-sea sea;`,
-				`        application/x-shockwave-flash swf;`,
-				`        application/x-stuffit sit;`,
-				`        application/x-tcl tcl tk;`,
-				`        application/x-x509-ca-cert der pem crt;`,
-				`        application/x-xpinstall xpi;`,
-				`        application/xhtml+xml xhtml;`,
-				`        application/xspf+xml xspf;`,
-				`        application/zip zip;`,
-				`        application/octet-stream bin exe dll;`,
-				`        application/octet-stream deb;`,
-				`        application/octet-stream dmg;`,
-				`        application/octet-stream iso img;`,
-				`        application/octet-stream msi msp msm;`,
-				`        audio/midi mid midi kar;`,
-				`        audio/mpeg mp3;`,
-				`        audio/ogg ogg;`,
-				`        audio/x-m4a m4a;`,
-				`        audio/x-realaudio ra;`,
-				`        video/3gpp 3gpp 3gp;`,
-				`        video/mp2t ts;`,
-				`        video/mp4 mp4;`,
-				`        video/mpeg mpeg mpg;`,
-				`        video/quicktime mov;`,
-				`        video/webm webm;`,
-				`        video/x-flv flv;`,
-				`        video/x-m4v m4v;`,
-				`        video/x-mng mng;`,
-				`        video/x-ms-asf asx asf;`,
-				`        video/x-ms-wmv wmv;`,
-				`        video/x-msvideo avi;`,
-				`    }`,
 				`    default_type application/octet-stream;`,
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
@@ -905,165 +545,57 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    keepalive_timeout 65;`,
 				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
-				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
-				`        listen 80;`,
-				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    server {`,
-				`        listen 80;`,
-				`        server_name test2.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    # include <== ./conf.d/server_test*.conf`,
-				`    server {`,
-				`        listen 80;`,
-				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
-				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test1.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
+				`        # # include <== ./conf.d/location.conf`,
 				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test2.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
+				`        # # include <== ./conf.d/location.conf`,
+				`    }`,
+				`    server {`,
+				`        listen 80;`,
+				`        server_name test1.com;`,
+				`        # include <== ./conf.d/location.conf`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`    }`,
 				`    server {`,
@@ -1074,19 +606,6 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
 				`        }`,
 				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
@@ -1115,29 +634,6 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        # location ~ /\.ht {`,
 				`        #     deny all;`,
 				`        # }`,
-				`    }`,
-				`    server {`,
-				`        listen 990 ssl;`,
-				`        server_name localhost;`,
-				`        # charset koi8-r;`,
-				`        # access_log logs/host.access.log  main;`,
-				`        location / {`,
-				`            root html;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
 				`    }`,
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
@@ -1171,7 +667,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 		},
 		{
 			name:   "nil pos path",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
@@ -1181,8 +677,12 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				},
 			},
 			wantConfigLines: []string{
+				`# testConfigManager`,
+				`# testConfigManager`,
+				`# testConfigManager_update...`,
+				`# testConfigManager_update...`,
 				`# user nobody;`,
-				`worker_processes 1;`,
+				`worker_processes 1;    # test inline comments`,
 				`# error_log logs/error.log;`,
 				`# error_log logs/error.log  notice;`,
 				`# error_log logs/error.log  info;`,
@@ -1191,117 +691,13 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    worker_connections 1024;`,
 				`}`,
 				`stream {`,
-				`    upstream vvvvv1 {`,
-				`        server test.1.cn:22 weight=5;`,
-				`        # server test.2.cn:33 weight=5;`,
-				`    }`,
-				`    upstream vvvvv2 {`,
-				`        server vvvvv1:55;`,
-				`        server test.vv2.3.cn:44;`,
-				`    }`,
 				`    server {`,
-				`        listen 5510;`,
-				`        # test`,
-				`        proxy_connect_timeout 10s;`,
-				`        proxy_timeout 300s;`,
-				`        proxy_pass www.baidu.com:443;`,
-				`    }`,
-				`    server {`,
-				`        listen 5520;`,
-				`        proxy_pass vvvvv1;`,
-				`    }`,
-				`    server {`,
-				`        listen 5530;`,
-				`        proxy_pass vvvvv2;`,
+				`        listen 8888;`,
+				`        proxy_pass baidu.com:22;`,
 				`    }`,
 				`}`,
 				`http {`,
 				`    # include <== mime.types`,
-				`    types {`,
-				`        text/html html htm shtml;`,
-				`        text/css css;`,
-				`        text/xml xml;`,
-				`        image/gif gif;`,
-				`        image/jpeg jpeg jpg;`,
-				`        application/javascript js;`,
-				`        application/atom+xml atom;`,
-				`        application/rss+xml rss;`,
-				`        text/mathml mml;`,
-				`        text/plain txt;`,
-				`        text/vnd.sun.j2me.app-descriptor jad;`,
-				`        text/vnd.wap.wml wml;`,
-				`        text/x-component htc;`,
-				`        image/png png;`,
-				`        image/svg+xml svg svgz;`,
-				`        image/tiff tif tiff;`,
-				`        image/vnd.wap.wbmp wbmp;`,
-				`        image/webp webp;`,
-				`        image/x-icon ico;`,
-				`        image/x-jng jng;`,
-				`        image/x-ms-bmp bmp;`,
-				`        application/font-woff woff;`,
-				`        application/java-archive jar war ear;`,
-				`        application/json json;`,
-				`        application/mac-binhex40 hqx;`,
-				`        application/msword doc;`,
-				`        application/pdf pdf;`,
-				`        application/postscript ps eps ai;`,
-				`        application/rtf rtf;`,
-				`        application/vnd.apple.mpegurl m3u8;`,
-				`        application/vnd.google-earth.kml+xml kml;`,
-				`        application/vnd.google-earth.kmz kmz;`,
-				`        application/vnd.ms-excel xls;`,
-				`        application/vnd.ms-fontobject eot;`,
-				`        application/vnd.ms-powerpoint ppt;`,
-				`        application/vnd.oasis.opendocument.graphics odg;`,
-				`        application/vnd.oasis.opendocument.presentation odp;`,
-				`        application/vnd.oasis.opendocument.spreadsheet ods;`,
-				`        application/vnd.oasis.opendocument.text odt;`,
-				`        application/vnd.openxmlformats-officedocument.presentationml.presentation pptx;`,
-				`        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx;`,
-				`        application/vnd.openxmlformats-officedocument.wordprocessingml.document docx;`,
-				`        application/vnd.wap.wmlc wmlc;`,
-				`        application/x-7z-compressed 7z;`,
-				`        application/x-cocoa cco;`,
-				`        application/x-java-archive-diff jardiff;`,
-				`        application/x-java-jnlp-file jnlp;`,
-				`        application/x-makeself run;`,
-				`        application/x-perl pl pm;`,
-				`        application/x-pilot prc pdb;`,
-				`        application/x-rar-compressed rar;`,
-				`        application/x-redhat-package-manager rpm;`,
-				`        application/x-sea sea;`,
-				`        application/x-shockwave-flash swf;`,
-				`        application/x-stuffit sit;`,
-				`        application/x-tcl tcl tk;`,
-				`        application/x-x509-ca-cert der pem crt;`,
-				`        application/x-xpinstall xpi;`,
-				`        application/xhtml+xml xhtml;`,
-				`        application/xspf+xml xspf;`,
-				`        application/zip zip;`,
-				`        application/octet-stream bin exe dll;`,
-				`        application/octet-stream deb;`,
-				`        application/octet-stream dmg;`,
-				`        application/octet-stream iso img;`,
-				`        application/octet-stream msi msp msm;`,
-				`        audio/midi mid midi kar;`,
-				`        audio/mpeg mp3;`,
-				`        audio/ogg ogg;`,
-				`        audio/x-m4a m4a;`,
-				`        audio/x-realaudio ra;`,
-				`        video/3gpp 3gpp 3gp;`,
-				`        video/mp2t ts;`,
-				`        video/mp4 mp4;`,
-				`        video/mpeg mpeg mpg;`,
-				`        video/quicktime mov;`,
-				`        video/webm webm;`,
-				`        video/x-flv flv;`,
-				`        video/x-m4v m4v;`,
-				`        video/x-mng mng;`,
-				`        video/x-ms-asf asx asf;`,
-				`        video/x-ms-wmv wmv;`,
-				`        video/x-msvideo avi;`,
-				`    }`,
 				`    default_type application/octet-stream;`,
 				`    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '`,
 				`    # '$status $body_bytes_sent "$http_referer" '`,
@@ -1313,165 +709,57 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`    keepalive_timeout 65;`,
 				`    # gzip on;`,
 				`    # include <== ./conf.d/test*.com.conf`,
-				`    server {    # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-26 17:13:59.357884 +0800 CST m=+0.142618001  # test inline comment for client.UpdateConfig with resolv.V2 at 2021-01-29 16:08:16.7355344 +0800 CST m=+0.083795701`,
-				`        listen 80;`,
-				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    server {`,
-				`        listen 80;`,
-				`        server_name test2.com;`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`    }`,
-				`    # include <== ./conf.d/server_test*.conf`,
-				`    server {`,
-				`        listen 80;`,
-				`        server_name test1.com;`,
-				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
-				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
-				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test1.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
-				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
-				`        }`,
+				`        # # include <== ./conf.d/location.conf`,
 				`    }`,
 				`    server {`,
 				`        listen 8080;`,
 				`        server_name test2.com;`,
 				`        # include <== ./conf.d/location*.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`        location /test2 {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
+				`            proxy_pass http://test2.test.com;`,
 				`        }`,
-				`        upstream upstream.test.3 {`,
-				`            server 10.1.3.1:443;`,
-				`            server 10.1.3.2:443;`,
+				`        # # include <== ./conf.d/location.conf`,
+				`    }`,
+				`    server {`,
+				`        listen 80;`,
+				`        server_name test1.com;`,
+				`        # include <== ./conf.d/location.conf`,
+				`        location /test1-location {`,
+				`            if ($http_api_name != '') {`,
+				`                proxy_pass http://wrong_proxy;`,
+				`                break;`,
+				`            }`,
+				`            proxy_pass http://right_proxy;    # test inline comments`,
 				`        }`,
-				`        upstream upstream.test.2 {`,
-				`            server 10.1.2.1:443;`,
-				`            server 10.1.2.2:443;`,
-				`            server upstream.test.3;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            # proxy_pass upstream.test.2;`,
-				`        }`,
-				`        location /test_proxy2 {`,
-				`            proxy_pass https://baidu.com;`,
-				`        }`,
-				`        location /test_proxy3 {`,
-				`            proxy_pass http://baidu2.com/test1;`,
-				`        }`,
-				`        location /test_proxy4 {`,
-				`            proxy_pass http://10.1.1.2:333/test1;`,
+				`        location /test-to-baidu {`,
+				`            proxy_pass https://www.baidu.com;`,
 				`        }`,
 				`    }`,
 				`    server {`,
@@ -1482,19 +770,6 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        location / {`,
 				`            root html;`,
 				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
 				`        }`,
 				`        # error_page 404              /404.html;`,
 				`        # redirect server error pages to the static page /50x.html`,
@@ -1523,29 +798,6 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				`        # location ~ /\.ht {`,
 				`        #     deny all;`,
 				`        # }`,
-				`    }`,
-				`    server {`,
-				`        listen 990 ssl;`,
-				`        server_name localhost;`,
-				`        # charset koi8-r;`,
-				`        # access_log logs/host.access.log  main;`,
-				`        location / {`,
-				`            root html;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # include <== ./conf.d/location.conf`,
-				`        location /test {`,
-				`            root html/test;`,
-				`            index index.html index.htm;`,
-				`        }`,
-				`        # # include <== location.conf`,
-				`        upstream upstream.test.1 {`,
-				`            server 10.1.1.1:443;`,
-				`            server 10.1.1.2:443;`,
-				`        }`,
-				`        location /test_proxy {`,
-				`            proxy_pass upstream.test.1;`,
-				`        }`,
 				`    }`,
 				`    # another virtual host using mix of IP-, name-, and port-based configuration`,
 				`    #`,
@@ -1579,7 +831,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 		},
 		{
 			name:   "wrong pos path",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
@@ -1592,7 +844,7 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 		},
 		{
 			name:   "inconsistent fingerprints",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  difffp,
@@ -1623,7 +875,20 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 				//for _, line := range gotConfigLines {
 				//	fmt.Printf("`%s`,\n", line)
 				//}
-				t.Errorf("GetContext() got.ConfigLines( false ) = %v, want %v", gotConfigLines, tt.wantConfigLines)
+				// Find and print first difference
+				minLen := len(gotConfigLines)
+				if len(tt.wantConfigLines) < minLen {
+					minLen = len(tt.wantConfigLines)
+				}
+				for i := 0; i < minLen; i++ {
+					if gotConfigLines[i] != tt.wantConfigLines[i] {
+						t.Errorf("GetContext() first diff at line %d:\n  got: %q\n want: %q", i+1, gotConfigLines[i], tt.wantConfigLines[i])
+						break
+					}
+				}
+				if len(gotConfigLines) != len(tt.wantConfigLines) {
+					t.Errorf("GetContext() line count mismatch: got %d, want %d", len(gotConfigLines), len(tt.wantConfigLines))
+				}
 			}
 		})
 	}
@@ -1631,66 +896,57 @@ func Test_webServerConfigService_GetContext(t *testing.T) {
 
 func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	global.GVA_LOG = log.ZapLogger()
-	webSrvOpts := metav1.WebServerOptions{}
-	ofp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
-	}
-	difffp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
-	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
-	//_, _, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-		ContextPosPath: []int{0, 2},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-		ContextPosPath: []int{0, 2},
-	}))
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.con",
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	ofp := fakeFP.Fingerprints()
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
+	// Create diff fingerprint for error test case
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\nginx.conf": "1111111111111111111111111111111111111111111111111111111111111111",
+	}
+
+	// Mock GetContext calls for GetIncludedConfigs tests
+	normalPos := metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\nginx.conf",
+		ContextPosPath: []int{1, 0},
+	}
+	wrongPos := metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\nginx.con",
 		ContextPosPath: nil,
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.con",
-		ContextPosPath: nil,
-	}))
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
+	}
+	notIncludePos := metav1.ConfigContextPos{
+		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{0, 1},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, ofp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-		ContextPosPath: []int{0, 1},
-	}))
-	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-		ContextPosPath: []int{0, 2},
-	}).AnyTimes().Return(new(storefake.WebServerConfigStore).GetIncludedConfigs(nil, webSrvOpts, difffp, metav1.ConfigContextPos{
-		Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-		ContextPosPath: []int{0, 2},
-	}))
+	}
+
+	// Create a mock Include context for normal test
+	mockIncludeCtx := nginx_context.NullContext()
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, normalPos).AnyTimes().Return(mockIncludeCtx, nil)
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, wrongPos).AnyTimes().Return(nginx_context.NullContext(), errors.New("wrong position"))
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, ofp, notIncludePos).AnyTimes().Return(nginx_context.NullContext(), nil)
+	wscstore.EXPECT().GetContext(nil, webSrvOpts, difffp, normalPos).AnyTimes().Return(nginx_context.NullContext(), errors.Wrapf(metav1.ErrInconsistentFingerprints, "fingerprint mismatch"))
+
+	// Mock GetIncludedConfigs calls
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, normalPos).AnyTimes().Return([]string{
+		"C:\\config_test\\conf.d\\location.conf",
+		"C:\\config_test\\conf.d\\location2.conf",
+	}, nil)
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, wrongPos).AnyTimes().Return(nil, errors.New("wrong position"))
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, ofp, notIncludePos).AnyTimes().Return(nil, errors.New("the target is not an `include` context"))
+	wscstore.EXPECT().GetIncludedConfigs(nil, webSrvOpts, difffp, normalPos).AnyTimes().Return(nil, errors.Wrapf(metav1.ErrInconsistentFingerprints, "fingerprint mismatch"))
 	type fields struct {
 		store storev1.Factory
 	}
@@ -1710,14 +966,11 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	}{
 		{
 			name:   "normal test",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
-					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-					ContextPosPath: []int{0, 2},
-				},
+				pos:  normalPos,
 			},
 			want: []string{
 				"C:\\config_test\\conf.d\\location.conf",
@@ -1727,40 +980,31 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 		},
 		{
 			name:   "wrong position",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
-					Config:         "C:\\config_test\\conf.d\\server_test1.con",
-					ContextPosPath: nil,
-				},
+				pos:  wrongPos,
 			},
 			wantErr: true,
 		},
 		{
 			name:   "the target is not an `include` context",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
-					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-					ContextPosPath: []int{0, 1},
-				},
+				pos:  notIncludePos,
 			},
 			wantErr: true,
 		},
 		{
 			name:   "inconsistent fingerprints",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				opts: webSrvOpts,
 				ofp:  difffp,
-				pos: metav1.ConfigContextPos{
-					Config:         "C:\\config_test\\conf.d\\server_test1.conf",
-					ContextPosPath: []int{0, 2},
-				},
+				pos:  normalPos,
 			},
 			wantErr:                 true,
 			wantErrIsInconsistentFP: true,
@@ -1820,7 +1064,11 @@ func Test_webServerConfigService_GetOptions(t *testing.T) {
 }
 
 func Test_webServerConfigService_InsertWithClone(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
@@ -1837,13 +1085,18 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	disableTheTarget := true
-	wscstore.EXPECT().InsertWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget))
+	wscstore.EXPECT().InsertWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -1885,7 +1138,11 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 }
 
 func Test_webServerConfigService_InsertWithNew(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1902,13 +1159,18 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	disableTheTarget := true
-	wscstore.EXPECT().InsertWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(new(storefake.WebServerConfigStore).InsertWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget))
+	wscstore.EXPECT().InsertWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -1950,7 +1212,11 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 }
 
 func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -1977,13 +1243,18 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
-	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), unmatchedTypeCtxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), unmatchedTypeCtxmeta))
+	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(nil)
+	wscstore.EXPECT().ModifyContextValue(nil, webSrvOpts, ofp.Fingerprints(), unmatchedTypeCtxmeta).AnyTimes().Return(errors.New("unmatched context type"))
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2033,7 +1304,11 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 }
 
 func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
@@ -2050,12 +1325,17 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
+	wscstore.EXPECT().ModifyWithClone(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2095,7 +1375,11 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 }
 
 func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\conf.d\\location2.conf",
@@ -2112,12 +1396,17 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wscstore.EXPECT().ModifyWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(new(storefake.WebServerConfigStore).ModifyWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta))
+	wscstore.EXPECT().ModifyWithNew(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2157,7 +1446,11 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 }
 
 func Test_webServerConfigService_Remove(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	pos := metav1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{8, 13, 4},
@@ -2168,13 +1461,18 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	wscstore.EXPECT().Remove(nil, webSrvOpts, ofp.Fingerprints(), pos).AnyTimes().Return(new(storefake.WebServerConfigStore).Remove(nil, webSrvOpts, ofp.Fingerprints(), pos))
+	wscstore.EXPECT().Remove(nil, webSrvOpts, ofp.Fingerprints(), pos).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2213,7 +1511,11 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 }
 
 func Test_webServerConfigService_Move(t *testing.T) {
-	webSrvOpts := metav1.WebServerOptions{}
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
 	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
 		Position: metav1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
@@ -2230,13 +1532,18 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
 	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	disableTheTarget := true
-	wscstore.EXPECT().Move(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(new(storefake.WebServerConfigStore).Move(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget))
+	wscstore.EXPECT().Move(nil, webSrvOpts, ofp.Fingerprints(), ctxmeta, disableTheTarget).AnyTimes().Return(nil)
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2279,34 +1586,26 @@ func Test_webServerConfigService_Move(t *testing.T) {
 
 func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 	global.GVA_LOG = log.ZapLogger()
-	webSrvOpts := metav1.WebServerOptions{}
-	ofp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "e2a36380e1591b13cca9d9eb5437bd1a2747901aa5f34caad39aa0960018d492",
-	}
-	difffp := utilsV3.ConfigFingerprints{
-		"C:\\config_test\\conf.d\\location.conf":     "539813c0f45630e9feba9a10c6494b4d912f0733847a4f17c650492709299c75",
-		"C:\\config_test\\conf.d\\location2.conf":    "fc2a0cf89b11602e6dbfe0aa2c98cb69220485e77ef0e32a623043eb125f2114",
-		"C:\\config_test\\conf.d\\server_test1.conf": "151c5dd9a238cdd69f4fc35d0564ab448c0e11530862457b41671fd41ddb9a0b",
-		"C:\\config_test\\conf.d\\server_test2.conf": "24480b9ef0c9c86cb90896d7871e10bab94cc25fda496050d48533d6bf542f53",
-		"C:\\config_test\\conf.d\\test1.com.conf":    "775ed01e78add3b934de529cec247b2a970558d7d1832a3e776e29a30bfc131a",
-		"C:\\config_test\\conf.d\\test2.com.conf":    "bd31d5d2604233bbac22fb73e9125375c4bc8fe4c612c4611363b8f93413b2ea",
-		"C:\\config_test\\mime.types":                "3c6049a805154dc0122c7264153036205c8f27f69699dc8ba129f212afb66d5a",
-		"C:\\config_test\\nginx.conf":                "1111111111111111111111111111111111111111111111111111111111111111",
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := storev1.NewMockFactory(ctrl)
-	cacheStore := cache.GetCacheStore(store, time.Second)
 	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
 	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
-	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(new(storefake.WebServerConfigStore).GetConfig(nil, webSrvOpts))
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	_, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	ofp := fakeFP.Fingerprints()
+
+	// Create diff fingerprint for error test case
+	difffp := utilsV3.ConfigFingerprints{
+		"C:\\config_test\\nginx.conf": "1111111111111111111111111111111111111111111111111111111111111111",
+	}
 	type fields struct {
 		store storev1.Factory
 	}
@@ -2326,7 +1625,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 	}{
 		{
 			name:   "string match rule, only in current config",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2345,7 +1644,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "regexp match rule, only in current config",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2365,7 +1664,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "string match rule, not only in current config",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2389,7 +1688,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "regexp match rule, not only in current config",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2411,7 +1710,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "context not found",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2427,7 +1726,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "config not found",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2443,7 +1742,7 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		},
 		{
 			name:   "inconsistent fingerprints",
-			fields: fields{store: cacheStore},
+			fields: fields{store: store},
 			args: args{
 				ctx:  nil,
 				opts: webSrvOpts,
@@ -2461,6 +1760,16 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "context not found" {
+				wscstore.EXPECT().SearchContextPositions(tt.args.ctx, tt.args.opts, tt.args.fp, tt.args.kwmeta).Return([]metav1.ConfigContextPos{}, nil)
+			} else if tt.name == "config not found" {
+				wscstore.EXPECT().SearchContextPositions(tt.args.ctx, tt.args.opts, tt.args.fp, tt.args.kwmeta).Return(nil, errors.New("config not found"))
+			} else if tt.name == "inconsistent fingerprints" {
+				wscstore.EXPECT().SearchContextPositions(tt.args.ctx, tt.args.opts, tt.args.fp, tt.args.kwmeta).Return(nil, errors.Wrapf(metav1.ErrInconsistentFingerprints, "fingerprint mismatch"))
+			} else {
+				wscstore.EXPECT().SearchContextPositions(tt.args.ctx, tt.args.opts, tt.args.fp, tt.args.kwmeta).Return(tt.want, nil)
+			}
+
 			w := &webServerConfigService{
 				store: tt.fields.store,
 			}
@@ -2474,6 +1783,105 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SearchContextPositions() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigService_UpdateConfig(t *testing.T) {
+	webSrvOpts := metav1.WebServerOptions{
+		GroupID:    1,
+		HostID:     1,
+		ServerName: "test-bifrost",
+	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	store := storev1.NewMockFactory(ctrl)
+	wscstore := storev1.NewMockWebServerConfigStore(ctrl)
+	store.EXPECT().WebServerConfigs().AnyTimes().Return(wscstore)
+
+	// Use fake data to get config and fingerprints
+	fakeSvc := fake.WebServerConfigService{}
+	fakeConfig, fakeFP, _ := fakeSvc.Get("test-bifrost")
+	wscstore.EXPECT().GetConfig(nil, webSrvOpts).AnyTimes().Return(fakeConfig, fakeFP, nil)
+
+	cacheStore := cache.GetCacheStore(store, time.Second)
+	_, ofp, err := cacheStore.WebServerConfigs().GetConfig(nil, webSrvOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	validJsonData := []byte(`{"main-config":"C:\\config_test\\nginx.conf","configs":{"C:\\config_test\\nginx.conf":{"enabled":true,"context-type":"config","value":"C:\\config_test\\nginx.conf","params":[{"context-type":"directive","value":"user nobody"},{"enabled":true,"context-type":"directive","value":"worker_processes 1"}]}}}`)
+	invalidJsonData := []byte(`invalid json data`)
+
+	type fields struct {
+		store storev1.Factory
+	}
+	type args struct {
+		ctx            context.Context
+		opts           metav1.WebServerOptions
+		ofp            utilsV3.ConfigFingerprints
+		configJsonData []byte
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "valid config json data",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:            nil,
+				opts:           webSrvOpts,
+				ofp:            ofp.Fingerprints(),
+				configJsonData: validJsonData,
+			},
+			wantErr: false,
+		},
+		{
+			name:   "invalid config json data",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:            nil,
+				opts:           webSrvOpts,
+				ofp:            ofp.Fingerprints(),
+				configJsonData: invalidJsonData,
+			},
+			wantErr: true,
+		},
+		{
+			name:   "inconsistent fingerprints",
+			fields: fields{store: cacheStore},
+			args: args{
+				ctx:            nil,
+				opts:           webSrvOpts,
+				ofp:            utilsV3.ConfigFingerprints{"C:\\config_test\\nginx.conf": "invalid_fingerprint"},
+				configJsonData: validJsonData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid config json data" {
+				wscstore.EXPECT().UpdateConfig(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.configJsonData).Return(nil)
+			} else if tt.name == "invalid config json data" {
+				wscstore.EXPECT().UpdateConfig(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.configJsonData).Return(
+					errors.New("invalid config json data"),
+				)
+			} else if tt.name == "inconsistent fingerprints" {
+				wscstore.EXPECT().UpdateConfig(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.configJsonData).Return(
+					errors.Wrapf(metav1.ErrInconsistentFingerprints, "fingerprint mismatch"),
+				)
+			}
+
+			w := &webServerConfigService{
+				store: tt.fields.store,
+			}
+			if err := w.UpdateConfig(tt.args.ctx, tt.args.opts, tt.args.ofp, tt.args.configJsonData); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

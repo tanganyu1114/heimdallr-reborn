@@ -1,5 +1,6 @@
 package bifrosts
 
+//go:generate mockgen -self_package=gin-vue-admin/internal/pkg/bifrosts -destination mock_bifrosts.go -package bifrosts gin-vue-admin/internal/pkg/bifrosts Manager
 import (
 	"fmt"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"

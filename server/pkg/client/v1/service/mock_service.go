@@ -14,6 +14,8 @@ import (
 	v10 "gin-vue-admin/internal/pkg/meta/v1"
 	reflect "reflect"
 
+	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -311,12 +313,13 @@ func (mr *MockWebServerConfigServiceMockRecorder) ChangeContextEnabledState(opts
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigService) GetConfig(opts *v10.WebServerOptions) (*v10.WebServerConfig, error) {
+func (m *MockWebServerConfigService) GetConfig(opts *v10.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprints, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", opts)
-	ret0, _ := ret[0].(*v10.WebServerConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(configuration.NginxConfig)
+	ret1, _ := ret[1].(utils.ConfigFingerprints)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetConfig indicates an expected call of GetConfig.
@@ -496,6 +499,20 @@ func (m *MockWebServerConfigService) SearchContextPositions(opts *v10.WebServerC
 func (mr *MockWebServerConfigServiceMockRecorder) SearchContextPositions(opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContextPositions", reflect.TypeOf((*MockWebServerConfigService)(nil).SearchContextPositions), opts)
+}
+
+// UpdateConfig mocks base method.
+func (m *MockWebServerConfigService) UpdateConfig(opts *v10.WebServerConfigUpdateOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig", opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig.
+func (mr *MockWebServerConfigServiceMockRecorder) UpdateConfig(opts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockWebServerConfigService)(nil).UpdateConfig), opts)
 }
 
 // MockWebServerBinCMDService is a mock of WebServerBinCMDService interface.

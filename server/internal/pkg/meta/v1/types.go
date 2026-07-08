@@ -68,6 +68,12 @@ type ConnectivityCheckOfProxiedServersRequestOptions struct {
 	ConfigContextPos `json:",inline"`
 }
 
+type WebServerConfigUpdateOptions struct {
+	WebServerOptions     `json:"web-server-options" binding:"required"`
+	Data                 []byte                     `json:"data" binding:"required"`
+	OriginalFingerprints utilsV3.ConfigFingerprints `json:"original-fingerprints" binding:"required"`
+}
+
 type WebServerConfigContextUpdateOptions[TargetContextMeta CloneConfigContextMeta | NewConfigContextMeta | ConfigContextEnabledStateMeta] struct {
 	WebServerOptions                              `json:"web-server-options" binding:"required"`
 	TargetConfigContextOptions[TargetContextMeta] `json:"target-config-context-options" binding:"required"`

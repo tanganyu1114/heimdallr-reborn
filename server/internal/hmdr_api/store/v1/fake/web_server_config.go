@@ -105,6 +105,16 @@ func (f WebServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.Web
 	return nil
 }
 
+func (f WebServerConfigStore) UpdateConfig(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
+		newConf, err := configuration.NewNginxConfigFromJsonBytes(configJsonData)
+		if err != nil {
+			return conf, err
+		}
+		return newConf, nil
+	})
+}
+
 func (f WebServerConfigStore) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
 	if len(pos.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse target position: %v", errors.New("nginx config context pos path is null"))

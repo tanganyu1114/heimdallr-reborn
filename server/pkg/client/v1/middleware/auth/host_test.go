@@ -5,6 +5,7 @@ import (
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -34,7 +35,7 @@ func Test_hostMiddleware_Get(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockHostTransport := transport.NewMockHostTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, *v1.Host](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](ctrl)
 
 			mockFactory.EXPECT().Hosts().Return(mockHostTransport)
 			mockHostTransport.EXPECT().Get().Return(mockClientBuilder)
@@ -73,7 +74,7 @@ func Test_hostMiddleware_List(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockHostTransport := transport.NewMockHostTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, *v1.HostList](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](ctrl)
 
 			mockFactory.EXPECT().Hosts().Return(mockHostTransport)
 			mockHostTransport.EXPECT().List().Return(mockClientBuilder)

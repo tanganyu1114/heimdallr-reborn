@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"testing"
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -55,8 +57,9 @@ func Test_webServerStatisticsService_ConnectivityCheckOfProxyService(t *testing.
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return v1.ProxyServiceInfo{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal(v1.ProxyServiceInfo{})
+		return modelclientv1.ResponseBody[v1.ProxyServiceInfo]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().ConnectivityCheckOfProxyService().Return(mockEndpoint)
 
@@ -112,10 +115,11 @@ func Test_webServerStatisticsService_ExportProxyServiceInfoToExcel(t *testing.T)
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, []byte](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return []byte("excel-data"), nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal([]byte("excel-data"))
+		return modelclientv1.ResponseBody[[]byte]{Data: data}, nil
 	})
-	mockEndpoints.EXPECT().ExportProxyServiceInfoToExcel().Return(mockEndpoint)
+	mockEndpoints.EXPECT().ExportProxyServiceInfoToExcel().Return(mockEndpoint).AnyTimes()
 
 	type fields struct {
 		ctx context.Context
@@ -169,8 +173,9 @@ func Test_webServerStatisticsService_GetProxyServiceInfo(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, []v1.ProxyServiceInfo](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return []v1.ProxyServiceInfo{{ServerName: "test-proxy"}}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal([]v1.ProxyServiceInfo{{ServerName: "test-proxy"}})
+		return modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().GetProxyServiceInfo().Return(mockEndpoint)
 

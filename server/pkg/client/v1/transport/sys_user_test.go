@@ -1,6 +1,7 @@
 package transport
 
 import (
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"reflect"
 	"testing"
 
@@ -15,15 +16,15 @@ func Test_sysUserTransport_SDKLogin(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[*request.SDKLogin, *response.LoginResponse](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 
 	type fields struct {
-		sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, *response.LoginResponse]
+		sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[*request.SDKLogin, *response.LoginResponse]
+		want   httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
 	}{
 		{
 			name: "returns SDK login client",
