@@ -52,9 +52,9 @@ func Test_webServerConfigEndpoints_ChangeContextEnabledState(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ChangeContextEnabledState().Return(mockClientBuilder).AnyTimes()
@@ -280,9 +280,9 @@ func Test_webServerConfigEndpoints_InsertWithClone(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().InsertWithClone().Return(mockClientBuilder).AnyTimes()
@@ -293,7 +293,7 @@ func Test_webServerConfigEndpoints_InsertWithClone(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns insert with clone endpoint",
@@ -318,9 +318,9 @@ func Test_webServerConfigEndpoints_InsertWithNew(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().InsertWithNew().Return(mockClientBuilder).AnyTimes()
@@ -331,7 +331,7 @@ func Test_webServerConfigEndpoints_InsertWithNew(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns insert with new endpoint",
@@ -356,9 +356,9 @@ func Test_webServerConfigEndpoints_ModifyContextValue(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ModifyContextValue().Return(mockClientBuilder).AnyTimes()
@@ -369,7 +369,7 @@ func Test_webServerConfigEndpoints_ModifyContextValue(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns modify context value endpoint",
@@ -394,9 +394,9 @@ func Test_webServerConfigEndpoints_ModifyWithClone(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ModifyWithClone().Return(mockClientBuilder).AnyTimes()
@@ -407,7 +407,7 @@ func Test_webServerConfigEndpoints_ModifyWithClone(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns modify with clone endpoint",
@@ -432,9 +432,9 @@ func Test_webServerConfigEndpoints_ModifyWithNew(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ModifyWithNew().Return(mockClientBuilder).AnyTimes()
@@ -445,7 +445,7 @@ func Test_webServerConfigEndpoints_ModifyWithNew(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns modify with new endpoint",
@@ -470,9 +470,9 @@ func Test_webServerConfigEndpoints_Move(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().Move().Return(mockClientBuilder).AnyTimes()
@@ -483,7 +483,7 @@ func Test_webServerConfigEndpoints_Move(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns move endpoint",
@@ -508,9 +508,9 @@ func Test_webServerConfigEndpoints_Remove(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().Remove().Return(mockClientBuilder).AnyTimes()
@@ -521,7 +521,7 @@ func Test_webServerConfigEndpoints_Remove(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns remove endpoint",
@@ -584,9 +584,9 @@ func Test_webServerConfigEndpoints_UpdateConfig(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerConfigTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](ctrl)
-	mockClient := httpclientv1.NewMockClient[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockClient := httpclientv1.NewMockClient[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().UpdateConfig().Return(mockClientBuilder).AnyTimes()
@@ -597,7 +597,7 @@ func Test_webServerConfigEndpoints_UpdateConfig(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
+		want   httpclientv1.Endpoint[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	}{
 		{
 			name:   "returns update config endpoint",

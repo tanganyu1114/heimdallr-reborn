@@ -348,10 +348,10 @@ func (m *MockWebServerConfigTransport) EXPECT() *MockWebServerConfigTransportMoc
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigTransport) ChangeContextEnabledState() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ChangeContextEnabledState() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeContextEnabledState")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -432,10 +432,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) GetOptions() *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigTransport) InsertWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) InsertWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithClone")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -446,10 +446,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) InsertWithClone() *gomock.Ca
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigTransport) InsertWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) InsertWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithNew")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -460,10 +460,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) InsertWithNew() *gomock.Call
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigTransport) ModifyContextValue() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyContextValue() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyContextValue")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -474,10 +474,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyContextValue() *gomock
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigTransport) ModifyWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyWithClone() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithClone")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -488,10 +488,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyWithClone() *gomock.Ca
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigTransport) ModifyWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) ModifyWithNew() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithNew")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -502,10 +502,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) ModifyWithNew() *gomock.Call
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigTransport) Move() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody] {
+func (m *MockWebServerConfigTransport) Move() v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -516,10 +516,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) Move() *gomock.Call {
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigTransport) Remove() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, v11.NilBody] {
+func (m *MockWebServerConfigTransport) Remove() v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove")
-	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 
@@ -544,10 +544,10 @@ func (mr *MockWebServerConfigTransportMockRecorder) SearchContextPositions() *go
 }
 
 // UpdateConfig mocks base method.
-func (m *MockWebServerConfigTransport) UpdateConfig() v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, v11.NilBody] {
+func (m *MockWebServerConfigTransport) UpdateConfig() v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v11.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig")
-	ret0, _ := ret[0].(v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, v11.NilBody])
+	ret0, _ := ret[0].(v11.ClientBuilder[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v11.NilBody]])
 	return ret0
 }
 

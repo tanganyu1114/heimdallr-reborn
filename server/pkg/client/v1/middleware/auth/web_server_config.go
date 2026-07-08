@@ -36,39 +36,39 @@ func (w *webServerConfigMiddleware) SearchContextPositions() httpclientv1.Client
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().SearchContextPositions())
 }
 
-func (w *webServerConfigMiddleware) InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().InsertWithClone())
 }
 
-func (w *webServerConfigMiddleware) InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().InsertWithNew())
 }
 
-func (w *webServerConfigMiddleware) Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().Remove())
 }
 
-func (w *webServerConfigMiddleware) ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().ModifyContextValue())
 }
 
-func (w *webServerConfigMiddleware) ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().ModifyWithClone())
 }
 
-func (w *webServerConfigMiddleware) ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().ChangeContextEnabledState())
 }
 
-func (w *webServerConfigMiddleware) ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().ModifyWithNew())
 }
 
-func (w *webServerConfigMiddleware) Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().Move())
 }
 
-func (w *webServerConfigMiddleware) UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody] {
+func (w *webServerConfigMiddleware) UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return wrapWithAuth(w.md, w.md.txp.WebServerConfigs().UpdateConfig())
 }
 

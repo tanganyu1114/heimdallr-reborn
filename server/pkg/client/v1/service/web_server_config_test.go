@@ -11,7 +11,9 @@ import (
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
 	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
+	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
+	"github.com/marmotedu/errors"
 	"go.uber.org/mock/gomock"
 )
 
@@ -57,8 +59,8 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ChangeContextEnabledState().Return(mockEndpoint).AnyTimes()
 
@@ -101,33 +103,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 }
 
 func Test_webServerConfigService_GetConfig(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
-
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
-		nginxConfigJSON := `{
-			"main-config": "E:\\config_test\\nginx.conf",
-			"configs": {
-				"E:\\config_test\\nginx.conf": {
-					"enabled": true,
-					"context-type": "config",
-					"value": "E:\\config_test\\nginx.conf",
-					"params": [
-						{"context-type": "directive", "value": "worker_processes 1"},
-						{"context-type": "events", "params": [{"context-type": "directive", "value": "worker_connections 1024"}]},
-						{"context-type": "http", "params": [{"context-type": "directive", "value": "sendfile on"}]}
-					]
-				}
-			}
-		}`
-		config := modelclientv1.WebServerConfig{Config: json.RawMessage(nginxConfigJSON)}
-		respData, _ := json.Marshal(&config)
-		return modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]{Data: respData}, nil
-	})
-	mockEndpoints.EXPECT().GetConfig().Return(mockEndpoint).AnyTimes()
 
 	type fields struct {
 		ctx context.Context
@@ -137,38 +113,134 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 		opts *metav1.WebServerOptions
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *metav1.WebServerConfig
-		wantErr bool
+		name             string
+		fields           fields
+		args             args
+		setupMock        func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints
+		wantConfig       *metav1.WebServerConfig
+		wantFingerprints utilsV3.ConfigFingerprints
+		wantErr          bool
 	}{
 		{
-			name: "successful get config",
+			name: "opts is nil",
 			fields: fields{
 				ctx: ctx,
-				eps: mockEndpoints,
+			},
+			args: args{
+				opts: nil,
+			},
+			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
+				return epclientv1.NewMockWebServerConfigEndpoints(ctrl)
+			},
+			wantConfig:       nil,
+			wantFingerprints: utilsV3.ConfigFingerprints{},
+			wantErr:          true,
+		},
+		{
+			name: "endpoint call error",
+			fields: fields{
+				ctx: ctx,
 			},
 			args: args{
 				opts: &metav1.WebServerOptions{},
 			},
-			want:    &metav1.WebServerConfig{},
+			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
+				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
+				mockErrorEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, errors.New("endpoint call error")
+				})
+				mockEndpoints.EXPECT().GetConfig().Return(mockErrorEndpoint)
+				return mockEndpoints
+			},
+			wantConfig:       nil,
+			wantFingerprints: utilsV3.ConfigFingerprints{},
+			wantErr:          true,
+		},
+		{
+			name: "invalid response data",
+			fields: fields{
+				ctx: ctx,
+			},
+			args: args{
+				opts: &metav1.WebServerOptions{},
+			},
+			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
+				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
+				mockInvalidResponseEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+					return modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]{Data: json.RawMessage(`invalid json`)}, nil
+				})
+				mockEndpoints.EXPECT().GetConfig().Return(mockInvalidResponseEndpoint)
+				return mockEndpoints
+			},
+			wantConfig:       nil,
+			wantFingerprints: utilsV3.ConfigFingerprints{},
+			wantErr:          true,
+		},
+		{
+			name: "successful get config with fingerprints",
+			fields: fields{
+				ctx: ctx,
+			},
+			args: args{
+				opts: &metav1.WebServerOptions{},
+			},
+			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
+				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
+				mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+					nginxConfigJSON := `{
+						"main-config": "E:\\config_test\\nginx.conf",
+						"configs": {
+							"E:\\config_test\\nginx.conf": {
+								"enabled": true,
+								"context-type": "config",
+								"value": "E:\\config_test\\nginx.conf",
+								"params": [
+									{"context-type": "directive", "value": "worker_processes 1"},
+									{"context-type": "events", "params": [{"context-type": "directive", "value": "worker_connections 1024"}]},
+									{"context-type": "http", "params": [{"context-type": "directive", "value": "sendfile on"}]}
+								]
+							}
+						}
+					}`
+					config := modelclientv1.WebServerConfig{
+						Config: json.RawMessage(nginxConfigJSON),
+						OriginalFingerprints: utilsV3.ConfigFingerprints{
+							"E:\\config_test\\nginx.conf": "main-config-hash-123",
+						},
+					}
+					respData, _ := json.Marshal(&config)
+					return modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]{Data: respData}, nil
+				})
+				mockEndpoints.EXPECT().GetConfig().Return(mockEndpoint)
+				return mockEndpoints
+			},
+			wantConfig: &metav1.WebServerConfig{},
+			wantFingerprints: utilsV3.ConfigFingerprints{
+				"E:\\config_test\\nginx.conf": "main-config-hash-123",
+			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			tt.fields.eps = tt.setupMock(ctrl)
 			s := &webServerConfigService{
 				ctx: tt.fields.ctx,
 				eps: tt.fields.eps,
 			}
-			got, err := s.GetConfig(tt.args.opts)
+			gotConfig, gotFingerprints, err := s.GetConfig(tt.args.opts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got == nil && tt.want != nil {
-				t.Errorf("GetConfig() got = nil, want %v", tt.want)
+			if gotConfig == nil && tt.wantConfig != nil {
+				t.Errorf("GetConfig() got = nil, want %v", tt.wantConfig)
+			}
+			if !reflect.DeepEqual(gotFingerprints, tt.wantFingerprints) {
+				t.Errorf("GetConfig() fingerprints = %v, want %v", gotFingerprints, tt.wantFingerprints)
 			}
 		})
 	}
@@ -406,8 +478,8 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().InsertWithClone().Return(mockEndpoint).AnyTimes()
 
@@ -456,8 +528,8 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().InsertWithNew().Return(mockEndpoint)
 
@@ -506,8 +578,8 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyContextValue().Return(mockEndpoint)
 
@@ -556,8 +628,8 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyWithClone().Return(mockEndpoint)
 
@@ -606,8 +678,8 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyWithNew().Return(mockEndpoint)
 
@@ -656,8 +728,8 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().Move().Return(mockEndpoint)
 
@@ -706,8 +778,8 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().Remove().Return(mockEndpoint)
 
@@ -814,8 +886,8 @@ func Test_webServerConfigService_UpdateConfig(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return httpclientv1.NilBody{}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().UpdateConfig().Return(mockEndpoint).AnyTimes()
 

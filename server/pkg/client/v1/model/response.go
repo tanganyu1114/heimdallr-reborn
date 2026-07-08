@@ -19,8 +19,8 @@ func (r *ResponseBody[RESP]) Response() (resp RESP, err error) {
 		err = errors.Errorf("heimdallr response code %d, message %s", r.Code, r.Message)
 		return zero, err
 	}
-	// Handle JSON null value for NilBody type (server returns "null" for empty response)
-	if isNilBody[RESP]() && string(r.Data) == "null" {
+	// Handle JSON null value for NilBody type (server returns "null" or "{}" or "" for empty response)
+	if isNilBody[RESP]() && (r.Data == nil || string(r.Data) == "null" || string(r.Data) == "{}" || string(r.Data) == "") {
 		return zero, nil
 	}
 

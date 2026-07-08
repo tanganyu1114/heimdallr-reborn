@@ -15,6 +15,7 @@ import (
 	reflect "reflect"
 
 	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
+	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -312,12 +313,13 @@ func (mr *MockWebServerConfigServiceMockRecorder) ChangeContextEnabledState(opts
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigService) GetConfig(opts *v10.WebServerOptions) (configuration.NginxConfig, error) {
+func (m *MockWebServerConfigService) GetConfig(opts *v10.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprints, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", opts)
 	ret0, _ := ret[0].(configuration.NginxConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(utils.ConfigFingerprints)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetConfig indicates an expected call of GetConfig.

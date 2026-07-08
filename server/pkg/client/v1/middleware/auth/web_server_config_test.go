@@ -35,7 +35,7 @@ func Test_webServerConfigMiddleware_ChangeContextEnabledState(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().ChangeContextEnabledState().Return(mockClientBuilder)
@@ -269,7 +269,7 @@ func Test_webServerConfigMiddleware_InsertWithClone(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().InsertWithClone().Return(mockClientBuilder)
@@ -308,7 +308,7 @@ func Test_webServerConfigMiddleware_InsertWithNew(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().InsertWithNew().Return(mockClientBuilder)
@@ -347,7 +347,7 @@ func Test_webServerConfigMiddleware_ModifyContextValue(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().ModifyContextValue().Return(mockClientBuilder)
@@ -386,7 +386,7 @@ func Test_webServerConfigMiddleware_ModifyWithClone(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().ModifyWithClone().Return(mockClientBuilder)
@@ -425,7 +425,7 @@ func Test_webServerConfigMiddleware_ModifyWithNew(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().ModifyWithNew().Return(mockClientBuilder)
@@ -464,7 +464,7 @@ func Test_webServerConfigMiddleware_Move(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().Move().Return(mockClientBuilder)
@@ -503,7 +503,7 @@ func Test_webServerConfigMiddleware_Remove(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().Remove().Return(mockClientBuilder)
@@ -581,7 +581,7 @@ func Test_webServerConfigMiddleware_UpdateConfig(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().UpdateConfig().Return(mockClientBuilder)

@@ -24,23 +24,23 @@ type WebServerConfigTransport interface {
 	// SearchContextPositions returns the search context positions client
 	SearchContextPositions() httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 	// InsertWithClone returns the insert with clone client
-	InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+	InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// InsertWithNew returns the insert with new client
-	InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+	InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// Remove returns the remove client
-	Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
+	Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// UpdateConfig returns the update config client
-	UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
+	UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// ModifyContextValue returns the modify context value client
-	ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+	ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// ModifyWithClone returns the modify with clone client
-	ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+	ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// ChangeContextEnabledState returns the change context enabled state client
-	ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody]
+	ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// ModifyWithNew returns the modify with new client
-	ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+	ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 	// Move returns the move client
-	Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+	Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 }
 
 // webServerConfigTransport implements WebServerConfigTransport interface
@@ -51,15 +51,15 @@ type webServerConfigTransport struct {
 	getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
 	getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
 	searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
-	insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
-	insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
-	removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
-	updateConfigClient              httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
-	modifyContextValueClient        httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
-	modifyWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
-	changeContextEnabledStateClient httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody]
-	modifyWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
-	moveClient                      httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+	insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	updateConfigClient              httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	modifyContextValueClient        httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	modifyWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	changeContextEnabledStateClient httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	modifyWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
+	moveClient                      httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]]
 }
 
 // newWebServerConfigTransport creates a new WebServerConfigs transport
@@ -101,55 +101,55 @@ func newWebServerConfigTransport(transport *transport) WebServerConfigTransport 
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		insertWithCloneClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](
+		insertWithCloneClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/insert-clone-ctx",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		insertWithNewClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](
+		insertWithNewClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/insert-new-ctx",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		removeClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](
+		removeClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodDelete,
 			transport.baseURL+"/conf/remove-ctx",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		updateConfigClient: httpclientv1.NewClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](
+		updateConfigClient: httpclientv1.NewClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/update-conf",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		modifyContextValueClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](
+		modifyContextValueClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/modify-ctx-value",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		modifyWithCloneClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](
+		modifyWithCloneClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/modify-clone-ctx",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		changeContextEnabledStateClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](
+		changeContextEnabledStateClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/change-ctx-enabled-state",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		modifyWithNewClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](
+		modifyWithNewClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/modify-new-ctx",
 		).WithOptions(
 			http_transport.SetClient(transport.Client),
 		),
-		moveClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](
+		moveClient: httpclientv1.NewClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/conf/move-ctx",
 		).WithOptions(
@@ -190,46 +190,46 @@ func (w *webServerConfigTransport) SearchContextPositions() httpclientv1.ClientB
 }
 
 // InsertWithClone returns the insert with clone client
-func (w *webServerConfigTransport) InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) InsertWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.insertWithCloneClient
 }
 
 // InsertWithNew returns the insert with new client
-func (w *webServerConfigTransport) InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) InsertWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.insertWithNewClient
 }
 
 // Remove returns the remove client
-func (w *webServerConfigTransport) Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody] {
+func (w *webServerConfigTransport) Remove() httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.removeClient
 }
 
 // UpdateConfig returns the update config client
-func (w *webServerConfigTransport) UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody] {
+func (w *webServerConfigTransport) UpdateConfig() httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.updateConfigClient
 }
 
 // ModifyContextValue returns the modify context value client
-func (w *webServerConfigTransport) ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) ModifyContextValue() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.modifyContextValueClient
 }
 
 // ModifyWithClone returns the modify with clone client
-func (w *webServerConfigTransport) ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) ModifyWithClone() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.modifyWithCloneClient
 }
 
 // ChangeContextEnabledState returns the change context enabled state client
-func (w *webServerConfigTransport) ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) ChangeContextEnabledState() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.changeContextEnabledStateClient
 }
 
 // ModifyWithNew returns the modify with new client
-func (w *webServerConfigTransport) ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) ModifyWithNew() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.modifyWithNewClient
 }
 
 // Move returns the move client
-func (w *webServerConfigTransport) Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody] {
+func (w *webServerConfigTransport) Move() httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]] {
 	return w.moveClient
 }
