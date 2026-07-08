@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
-	"github.com/tanganyu1114/heimdallr-reborn/config"
+	"github.com/tanganyu1114/heimdallr-reborn/server/config"
 	"gorm.io/gorm"
 )
 

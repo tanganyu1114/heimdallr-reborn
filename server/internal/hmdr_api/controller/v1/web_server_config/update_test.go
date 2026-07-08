@@ -3,10 +3,10 @@ package web_server_config
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"net/http/httptest"
 	"testing"
 

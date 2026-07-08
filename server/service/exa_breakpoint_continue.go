@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 	"gorm.io/gorm"
 )
 

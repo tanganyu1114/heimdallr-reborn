@@ -2,10 +2,10 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
-	"github.com/tanganyu1114/heimdallr-reborn/service"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/service"
 	"go.uber.org/zap"
 )
 

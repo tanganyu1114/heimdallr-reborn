@@ -2,8 +2,8 @@ package agent_info
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"go.uber.org/zap"
 )
 

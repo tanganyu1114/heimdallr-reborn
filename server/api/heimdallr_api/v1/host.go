@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 )
 
 type Host struct {

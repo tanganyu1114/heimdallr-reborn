@@ -3,9 +3,9 @@ package bifrosts
 //go:generate mockgen -self_package=gin-vue-admin/internal/pkg/bifrosts -destination mock_bifrosts.go -package bifrosts gin-vue-admin/internal/pkg/bifrosts Manager
 import (
 	"fmt"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
 	"sync"
 
 	bifrost "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"

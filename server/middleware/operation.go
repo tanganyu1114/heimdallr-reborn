@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"bytes"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
-	"github.com/tanganyu1114/heimdallr-reborn/model/request"
-	"github.com/tanganyu1114/heimdallr-reborn/service"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/server/service"
 	"io/ioutil"
 	"net/http"
 	"strconv"

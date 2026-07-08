@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tanganyu1114/heimdallr-reborn/api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/v1"
 )
 
 func InitFileUploadAndDownloadRouter(Router *gin.RouterGroup) {

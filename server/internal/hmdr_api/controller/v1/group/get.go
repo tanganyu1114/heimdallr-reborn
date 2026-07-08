@@ -2,9 +2,9 @@ package group
 
 import (
 	"github.com/gin-gonic/gin"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"go.uber.org/zap"
 )
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/endpoint"
+	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 
 	"github.com/marmotedu/errors"
 )

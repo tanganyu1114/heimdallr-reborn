@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	_ "github.com/tanganyu1114/heimdallr-reborn/docs"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/middleware"
-	"github.com/tanganyu1114/heimdallr-reborn/router"
+	_ "github.com/tanganyu1114/heimdallr-reborn/server/docs"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
+	"github.com/tanganyu1114/heimdallr-reborn/server/router"
 	"net/http"
 )
 

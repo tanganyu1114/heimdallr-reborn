@@ -3,8 +3,8 @@ package datas
 import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gookit/color"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 	"gorm.io/gorm"
 	"os"
 )

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 )
 
 //@author: [maplepie](https://github.com/maplepie)

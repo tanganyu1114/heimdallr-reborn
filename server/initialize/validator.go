@@ -1,6 +1,6 @@
 package initialize
 
-import "github.com/tanganyu1114/heimdallr-reborn/utils"
+import "github.com/tanganyu1114/heimdallr-reborn/server/utils"
 
 func init() {
 	_ = utils.RegisterRule("PageVerify",

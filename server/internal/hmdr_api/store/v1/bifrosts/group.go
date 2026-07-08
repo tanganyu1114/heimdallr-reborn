@@ -3,10 +3,10 @@ package bifrosts
 import (
 	"context"
 	"github.com/marmotedu/errors"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"sync"
 )
 

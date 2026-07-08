@@ -4,7 +4,7 @@ package endpoint
 import (
 	"sync"
 
-	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
 	"github.com/marmotedu/errors"
 )

@@ -1,7 +1,7 @@
 package agent_info
 
 import (
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
 )
 
 type AgentInfoController struct {

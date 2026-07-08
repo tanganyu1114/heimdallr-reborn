@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 )
 
 // Middleware defines the middleware function type.

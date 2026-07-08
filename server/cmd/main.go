@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/tanganyu1114/heimdallr-reborn/cmd/gva"
+import "github.com/tanganyu1114/heimdallr-reborn/server/cmd/gva"
 
 func main() {
 	gva.Execute()

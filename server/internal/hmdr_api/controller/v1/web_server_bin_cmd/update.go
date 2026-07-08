@@ -2,9 +2,9 @@ package web_server_bin_cmd
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"go.uber.org/zap"
 )
 

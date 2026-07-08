@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 	"encoding/json"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"reflect"
 	"testing"
 
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/endpoint"
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"

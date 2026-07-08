@@ -16,14 +16,14 @@ limitations under the License.
 package gva
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/cmd/datas"
-	"github.com/tanganyu1114/heimdallr-reborn/core"
-	"github.com/tanganyu1114/heimdallr-reborn/initialize"
+	"github.com/tanganyu1114/heimdallr-reborn/server/cmd/datas"
+	"github.com/tanganyu1114/heimdallr-reborn/server/core"
+	"github.com/tanganyu1114/heimdallr-reborn/server/initialize"
 
 	"github.com/gookit/color"
 
-	_ "github.com/tanganyu1114/heimdallr-reborn/core"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	_ "github.com/tanganyu1114/heimdallr-reborn/server/core"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 
 	"github.com/spf13/cobra"
 )

@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/middleware"
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
 
 	"github.com/gin-gonic/gin"
 )

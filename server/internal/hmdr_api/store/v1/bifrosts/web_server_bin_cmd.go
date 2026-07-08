@@ -3,8 +3,8 @@ package bifrosts
 import (
 	"context"
 	"github.com/marmotedu/errors"
-	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"sync"
 )
 

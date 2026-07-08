@@ -10,11 +10,11 @@
 package transport
 
 import (
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	v10 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	request "github.com/tanganyu1114/heimdallr-reborn/model/request"
-	response "github.com/tanganyu1114/heimdallr-reborn/model/response"
-	model "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	v10 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	request "github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	response "github.com/tanganyu1114/heimdallr-reborn/server/model/response"
+	model "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	reflect "reflect"
 
 	v11 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"

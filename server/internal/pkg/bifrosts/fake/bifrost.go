@@ -2,7 +2,7 @@ package fake
 
 import (
 	"fmt"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"strings"
 
 	"github.com/ClessLi/bifrost/pkg/client/bifrost/v1/service"

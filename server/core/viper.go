@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	_ "github.com/tanganyu1114/heimdallr-reborn/packfile"
-	"github.com/tanganyu1114/heimdallr-reborn/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	_ "github.com/tanganyu1114/heimdallr-reborn/server/packfile"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 	"os"
 )
 

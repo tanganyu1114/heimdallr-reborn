@@ -2,12 +2,12 @@ package bifrosts
 
 import (
 	"context"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	storev1utils "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1/utils"
-	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
 	"sync"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"

@@ -1,4 +1,4 @@
-module github.com/tanganyu1114/heimdallr-reborn
+module github.com/tanganyu1114/heimdallr-reborn/server
 
 go 1.25
 
