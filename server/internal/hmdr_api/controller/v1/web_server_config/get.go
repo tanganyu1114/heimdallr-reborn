@@ -1,9 +1,9 @@
 package web_server_config
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"

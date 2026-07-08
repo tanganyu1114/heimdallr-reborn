@@ -1,8 +1,8 @@
 package v1
 
 import (
-	mwclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/middleware"
-	mwauthv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/middleware/auth"
+	mwclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/middleware"
+	mwauthv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/middleware/auth"
 	"net/http"
 	"time"
 )

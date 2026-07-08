@@ -2,7 +2,7 @@
 package model
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 )
 
 // 如果含有time.Time 请自行import time包

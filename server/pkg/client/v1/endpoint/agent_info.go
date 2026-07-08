@@ -1,11 +1,11 @@
 package endpoint
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 	"sync"
 
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 )

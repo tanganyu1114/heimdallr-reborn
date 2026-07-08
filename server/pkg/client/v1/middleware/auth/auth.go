@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tanganyu1114/heimdallr-reborn/model/request"
-	"github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/middleware"
-	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/middleware"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"

@@ -1,12 +1,12 @@
 package transport
 
 import (
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	"reflect"
 	"testing"
 
-	"github.com/tanganyu1114/heimdallr-reborn/model/request"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"

@@ -3,10 +3,10 @@ package bifrosts
 import (
 	"fmt"
 	"github.com/marmotedu/errors"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
 	"go.uber.org/zap"
 	"sync"
 )

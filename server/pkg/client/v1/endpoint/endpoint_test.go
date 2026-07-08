@@ -3,7 +3,7 @@ package endpoint
 import (
 	"testing"
 
-	"github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
 	"go.uber.org/mock/gomock"
 )

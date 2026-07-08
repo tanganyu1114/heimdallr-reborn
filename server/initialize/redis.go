@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"github.com/go-redis/redis"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"go.uber.org/zap"
 )
 

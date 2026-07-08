@@ -17,7 +17,7 @@ package gva
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/tanganyu1114/heimdallr-reborn/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 	"os"
 )
 

@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 )
 
 type SysUserResponse struct {

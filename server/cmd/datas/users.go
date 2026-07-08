@@ -1,13 +1,13 @@
 package datas
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"os"
 	"time"
 
 	"github.com/gookit/color"
 
-	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"

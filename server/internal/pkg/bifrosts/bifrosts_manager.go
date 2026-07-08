@@ -2,10 +2,10 @@ package bifrosts
 
 import (
 	"fmt"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
 	"sync"
 
 	bifrost "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"

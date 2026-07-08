@@ -1,8 +1,8 @@
 package transport
 
 import (
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	http_transport "github.com/go-kit/kit/transport/http"

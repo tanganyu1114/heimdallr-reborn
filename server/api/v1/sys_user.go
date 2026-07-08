@@ -1,13 +1,13 @@
 package v1
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/middleware"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
-	"github.com/tanganyu1114/heimdallr-reborn/model/request"
-	"github.com/tanganyu1114/heimdallr-reborn/model/response"
-	"github.com/tanganyu1114/heimdallr-reborn/service"
-	"github.com/tanganyu1114/heimdallr-reborn/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/server/service"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"

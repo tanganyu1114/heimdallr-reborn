@@ -6,7 +6,7 @@ import (
 
 	"github.com/gookit/color"
 
-	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 
 	"gorm.io/gorm"
 )

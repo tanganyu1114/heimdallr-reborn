@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/config"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/model"
-	"github.com/tanganyu1114/heimdallr-reborn/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/config"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 	"go.uber.org/zap"
 )
 

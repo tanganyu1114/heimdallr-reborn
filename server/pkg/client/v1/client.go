@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/endpoint"
-	mwclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/middleware"
-	svcclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/service"
-	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
+	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
+	mwclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/middleware"
+	svcclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
 )

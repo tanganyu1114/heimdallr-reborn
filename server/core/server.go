@@ -2,8 +2,8 @@ package core
 
 import (
 	"fmt"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/initialize"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/initialize"
 	"go.uber.org/zap"
 	"time"
 )

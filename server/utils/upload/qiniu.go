@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/qiniu/api.v7/v7/auth/qbox"
 	"github.com/qiniu/api.v7/v7/storage"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"go.uber.org/zap"
 	"mime/multipart"
 	"time"

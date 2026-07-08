@@ -1,7 +1,7 @@
 package upload
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"mime/multipart"
 )
 

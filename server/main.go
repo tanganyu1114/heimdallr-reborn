@@ -3,11 +3,11 @@ package main
 import (
 	"database/sql"
 	"github.com/robfig/cron/v3"
-	"github.com/tanganyu1114/heimdallr-reborn/core"
-	"github.com/tanganyu1114/heimdallr-reborn/global"
-	"github.com/tanganyu1114/heimdallr-reborn/initialize"
-	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1/bifrosts"
+	"github.com/tanganyu1114/heimdallr-reborn/server/core"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/initialize"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/bifrosts"
 	"go.uber.org/zap"
 )
 
