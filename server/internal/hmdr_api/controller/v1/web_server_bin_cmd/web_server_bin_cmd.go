@@ -1,7 +1,7 @@
 package web_server_bin_cmd
 
 import (
-	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
 )
 
 type WebServerBinCMDController struct {

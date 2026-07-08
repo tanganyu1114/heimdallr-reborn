@@ -1,8 +1,8 @@
 package router
 
 import (
-	"gin-vue-admin/api/v1"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/api/v1"
 )
 
 func InitSimpleUploaderRouter(Router *gin.RouterGroup) {

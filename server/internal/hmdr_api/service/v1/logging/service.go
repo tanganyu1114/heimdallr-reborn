@@ -1,8 +1,8 @@
 package logging
 
 import (
-	"gin-vue-admin/global"
-	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

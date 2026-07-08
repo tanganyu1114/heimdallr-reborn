@@ -11,8 +11,8 @@ package v1
 
 import (
 	context "context"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	v10 "gin-vue-admin/internal/pkg/meta/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	v10 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 	reflect "reflect"
 
 	context0 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"

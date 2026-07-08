@@ -2,12 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"gin-vue-admin/core"
-	"gin-vue-admin/global"
-	"gin-vue-admin/initialize"
-	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
-	"gin-vue-admin/internal/hmdr_api/store/v1/bifrosts"
 	"github.com/robfig/cron/v3"
+	"github.com/tanganyu1114/heimdallr-reborn/core"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/initialize"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1/bifrosts"
 	"go.uber.org/zap"
 )
 

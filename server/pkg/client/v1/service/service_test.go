@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/endpoint"
 
 	"go.uber.org/mock/gomock"
 )

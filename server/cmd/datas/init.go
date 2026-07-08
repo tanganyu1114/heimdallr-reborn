@@ -1,10 +1,10 @@
 package datas
 
 import (
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gookit/color"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 	"gorm.io/gorm"
 	"os"
 )

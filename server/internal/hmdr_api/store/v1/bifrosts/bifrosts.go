@@ -2,11 +2,11 @@ package bifrosts
 
 import (
 	"fmt"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
-	"gin-vue-admin/internal/pkg/bifrosts"
 	"github.com/marmotedu/errors"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
 	"go.uber.org/zap"
 	"sync"
 )

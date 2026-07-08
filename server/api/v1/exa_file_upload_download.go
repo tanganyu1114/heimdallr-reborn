@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
-	"gin-vue-admin/model/request"
-	"gin-vue-admin/model/response"
-	"gin-vue-admin/service"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/service"
 	"go.uber.org/zap"
 )
 
@@ -75,6 +75,6 @@ func GetFileList(c *gin.Context) {
 			Total:    total,
 			Page:     pageInfo.Page,
 			PageSize: pageInfo.PageSize,
-		},"获取成功", c)
+		}, "获取成功", c)
 	}
 }

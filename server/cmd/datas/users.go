@@ -1,13 +1,13 @@
 package datas
 
 import (
-	"gin-vue-admin/global"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 	"os"
 	"time"
 
 	"github.com/gookit/color"
 
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"

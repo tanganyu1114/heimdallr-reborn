@@ -3,11 +3,11 @@ package web_server_config
 import (
 	"bytes"
 	"encoding/json"
-	"gin-vue-admin/global"
-	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
-	"gin-vue-admin/internal/pkg/bifrosts/fake"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"gin-vue-admin/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts/fake"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
 	"net/http/httptest"
 	"testing"
 

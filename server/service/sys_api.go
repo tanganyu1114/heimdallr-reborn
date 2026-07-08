@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
-	"gin-vue-admin/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
 	"gorm.io/gorm"
 )
 

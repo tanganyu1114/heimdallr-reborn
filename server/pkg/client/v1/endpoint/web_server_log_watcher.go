@@ -1,8 +1,8 @@
 package endpoint
 
 import (
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	txpclientv1 "gin-vue-admin/pkg/client/v1/transport"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
 
 	"github.com/gorilla/websocket"
 

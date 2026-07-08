@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"gin-vue-admin/global"
-	"gin-vue-admin/model/request"
-	"gin-vue-admin/model/response"
-	"gin-vue-admin/service"
-	"gin-vue-admin/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/service"
+	"github.com/tanganyu1114/heimdallr-reborn/utils"
 	"go.uber.org/zap"
 )
 
@@ -51,4 +51,3 @@ func GetPolicyPathByAuthorityId(c *gin.Context) {
 	paths := service.GetPolicyPathByAuthorityId(casbin.AuthorityId)
 	response.OkWithDetailed(response.PolicyPathResponse{Paths: paths}, "获取成功", c)
 }
-

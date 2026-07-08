@@ -3,9 +3,9 @@ package auth
 import (
 	"testing"
 
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
-	"gin-vue-admin/pkg/client/v1/transport"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"github.com/stretchr/testify/assert"

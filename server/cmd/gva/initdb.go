@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,14 +16,14 @@ limitations under the License.
 package gva
 
 import (
-	"gin-vue-admin/cmd/datas"
-	"gin-vue-admin/core"
-	"gin-vue-admin/initialize"
+	"github.com/tanganyu1114/heimdallr-reborn/cmd/datas"
+	"github.com/tanganyu1114/heimdallr-reborn/core"
+	"github.com/tanganyu1114/heimdallr-reborn/initialize"
 
 	"github.com/gookit/color"
 
-	_ "gin-vue-admin/core"
-	"gin-vue-admin/global"
+	_ "github.com/tanganyu1114/heimdallr-reborn/core"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 
 	"github.com/spf13/cobra"
 )
@@ -40,7 +40,7 @@ var initdbCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		path, _ := cmd.Flags().GetString("path")
 		global.GVA_VP = core.Viper(path)
-		global.GVA_LOG = core.Zap()           // 初始化zap日志库
+		global.GVA_LOG = core.Zap() // 初始化zap日志库
 		db := initialize.GormMysql()
 		switch global.GVA_CONFIG.System.DbType {
 		case "mysql":

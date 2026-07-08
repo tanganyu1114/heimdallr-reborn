@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)

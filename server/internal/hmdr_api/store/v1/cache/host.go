@@ -2,9 +2,9 @@ package cache
 
 import (
 	"context"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 )
 
 type hostStore struct {

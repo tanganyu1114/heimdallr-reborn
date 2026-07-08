@@ -1,6 +1,6 @@
 package initialize
 
-import "gin-vue-admin/utils"
+import "github.com/tanganyu1114/heimdallr-reborn/utils"
 
 func init() {
 	_ = utils.RegisterRule("PageVerify",

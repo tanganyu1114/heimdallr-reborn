@@ -1,7 +1,7 @@
 package response
 
 import (
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 )
 
 type SysUserResponse struct {

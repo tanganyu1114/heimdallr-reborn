@@ -1,7 +1,7 @@
 package fake
 
 import (
-	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
 )
 
 type Store struct {

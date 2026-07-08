@@ -1,9 +1,9 @@
 package transport
 
 import (
-	"gin-vue-admin/model/request"
-	"gin-vue-admin/model/response"
-	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	http_transport "github.com/go-kit/kit/transport/http"

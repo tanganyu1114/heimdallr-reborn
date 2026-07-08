@@ -1,9 +1,9 @@
 package router
 
 import (
-	"gin-vue-admin/api/v1"
-	"gin-vue-admin/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/middleware"
 )
 
 func InitSysDictionaryDetailRouter(Router *gin.RouterGroup) {

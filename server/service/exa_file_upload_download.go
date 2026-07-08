@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
-	"gin-vue-admin/model/request"
-	"gin-vue-admin/utils/upload"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/utils/upload"
 	"mime/multipart"
 	"strings"
 )
@@ -42,7 +42,7 @@ func DeleteFile(file model.ExaFileUploadAndDownload) (err error) {
 	var fileFromDb model.ExaFileUploadAndDownload
 	err, fileFromDb = FindFile(file.ID)
 	oss := upload.NewOss()
-	if err = oss.DeleteFile(fileFromDb.Key); err != nil{
+	if err = oss.DeleteFile(fileFromDb.Key); err != nil {
 		return errors.New("文件删除失败")
 	}
 	err = global.GVA_DB.Where("id = ?", file.ID).Unscoped().Delete(file).Error

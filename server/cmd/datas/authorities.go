@@ -6,7 +6,7 @@ import (
 
 	"github.com/gookit/color"
 
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 
 	"gorm.io/gorm"
 )

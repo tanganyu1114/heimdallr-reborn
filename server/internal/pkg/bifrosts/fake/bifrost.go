@@ -2,7 +2,7 @@ package fake
 
 import (
 	"fmt"
-	"gin-vue-admin/global"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 	"strings"
 
 	"github.com/ClessLi/bifrost/pkg/client/bifrost/v1/service"
