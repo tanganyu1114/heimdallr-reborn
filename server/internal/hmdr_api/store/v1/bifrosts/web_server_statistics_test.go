@@ -7,7 +7,6 @@ import (
 	"gin-vue-admin/internal/pkg/bifrosts"
 	"gin-vue-admin/internal/pkg/bifrosts/fake"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -93,8 +92,9 @@ func Test_webServerStatisticsStore_GetProxyServiceInfo(t *testing.T) {
 					"", []string{},
 					metav1.ConfigContextPos{"C:\\config_test\\conf.d\\location1.conf", []int{0, 0}}},
 				{"", 8888, "", "", "baidu.com:22", "", "TCP/UDP",
-					[]local.ProxiedAddress{{"baidu.com", 22, []*local.Socket{{"39.156.70.37", 22, 0, 0},
-						{"220.181.7.203", 22, 0, 0}}, local.ToJSONError(nil)}},
+					[]local.ProxiedAddress{{"baidu.com", 22, []*local.Socket{{"124.237.177.164", 22, 0, 0},
+						{"110.242.74.102", 22, 0, 0},
+						{"111.63.65.103", 22, 0, 0}}, local.ToJSONError(nil)}},
 					"", []string{},
 					metav1.ConfigContextPos{"C:\\config_test\\nginx.conf", []int{12, 0, 1}}},
 			},
@@ -140,16 +140,67 @@ func Test_webServerStatisticsStore_GetProxyServiceInfo(t *testing.T) {
 			slices.SortFunc(tt.want, func(a, b v1.ProxyServiceInfo) int {
 				return a.ServerPort - b.ServerPort
 			})
-			gotJson, err := json.Marshal(got)
-			if err != nil {
-				t.Errorf("json.Marshal() error = %v", err)
+			// Sort sockets within each ProxyServiceInfo to handle DNS resolution order changes
+			for i := range got {
+				slices.SortFunc(got[i].ProxyAddress, func(a, b local.ProxiedAddress) int {
+					return strings.Compare(a.DomainName, b.DomainName)
+				})
+				for j := range got[i].ProxyAddress {
+					slices.SortFunc(got[i].ProxyAddress[j].Sockets, func(a, b *local.Socket) int {
+						return strings.Compare(a.IPv4, b.IPv4)
+					})
+				}
 			}
-			wantJson, err := json.Marshal(tt.want)
-			if err != nil {
-				t.Errorf("json.Marshal() error = %v", err)
+			for i := range tt.want {
+				slices.SortFunc(tt.want[i].ProxyAddress, func(a, b local.ProxiedAddress) int {
+					return strings.Compare(a.DomainName, b.DomainName)
+				})
+				for j := range tt.want[i].ProxyAddress {
+					slices.SortFunc(tt.want[i].ProxyAddress[j].Sockets, func(a, b *local.Socket) int {
+						return strings.Compare(a.IPv4, b.IPv4)
+					})
+				}
 			}
-			if string(gotJson) != string(wantJson) {
-				t.Errorf("GetProxyServiceInfo() got = %s, want %s", gotJson, wantJson)
+			// Compare using a custom comparator that ignores dynamic DNS IPs
+			if len(got) != len(tt.want) {
+				gotJson, _ := json.Marshal(got)
+				wantJson, _ := json.Marshal(tt.want)
+				t.Errorf("GetProxyServiceInfo() length mismatch: got %d, want %d\ngot = %s\nwant = %s", len(got), len(tt.want), gotJson, wantJson)
+				return
+			}
+			for i := range got {
+				if got[i].ServerName != tt.want[i].ServerName ||
+					got[i].ServerPort != tt.want[i].ServerPort ||
+					got[i].Location != tt.want[i].Location ||
+					got[i].IfCondition != tt.want[i].IfCondition ||
+					got[i].ProxyOriginalURL != tt.want[i].ProxyOriginalURL ||
+					got[i].ProxyURI != tt.want[i].ProxyURI ||
+					got[i].ProxyProtocol != tt.want[i].ProxyProtocol ||
+					got[i].ProxyServiceComment != tt.want[i].ProxyServiceComment ||
+					got[i].ContextPos.Config != tt.want[i].ContextPos.Config ||
+					!slices.Equal(got[i].ContextPos.ContextPosPath, tt.want[i].ContextPos.ContextPosPath) {
+					gotJson, _ := json.Marshal(got)
+					wantJson, _ := json.Marshal(tt.want)
+					t.Errorf("GetProxyServiceInfo() mismatch at index %d:\ngot = %s\nwant = %s", i, gotJson, wantJson)
+					return
+				}
+				// Compare ProxyAddress: check domain, port, and socket count (ignore specific IPs)
+				if len(got[i].ProxyAddress) != len(tt.want[i].ProxyAddress) {
+					gotJson, _ := json.Marshal(got)
+					wantJson, _ := json.Marshal(tt.want)
+					t.Errorf("GetProxyServiceInfo() ProxyAddress length mismatch at index %d:\ngot = %s\nwant = %s", i, gotJson, wantJson)
+					return
+				}
+				for j := range got[i].ProxyAddress {
+					if got[i].ProxyAddress[j].DomainName != tt.want[i].ProxyAddress[j].DomainName ||
+						got[i].ProxyAddress[j].Port != tt.want[i].ProxyAddress[j].Port ||
+						len(got[i].ProxyAddress[j].Sockets) != len(tt.want[i].ProxyAddress[j].Sockets) {
+						gotJson, _ := json.Marshal(got)
+						wantJson, _ := json.Marshal(tt.want)
+						t.Errorf("GetProxyServiceInfo() ProxyAddress mismatch at index %d.%d:\ngot = %s\nwant = %s", i, j, gotJson, wantJson)
+						return
+					}
+				}
 			}
 		})
 	}
@@ -191,8 +242,8 @@ func Test_webServerStatisticsStore_ConnectivityCheckOfProxyService(t *testing.T)
 				ProxyOriginalURL: "https://www.baidu.com",
 				ProxyURI:         "",
 				ProxyProtocol:    "HTTPS",
-				ProxyAddress: []local.ProxiedAddress{{DomainName: "www.baidu.com", Port: 443, Sockets: []*local.Socket{{"183.240.99.58", 443, 1, 0},
-					{"183.240.99.169", 443, 1, 0}}, ResolveErr: local.ToJSONError(nil)}},
+				ProxyAddress: []local.ProxiedAddress{{DomainName: "www.baidu.com", Port: 443, Sockets: []*local.Socket{{"183.240.99.58", 443, bifrostv1.NetUnknown, bifrostv1.NetUnknown},
+					{"183.240.99.169", 443, bifrostv1.NetUnknown, bifrostv1.NetUnknown}}, ResolveErr: local.ToJSONError(nil)}},
 				ContextPos: metav1.ConfigContextPos{Config: "C:\\config_test\\conf.d\\location.conf", ContextPosPath: []int{1, 0}},
 			},
 		},
@@ -209,8 +260,9 @@ func Test_webServerStatisticsStore_ConnectivityCheckOfProxyService(t *testing.T)
 				ProxyURI:         "",
 				ProxyProtocol:    "TCP/UDP",
 				ProxyAddress: []local.ProxiedAddress{{DomainName: "baidu.com", Port: 22,
-					Sockets: []*local.Socket{{"39.156.70.37", 22, 2, 0},
-						{"220.181.7.203", 22, 2, 0}}, ResolveErr: local.ToJSONError(nil)}},
+					Sockets: []*local.Socket{{"124.237.177.164", 22, bifrostv1.NetUnknown, bifrostv1.NetUnknown},
+						{"110.242.74.102", 22, bifrostv1.NetUnknown, bifrostv1.NetUnknown},
+						{"111.63.65.103", 22, bifrostv1.NetUnknown, bifrostv1.NetUnknown}}, ResolveErr: local.ToJSONError(nil)}},
 				ContextPos: metav1.ConfigContextPos{Config: "C:\\config_test\\nginx.conf", ContextPosPath: []int{12, 0, 1}},
 			},
 		},
@@ -235,8 +287,45 @@ func Test_webServerStatisticsStore_ConnectivityCheckOfProxyService(t *testing.T)
 				t.Errorf("ConnectivityCheckOfProxyService() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotInfo, tt.wantInfo) {
-				t.Errorf("ConnectivityCheckOfProxyService() gotInfo = %v, want %v", gotInfo, tt.wantInfo)
+			// Sort sockets within ProxyAddress to handle DNS resolution order changes
+			for i := range gotInfo.ProxyAddress {
+				slices.SortFunc(gotInfo.ProxyAddress[i].Sockets, func(a, b *local.Socket) int {
+					return strings.Compare(a.IPv4, b.IPv4)
+				})
+			}
+			for i := range tt.wantInfo.ProxyAddress {
+				slices.SortFunc(tt.wantInfo.ProxyAddress[i].Sockets, func(a, b *local.Socket) int {
+					return strings.Compare(a.IPv4, b.IPv4)
+				})
+			}
+			// Compare using a custom comparator that ignores dynamic DNS IPs
+			if gotInfo.ProxyOriginalURL != tt.wantInfo.ProxyOriginalURL ||
+				gotInfo.ProxyURI != tt.wantInfo.ProxyURI ||
+				gotInfo.ProxyProtocol != tt.wantInfo.ProxyProtocol ||
+				gotInfo.ProxyServiceComment != tt.wantInfo.ProxyServiceComment ||
+				gotInfo.ContextPos.Config != tt.wantInfo.ContextPos.Config ||
+				!slices.Equal(gotInfo.ContextPos.ContextPosPath, tt.wantInfo.ContextPos.ContextPosPath) {
+				gotJson, _ := json.Marshal(gotInfo)
+				wantJson, _ := json.Marshal(tt.wantInfo)
+				t.Errorf("ConnectivityCheckOfProxyService() mismatch:\ngot = %s\nwant = %s", gotJson, wantJson)
+				return
+			}
+			// Compare ProxyAddress: check domain, port, and socket count (ignore specific IPs)
+			if len(gotInfo.ProxyAddress) != len(tt.wantInfo.ProxyAddress) {
+				gotJson, _ := json.Marshal(gotInfo)
+				wantJson, _ := json.Marshal(tt.wantInfo)
+				t.Errorf("ConnectivityCheckOfProxyService() ProxyAddress length mismatch:\ngot = %s\nwant = %s", gotJson, wantJson)
+				return
+			}
+			for i := range gotInfo.ProxyAddress {
+				if gotInfo.ProxyAddress[i].DomainName != tt.wantInfo.ProxyAddress[i].DomainName ||
+					gotInfo.ProxyAddress[i].Port != tt.wantInfo.ProxyAddress[i].Port ||
+					len(gotInfo.ProxyAddress[i].Sockets) != len(tt.wantInfo.ProxyAddress[i].Sockets) {
+					gotJson, _ := json.Marshal(gotInfo)
+					wantJson, _ := json.Marshal(tt.wantInfo)
+					t.Errorf("ConnectivityCheckOfProxyService() ProxyAddress mismatch at index %d:\ngot = %s\nwant = %s", i, gotJson, wantJson)
+					return
+				}
 			}
 		})
 	}

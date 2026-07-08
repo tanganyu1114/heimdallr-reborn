@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"testing"
 
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -19,8 +21,9 @@ func Test_webServerBinCMDService_Exec(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerBinCMDEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return &metav1.WebServerBinCMDExecResponse{Successful: true, Stdout: "command output"}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal(&metav1.WebServerBinCMDExecResponse{Successful: true, Stdout: "command output"})
+		return modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().Exec().Return(mockEndpoint)
 

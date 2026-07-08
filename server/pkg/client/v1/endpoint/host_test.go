@@ -7,6 +7,8 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"gin-vue-admin/pkg/client/v1/transport"
 
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
 )
@@ -16,9 +18,9 @@ func Test_hostEndpoints_Get(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockHostTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, *v1.Host](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.IDOptions, *v1.Host](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.IDOptions, *v1.Host](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().Get().Return(mockClientBuilder).AnyTimes()
@@ -29,7 +31,7 @@ func Test_hostEndpoints_Get(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.IDOptions, *v1.Host]
+		want   httpclientv1.Endpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
 	}{
 		{
 			name:   "returns get endpoint",
@@ -54,9 +56,9 @@ func Test_hostEndpoints_List(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockHostTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, *v1.HostList](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.ListOptions, *v1.HostList](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ListOptions, *v1.HostList](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](ctrl)
+	mockClient := httpclientv1.NewMockClient[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().List().Return(mockClientBuilder).AnyTimes()
@@ -67,7 +69,7 @@ func Test_hostEndpoints_List(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.ListOptions, *v1.HostList]
+		want   httpclientv1.Endpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 	}{
 		{
 			name:   "returns list endpoint",

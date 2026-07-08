@@ -34,5 +34,9 @@ func newAgentInfoService(svc *factory) AgentInfoService {
 // Get retrieves agent information
 func (s *agentInfoService) Get() ([]v1.GroupInfo, error) {
 	req := httpclientv1.HTTPRequest[httpclientv1.NilBody]{}
-	return s.eps.Get()(s.ctx, req)
+	resp, err := s.eps.Get()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }

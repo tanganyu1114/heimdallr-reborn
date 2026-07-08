@@ -214,6 +214,15 @@ func (w *webServerConfigStore) Remove(ctx context.Context, opts metav1.WebServer
 	})
 }
 
+func (w *webServerConfigStore) UpdateConfig(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+	return w.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
+		newConf, err := configuration.NewNginxConfigFromJsonBytes(configJsonData)
+		if err != nil {
+			return conf, err
+		}
+		return newConf, nil
+	})
+}
 func (w *webServerConfigStore) ModifyWithClone(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
 	return w.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := storev1utils.ParseContextPos(conf, ctxmeta.Position)

@@ -2,6 +2,7 @@ package transport
 
 import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"reflect"
 	"testing"
 
@@ -54,12 +55,12 @@ func Test_webServerConfigTransport_ChangeContextEnabledState(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -111,15 +112,15 @@ func Test_webServerConfigTransport_GetConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -132,7 +133,7 @@ func Test_webServerConfigTransport_GetConfig(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
+		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
 	}{
 		{
 			name: "returns get config client",
@@ -171,15 +172,15 @@ func Test_webServerConfigTransport_GetConfigTextLines(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, string](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -192,7 +193,7 @@ func Test_webServerConfigTransport_GetConfigTextLines(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
+		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
 	}{
 		{
 			name: "returns get config text lines client",
@@ -231,15 +232,15 @@ func Test_webServerConfigTransport_GetContextTextLines(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, string](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -252,7 +253,7 @@ func Test_webServerConfigTransport_GetContextTextLines(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
+		want   httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
 	}{
 		{
 			name: "returns get context text lines client",
@@ -291,15 +292,15 @@ func Test_webServerConfigTransport_GetIncludedConfigs(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, []string](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -312,7 +313,7 @@ func Test_webServerConfigTransport_GetIncludedConfigs(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
+		want   httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
 	}{
 		{
 			name: "returns get included configs client",
@@ -351,15 +352,15 @@ func Test_webServerConfigTransport_GetOptions(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -372,7 +373,7 @@ func Test_webServerConfigTransport_GetOptions(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
+		want   httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
 	}{
 		{
 			name: "returns get options client",
@@ -414,12 +415,12 @@ func Test_webServerConfigTransport_InsertWithClone(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -474,12 +475,12 @@ func Test_webServerConfigTransport_InsertWithNew(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -534,12 +535,12 @@ func Test_webServerConfigTransport_ModifyContextValue(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -594,12 +595,12 @@ func Test_webServerConfigTransport_ModifyWithClone(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -654,12 +655,12 @@ func Test_webServerConfigTransport_ModifyWithNew(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -714,12 +715,12 @@ func Test_webServerConfigTransport_Move(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -774,12 +775,12 @@ func Test_webServerConfigTransport_Remove(t *testing.T) {
 	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -831,15 +832,15 @@ func Test_webServerConfigTransport_SearchContextPositions(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]](ctrl)
 
 	type fields struct {
-		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta]
-		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, string]
-		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, string]
-		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig]
-		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, []string]
-		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
@@ -852,7 +853,7 @@ func Test_webServerConfigTransport_SearchContextPositions(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+		want   httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 	}{
 		{
 			name: "returns search context positions client",
@@ -882,6 +883,68 @@ func Test_webServerConfigTransport_SearchContextPositions(t *testing.T) {
 			}
 			if got := w.SearchContextPositions(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SearchContextPositions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_webServerConfigTransport_UpdateConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](ctrl)
+
+	type fields struct {
+		getOptionsClient                httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
+		getConfigTextLinesClient        httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
+		getContextTextLinesClient       httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
+		getConfigClient                 httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
+		getIncludedConfigsClient        httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
+		searchContextPositionsClient    httpclientv1.ClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
+		insertWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+		insertWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		removeClient                    httpclientv1.ClientBuilder[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
+		updateConfigClient              httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
+		modifyContextValueClient        httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		modifyWithCloneClient           httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+		changeContextEnabledStateClient httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], httpclientv1.NilBody]
+		modifyWithNewClient             httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
+		moveClient                      httpclientv1.ClientBuilder[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   httpclientv1.ClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
+	}{
+		{
+			name: "returns update config client",
+			fields: fields{
+				updateConfigClient: mockClient,
+			},
+			want: mockClient,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &webServerConfigTransport{
+				getOptionsClient:                tt.fields.getOptionsClient,
+				getConfigTextLinesClient:        tt.fields.getConfigTextLinesClient,
+				getContextTextLinesClient:       tt.fields.getContextTextLinesClient,
+				getConfigClient:                 tt.fields.getConfigClient,
+				getIncludedConfigsClient:        tt.fields.getIncludedConfigsClient,
+				searchContextPositionsClient:    tt.fields.searchContextPositionsClient,
+				insertWithCloneClient:           tt.fields.insertWithCloneClient,
+				insertWithNewClient:             tt.fields.insertWithNewClient,
+				removeClient:                    tt.fields.removeClient,
+				updateConfigClient:              tt.fields.updateConfigClient,
+				modifyContextValueClient:        tt.fields.modifyContextValueClient,
+				modifyWithCloneClient:           tt.fields.modifyWithCloneClient,
+				changeContextEnabledStateClient: tt.fields.changeContextEnabledStateClient,
+				modifyWithNewClient:             tt.fields.modifyWithNewClient,
+				moveClient:                      tt.fields.moveClient,
+			}
+			if got := w.UpdateConfig(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UpdateConfig() = %v, want %v", got, tt.want)
 			}
 		})
 	}

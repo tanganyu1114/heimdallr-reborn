@@ -6,29 +6,33 @@ import (
 	txpclientv1 "gin-vue-admin/pkg/client/v1/transport"
 	"sync"
 
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 )
 
 // WebServerConfigEndpoints defines the interface for web server config related endpoints
 type WebServerConfigEndpoints interface {
 	// GetOptions returns the get options endpoint
-	GetOptions() httpclientv1.Endpoint[httpclientv1.NilBody, []v1.BifrostGroupMeta]
+	GetOptions() httpclientv1.Endpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
 	// GetConfigTextLines returns the get config text lines endpoint
-	GetConfigTextLines() httpclientv1.Endpoint[metav1.WebServerOptions, string]
+	GetConfigTextLines() httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
 	// GetContextTextLines returns the get context text lines endpoint
-	GetContextTextLines() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, string]
+	GetContextTextLines() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
 	// GetConfig returns the get config endpoint
-	GetConfig() httpclientv1.Endpoint[metav1.WebServerOptions, *metav1.WebServerConfig]
+	GetConfig() httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
 	// GetIncludedConfigs returns the get included configs endpoint
-	GetIncludedConfigs() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, []string]
+	GetIncludedConfigs() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
 	// SearchContextPositions returns the search context positions endpoint
-	SearchContextPositions() httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+	SearchContextPositions() httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 	// InsertWithClone returns the insert with clone endpoint
 	InsertWithClone() httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 	// InsertWithNew returns the insert with new endpoint
 	InsertWithNew() httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 	// Remove returns the remove endpoint
 	Remove() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
+	// UpdateConfig returns the update config endpoint
+	UpdateConfig() httpclientv1.Endpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
 	// ModifyContextValue returns the modify context value endpoint
 	ModifyContextValue() httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 	// ModifyWithClone returns the modify with clone endpoint
@@ -45,23 +49,25 @@ type WebServerConfigEndpoints interface {
 type webServerConfigEndpoints struct {
 	transport                         txpclientv1.WebServerConfigTransport
 	onceGetOptions                    sync.Once
-	getOptionsEndpoint                httpclientv1.Endpoint[httpclientv1.NilBody, []v1.BifrostGroupMeta]
+	getOptionsEndpoint                httpclientv1.Endpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]]
 	onceGetConfigTextLines            sync.Once
-	getConfigTextLinesEndpoint        httpclientv1.Endpoint[metav1.WebServerOptions, string]
+	getConfigTextLinesEndpoint        httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[string]]
 	onceGetContextTextLines           sync.Once
-	getContextTextLinesEndpoint       httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, string]
+	getContextTextLinesEndpoint       httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]]
 	onceGetConfig                     sync.Once
-	getConfigEndpoint                 httpclientv1.Endpoint[metav1.WebServerOptions, *metav1.WebServerConfig]
+	getConfigEndpoint                 httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]]
 	onceGetIncludedConfigs            sync.Once
-	getIncludedConfigsEndpoint        httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, []string]
+	getIncludedConfigsEndpoint        httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]]
 	onceSearchContextPositions        sync.Once
-	searchContextPositionsEndpoint    httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos]
+	searchContextPositionsEndpoint    httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]]
 	onceInsertWithClone               sync.Once
 	insertWithCloneEndpoint           httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], httpclientv1.NilBody]
 	onceInsertWithNew                 sync.Once
 	insertWithNewEndpoint             httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 	onceRemove                        sync.Once
 	removeEndpoint                    httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, httpclientv1.NilBody]
+	onceUpdateConfig                  sync.Once
+	updateConfigEndpoint              httpclientv1.Endpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody]
 	onceModifyContextValue            sync.Once
 	modifyContextValueEndpoint        httpclientv1.Endpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], httpclientv1.NilBody]
 	onceModifyWithClone               sync.Once
@@ -75,7 +81,7 @@ type webServerConfigEndpoints struct {
 }
 
 // GetOptions returns the get options endpoint
-func (w *webServerConfigEndpoints) GetOptions() httpclientv1.Endpoint[httpclientv1.NilBody, []v1.BifrostGroupMeta] {
+func (w *webServerConfigEndpoints) GetOptions() httpclientv1.Endpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]] {
 	w.onceGetOptions.Do(func() {
 		w.getOptionsEndpoint = w.transport.GetOptions().Build().Endpoint()
 	})
@@ -83,7 +89,7 @@ func (w *webServerConfigEndpoints) GetOptions() httpclientv1.Endpoint[httpclient
 }
 
 // GetConfigTextLines returns the get config text lines endpoint
-func (w *webServerConfigEndpoints) GetConfigTextLines() httpclientv1.Endpoint[metav1.WebServerOptions, string] {
+func (w *webServerConfigEndpoints) GetConfigTextLines() httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[string]] {
 	w.onceGetConfigTextLines.Do(func() {
 		w.getConfigTextLinesEndpoint = w.transport.GetConfigTextLines().Build().Endpoint()
 	})
@@ -91,7 +97,7 @@ func (w *webServerConfigEndpoints) GetConfigTextLines() httpclientv1.Endpoint[me
 }
 
 // GetContextTextLines returns the get context text lines endpoint
-func (w *webServerConfigEndpoints) GetContextTextLines() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, string] {
+func (w *webServerConfigEndpoints) GetContextTextLines() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]] {
 	w.onceGetContextTextLines.Do(func() {
 		w.getContextTextLinesEndpoint = w.transport.GetContextTextLines().Build().Endpoint()
 	})
@@ -99,7 +105,7 @@ func (w *webServerConfigEndpoints) GetContextTextLines() httpclientv1.Endpoint[m
 }
 
 // GetConfig returns the get config endpoint
-func (w *webServerConfigEndpoints) GetConfig() httpclientv1.Endpoint[metav1.WebServerOptions, *metav1.WebServerConfig] {
+func (w *webServerConfigEndpoints) GetConfig() httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]] {
 	w.onceGetConfig.Do(func() {
 		w.getConfigEndpoint = w.transport.GetConfig().Build().Endpoint()
 	})
@@ -107,7 +113,7 @@ func (w *webServerConfigEndpoints) GetConfig() httpclientv1.Endpoint[metav1.WebS
 }
 
 // GetIncludedConfigs returns the get included configs endpoint
-func (w *webServerConfigEndpoints) GetIncludedConfigs() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, []string] {
+func (w *webServerConfigEndpoints) GetIncludedConfigs() httpclientv1.Endpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]] {
 	w.onceGetIncludedConfigs.Do(func() {
 		w.getIncludedConfigsEndpoint = w.transport.GetIncludedConfigs().Build().Endpoint()
 	})
@@ -115,7 +121,7 @@ func (w *webServerConfigEndpoints) GetIncludedConfigs() httpclientv1.Endpoint[me
 }
 
 // SearchContextPositions returns the search context positions endpoint
-func (w *webServerConfigEndpoints) SearchContextPositions() httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos] {
+func (w *webServerConfigEndpoints) SearchContextPositions() httpclientv1.Endpoint[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]] {
 	w.onceSearchContextPositions.Do(func() {
 		w.searchContextPositionsEndpoint = w.transport.SearchContextPositions().Build().Endpoint()
 	})
@@ -144,6 +150,14 @@ func (w *webServerConfigEndpoints) Remove() httpclientv1.Endpoint[metav1.WebServ
 		w.removeEndpoint = w.transport.Remove().Build().Endpoint()
 	})
 	return w.removeEndpoint
+}
+
+// UpdateConfig returns the update config endpoint
+func (w *webServerConfigEndpoints) UpdateConfig() httpclientv1.Endpoint[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody] {
+	w.onceUpdateConfig.Do(func() {
+		w.updateConfigEndpoint = w.transport.UpdateConfig().Build().Endpoint()
+	})
+	return w.updateConfigEndpoint
 }
 
 // ModifyContextValue returns the modify context value endpoint

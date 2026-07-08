@@ -2,9 +2,11 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	"gin-vue-admin/model/request"
 	"gin-vue-admin/model/response"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -451,7 +453,7 @@ func TestAuthMiddleware_EnsureValidToken(t *testing.T) {
 	}
 }
 
-func TestAuthMiddleware_PassiveRefreshToken(t *testing.T) {
+func TestAuthMiddleware_HandleTokenRefreshFromResponse(t *testing.T) {
 	type fields struct {
 		apiKey    string
 		apiSecret string
@@ -544,7 +546,7 @@ func TestAuthMiddleware_PassiveRefreshToken(t *testing.T) {
 			authMw.expiresAt = tt.fields.expiresAt
 			authMw.mu.Unlock()
 
-			newCtx := authMw.passiveRefreshToken(tt.args.ctx, tt.args.response)
+			newCtx := authMw.handleTokenRefreshFromResponse(tt.args.ctx, tt.args.response)
 
 			assert.Equal(t, tt.wantToken, authMw.GetToken())
 			assert.Equal(t, tt.wantExpires, authMw.GetExpiresAt())
@@ -605,7 +607,7 @@ func TestAuthMiddleware_ConcurrentAccess(t *testing.T) {
 	}
 }
 
-func Test_authMiddleware_authOptions(t *testing.T) {
+func Test_authMiddleware_buildClientOptions(t *testing.T) {
 	type fields struct {
 		apiKey     string
 		apiSecret  string
@@ -621,7 +623,7 @@ func Test_authMiddleware_authOptions(t *testing.T) {
 		{
 			name:    "returns client options",
 			fields:  fields{apiKey: "key", apiSecret: "secret", bufferTime: 3600, token: "test-token", expiresAt: time.Now().Unix() + 7200},
-			wantLen: 1,
+			wantLen: 2,
 		},
 	}
 	for _, tt := range tests {
@@ -638,13 +640,13 @@ func Test_authMiddleware_authOptions(t *testing.T) {
 			authMw.expiresAt = tt.fields.expiresAt
 			authMw.mu.Unlock()
 
-			opts := authMw.authOptions()
+			opts := authMw.buildClientOptions()
 			assert.Len(t, opts, tt.wantLen)
 		})
 	}
 }
 
-func Test_authMiddleware_ensureValidTokenToCtx(t *testing.T) {
+func Test_authMiddleware_injectTokenToContext(t *testing.T) {
 	type fields struct {
 		apiKey     string
 		apiSecret  string
@@ -708,7 +710,7 @@ func Test_authMiddleware_ensureValidTokenToCtx(t *testing.T) {
 			authMw.expiresAt = tt.fields.expiresAt
 			authMw.mu.Unlock()
 
-			got, err := authMw.ensureValidTokenToCtx(tt.args.ctx)
+			got, err := authMw.injectTokenToContext(tt.args.ctx)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -721,7 +723,7 @@ func Test_authMiddleware_ensureValidTokenToCtx(t *testing.T) {
 	}
 }
 
-func Test_authMiddleware_refreshToken(t *testing.T) {
+func Test_authMiddleware_fetchNewToken(t *testing.T) {
 	type fields struct {
 		apiKey     string
 		apiSecret  string
@@ -790,6 +792,15 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 			errMsg:  "login error",
 		},
 		{
+			name: "login response code is non-zero",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "internal server error",
+		},
+		{
 			name: "login success",
 			fields: fields{
 				apiKey:    "key",
@@ -810,7 +821,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				authMw := mw(mockFactory).(*authMiddleware)
 				authMw.txp = nil
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -822,7 +833,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -836,7 +847,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -844,7 +855,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 
 			if tt.errMsg == "sdkLogin client is nil" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, *response.LoginResponse](ctrl)
+				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
 				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
 				mockClientBuilder.EXPECT().Build().Return(nil)
@@ -852,7 +863,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -860,8 +871,8 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 
 			if tt.errMsg == "sdk login endpoint is nil" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, *response.LoginResponse](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, *response.LoginResponse](ctrl)
+				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
 				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
 				mockClientBuilder.EXPECT().Build().Return(mockClient)
@@ -870,7 +881,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -878,10 +889,10 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 
 			if tt.errMsg == "login error" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, *response.LoginResponse](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, *response.LoginResponse](ctrl)
-				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (*response.LoginResponse, error) {
-					return nil, errors.New("login error")
+				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
+					return modelclientv1.ResponseBody[*response.LoginResponse]{}, errors.New("login error")
 				}
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
 				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
@@ -891,7 +902,31 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.name == "login response code is non-zero" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockEndpoint := httpclientv1.Endpoint[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (resp modelclientv1.ResponseBody[*response.LoginResponse], err error) {
+					return modelclientv1.ResponseBody[*response.LoginResponse]{
+						Code:    500,
+						Message: "internal server error",
+					}, nil
+				})
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
+				mockClientBuilder.EXPECT().Build().Return(mockClient)
+				mockClient.EXPECT().Endpoint().Return(mockEndpoint)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)
 				return
@@ -899,14 +934,17 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 
 			if !tt.wantErr {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, *response.LoginResponse](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, *response.LoginResponse](ctrl)
+				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				expectedToken := "new-test-token"
 				expectedExpiresAt := time.Now().Unix() + 7200
-				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (*response.LoginResponse, error) {
-					return &response.LoginResponse{
+				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
+					data, _ := json.Marshal(&response.LoginResponse{
 						Token:     expectedToken,
 						ExpiresAt: expectedExpiresAt,
+					})
+					return modelclientv1.ResponseBody[*response.LoginResponse]{
+						Data: data,
 					}, nil
 				}
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
@@ -917,7 +955,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
 
-				err := authMw.refreshToken()
+				err := authMw.fetchNewToken()
 				assert.NoError(t, err)
 				assert.Equal(t, expectedToken, authMw.GetToken())
 				assert.Equal(t, expectedExpiresAt, authMw.GetExpiresAt())
@@ -927,7 +965,7 @@ func Test_authMiddleware_refreshToken(t *testing.T) {
 	}
 }
 
-func Test_applyAuthOptions(t *testing.T) {
+func Test_wrapWithAuthOptions(t *testing.T) {
 	type fields struct {
 		apiKey    string
 		apiSecret string
@@ -962,16 +1000,17 @@ func Test_applyAuthOptions(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, []v1.GroupInfo](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]](ctrl)
 
-			mockClientBuilder.EXPECT().Use(gomock.Any()).DoAndReturn(func(fn func(httpclientv1.Endpoint[httpclientv1.NilBody, []v1.GroupInfo]) httpclientv1.Endpoint[httpclientv1.NilBody, []v1.GroupInfo]) httpclientv1.ClientBuilder[httpclientv1.NilBody, []v1.GroupInfo] {
+			mockClientBuilder.EXPECT().Use(gomock.Any()).DoAndReturn(func(fn func(httpclientv1.Endpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]]) httpclientv1.Endpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]]) httpclientv1.ClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]] {
 				var capturedToken string
-				testEndpoint := httpclientv1.NewEndpoint[httpclientv1.NilBody, []v1.GroupInfo](func(ctx context.Context, req interface{}) (interface{}, error) {
+				testEndpoint := httpclientv1.NewEndpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]](func(ctx context.Context, request interface{}) (response interface{}, err error) {
 					token, ok := ctx.Value(RequestTokenKey).(string)
 					if ok {
 						capturedToken = token
 					}
-					return []v1.GroupInfo{}, nil
+					data, _ := json.Marshal([]v1.GroupInfo{})
+					return modelclientv1.ResponseBody[[]v1.GroupInfo]{Data: data}, nil
 				})
 				wrappedEp := fn(testEndpoint)
 				ctx := context.Background()
@@ -989,13 +1028,13 @@ func Test_applyAuthOptions(t *testing.T) {
 				expiresAt: tt.fields.expiresAt,
 			}
 
-			got := applyAuthOptions(authMw, mockClientBuilder)
+			got := wrapWithAuth(authMw, mockClientBuilder)
 			assert.NotNil(t, got)
 		})
 	}
 }
 
-func Test_authMiddleware_passiveRefreshToken(t *testing.T) {
+func Test_authMiddleware_handleTokenRefreshFromResponse(t *testing.T) {
 	type fields struct {
 		apiKey    string
 		apiSecret string
@@ -1079,7 +1118,7 @@ func Test_authMiddleware_passiveRefreshToken(t *testing.T) {
 			resp.Header().Set("new-expires-at", tt.args.newExpiresAt)
 
 			ctx := context.Background()
-			newCtx := authMw.passiveRefreshToken(ctx, resp.Result())
+			newCtx := authMw.handleTokenRefreshFromResponse(ctx, resp.Result())
 
 			authMw.mu.RLock()
 			gotToken := authMw.token
@@ -1093,6 +1132,104 @@ func Test_authMiddleware_passiveRefreshToken(t *testing.T) {
 				tokenFromCtx, ok := newCtx.Value(RequestTokenKey).(string)
 				assert.True(t, ok)
 				assert.Equal(t, tt.wantToken, tokenFromCtx)
+			}
+		})
+	}
+}
+
+func TestAuthMiddleware_FullRequestResponseFlow(t *testing.T) {
+	tests := []struct {
+		name           string
+		initialToken   string
+		initialExpires int64
+		newToken       string
+		newExpiresAt   string
+		wantReqToken   string
+		wantNewToken   string
+		wantNewExpires int64
+	}{
+		{
+			name:           "token injected into request header and new token captured from response",
+			initialToken:   "initial-token",
+			initialExpires: time.Now().Unix() + 7200,
+			newToken:       "refreshed-token",
+			newExpiresAt:   strconv.FormatInt(time.Now().Unix()+14400, 10),
+			wantReqToken:   "initial-token",
+			wantNewToken:   "refreshed-token",
+			wantNewExpires: time.Now().Unix() + 14400,
+		},
+		{
+			name:           "token injected but no new token in response",
+			initialToken:   "initial-token",
+			initialExpires: time.Now().Unix() + 7200,
+			newToken:       "",
+			newExpiresAt:   "",
+			wantReqToken:   "initial-token",
+			wantNewToken:   "initial-token",
+			wantNewExpires: time.Now().Unix() + 7200,
+		},
+		{
+			name:           "token injected but older token in response ignored",
+			initialToken:   "initial-token",
+			initialExpires: time.Now().Unix() + 7200,
+			newToken:       "older-token",
+			newExpiresAt:   strconv.FormatInt(time.Now().Unix()+3600, 10),
+			wantReqToken:   "initial-token",
+			wantNewToken:   "initial-token",
+			wantNewExpires: time.Now().Unix() + 7200,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var capturedRequestToken string
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				capturedRequestToken = r.Header.Get(RequestTokenKey)
+				w.Header().Set("Content-Type", "application/json")
+				if tt.newToken != "" {
+					w.Header().Set("new-token", tt.newToken)
+					w.Header().Set("new-expires-at", tt.newExpiresAt)
+				}
+				data, _ := json.Marshal(modelclientv1.ResponseBody[[]v1.GroupInfo]{
+					Data: json.RawMessage(`[]`),
+				})
+				w.Write(data)
+			}))
+			defer server.Close()
+
+			authMw := &authMiddleware{
+				apiKey:     "test-key",
+				apiSecret:  "test-secret",
+				bufferTime: 3600,
+				token:      tt.initialToken,
+				expiresAt:  tt.initialExpires,
+			}
+
+			realTxp, err := transport.NewTransport(server.Client(), server.URL)
+			assert.NoError(t, err)
+			authMw.txp = realTxp
+
+			// Get the auth-wrapped ClientBuilder directly from the middleware
+			clientBuilder := newAgentInfoMiddleware(authMw).Get()
+			client := clientBuilder.Build()
+
+			resp, err := client.Endpoint()(context.Background(), httpclientv1.HTTPRequest[httpclientv1.NilBody]{})
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+
+			assert.Equal(t, tt.wantReqToken, capturedRequestToken, "HTTP request header should contain x-token injected by auth middleware")
+
+			if tt.newToken != "" {
+				newExpires, _ := strconv.ParseInt(tt.newExpiresAt, 10, 64)
+				if newExpires > tt.initialExpires {
+					assert.Equal(t, tt.wantNewToken, authMw.GetToken(), "auth middleware should update token from response header")
+					assert.Equal(t, newExpires, authMw.GetExpiresAt(), "auth middleware should update expiresAt from response header")
+				} else {
+					assert.Equal(t, tt.wantNewToken, authMw.GetToken(), "auth middleware should keep original token when new expiresAt is older")
+					assert.Equal(t, tt.initialExpires, authMw.GetExpiresAt(), "auth middleware should keep original expiresAt when new one is older")
+				}
+			} else {
+				assert.Equal(t, tt.wantNewToken, authMw.GetToken(), "auth middleware should keep original token when no new token in response")
+				assert.Equal(t, tt.initialExpires, authMw.GetExpiresAt(), "auth middleware should keep original expiresAt when no new token in response")
 			}
 		})
 	}

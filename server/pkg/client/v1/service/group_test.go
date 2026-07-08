@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"testing"
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -20,8 +22,9 @@ func Test_groupService_Get(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockGroupEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.IDOptions, *v1.Group](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return &v1.Group{Name: "test-group"}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal(&v1.Group{Name: "test-group"})
+		return modelclientv1.ResponseBody[*v1.Group]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().Get().Return(mockEndpoint)
 
@@ -77,8 +80,9 @@ func Test_groupService_List(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockGroupEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ListOptions, *v1.GroupList](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return &v1.GroupList{Items: []*v1.Group{{Name: "test-group"}}}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal(&v1.GroupList{Items: []*v1.Group{{Name: "test-group"}}})
+		return modelclientv1.ResponseBody[*v1.GroupList]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().List().Return(mockEndpoint)
 

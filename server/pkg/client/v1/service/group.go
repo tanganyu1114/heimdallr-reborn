@@ -43,7 +43,11 @@ func (s *groupService) Get(idOptions *metav1.IDOptions) (*v1.Group, error) {
 	req := httpclientv1.HTTPRequest[metav1.IDOptions]{
 		Body: *idOptions,
 	}
-	return s.eps.Get()(s.ctx, req)
+	resp, err := s.eps.Get()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }
 
 // List retrieves a list of groups
@@ -54,5 +58,9 @@ func (s *groupService) List(listOptions *metav1.ListOptions) (*v1.GroupList, err
 	req := httpclientv1.HTTPRequest[metav1.ListOptions]{
 		Body: *listOptions,
 	}
-	return s.eps.List()(s.ctx, req)
+	resp, err := s.eps.List()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }

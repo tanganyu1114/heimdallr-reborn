@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -50,15 +51,15 @@ func Test_webServerBinCMDTransport_Exec(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](ctrl)
 
 	type fields struct {
-		execClient httpclientv1.ClientBuilder[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse]
+		execClient httpclientv1.ClientBuilder[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse]
+		want   httpclientv1.ClientBuilder[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]]
 	}{
 		{
 			name: "returns exec client",

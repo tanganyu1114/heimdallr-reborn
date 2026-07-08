@@ -6,6 +6,7 @@ import (
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -51,17 +52,17 @@ func Test_webServerStatisticsTransport_ConnectivityCheckOfProxyService(t *testin
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
 
 	type fields struct {
-		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, []v1.ProxyServiceInfo]
-		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo]
-		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, []byte]
+		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
+		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
+		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo]
+		want   httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
 	}{
 		{
 			name: "returns connectivity check of proxy service client",
@@ -89,17 +90,17 @@ func Test_webServerStatisticsTransport_ExportProxyServiceInfoToExcel(t *testing.
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, []byte](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
 
 	type fields struct {
-		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, []v1.ProxyServiceInfo]
-		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo]
-		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, []byte]
+		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
+		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
+		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, []byte]
+		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
 	}{
 		{
 			name: "returns export proxy service info to excel client",
@@ -127,17 +128,17 @@ func Test_webServerStatisticsTransport_GetProxyServiceInfo(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, []v1.ProxyServiceInfo](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
 
 	type fields struct {
-		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, []v1.ProxyServiceInfo]
-		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo]
-		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, []byte]
+		getProxyServiceInfoClient             httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
+		connectivityCheckOfProxyServiceClient httpclientv1.ClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
+		exportProxyServiceInfoToExcelClient   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, []v1.ProxyServiceInfo]
+		want   httpclientv1.ClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
 	}{
 		{
 			name: "returns get proxy service info client",

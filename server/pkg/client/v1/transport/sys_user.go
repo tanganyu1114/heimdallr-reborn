@@ -3,6 +3,7 @@ package transport
 import (
 	"gin-vue-admin/model/request"
 	"gin-vue-admin/model/response"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	http_transport "github.com/go-kit/kit/transport/http"
@@ -11,18 +12,18 @@ import (
 // SysUserTransport defines the interface for sys user related transport
 type SysUserTransport interface {
 	// SDKLogin returns the SDK login client
-	SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, *response.LoginResponse]
+	SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
 }
 
 // sysUserTransport implements SysUserTransport interface
 type sysUserTransport struct {
-	sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, *response.LoginResponse]
+	sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
 }
 
 // newSysUserTransport creates a new sysUser transport
 func newSysUserTransport(transport *transport) SysUserTransport {
 	t := &sysUserTransport{
-		sdkLoginClient: httpclientv1.NewClientBuilder[*request.SDKLogin, *response.LoginResponse](
+		sdkLoginClient: httpclientv1.NewClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/base/sdkLogin",
 		).WithOptions(
@@ -33,6 +34,6 @@ func newSysUserTransport(transport *transport) SysUserTransport {
 }
 
 // SDKLogin returns the SDK login client
-func (s *sysUserTransport) SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, *response.LoginResponse] {
+func (s *sysUserTransport) SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]] {
 	return s.sdkLoginClient
 }

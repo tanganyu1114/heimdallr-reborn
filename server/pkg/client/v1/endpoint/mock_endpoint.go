@@ -12,6 +12,7 @@ package endpoint
 import (
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	v10 "gin-vue-admin/internal/pkg/meta/v1"
+	model "gin-vue-admin/pkg/client/v1/model"
 	reflect "reflect"
 
 	v11 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -151,10 +152,10 @@ func (m *MockAgentInfoEndpoints) EXPECT() *MockAgentInfoEndpointsMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockAgentInfoEndpoints) Get() v11.Endpoint[v11.NilBody, []v1.GroupInfo] {
+func (m *MockAgentInfoEndpoints) Get() v11.Endpoint[v11.NilBody, model.ResponseBody[[]v1.GroupInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.Endpoint[v11.NilBody, []v1.GroupInfo])
+	ret0, _ := ret[0].(v11.Endpoint[v11.NilBody, model.ResponseBody[[]v1.GroupInfo]])
 	return ret0
 }
 
@@ -189,10 +190,10 @@ func (m *MockGroupEndpoints) EXPECT() *MockGroupEndpointsMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGroupEndpoints) Get() v11.Endpoint[v10.IDOptions, *v1.Group] {
+func (m *MockGroupEndpoints) Get() v11.Endpoint[v10.IDOptions, model.ResponseBody[*v1.Group]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.Endpoint[v10.IDOptions, *v1.Group])
+	ret0, _ := ret[0].(v11.Endpoint[v10.IDOptions, model.ResponseBody[*v1.Group]])
 	return ret0
 }
 
@@ -203,10 +204,10 @@ func (mr *MockGroupEndpointsMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockGroupEndpoints) List() v11.Endpoint[v10.ListOptions, *v1.GroupList] {
+func (m *MockGroupEndpoints) List() v11.Endpoint[v10.ListOptions, model.ResponseBody[*v1.GroupList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v11.Endpoint[v10.ListOptions, *v1.GroupList])
+	ret0, _ := ret[0].(v11.Endpoint[v10.ListOptions, model.ResponseBody[*v1.GroupList]])
 	return ret0
 }
 
@@ -241,10 +242,10 @@ func (m *MockHostEndpoints) EXPECT() *MockHostEndpointsMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockHostEndpoints) Get() v11.Endpoint[v10.IDOptions, *v1.Host] {
+func (m *MockHostEndpoints) Get() v11.Endpoint[v10.IDOptions, model.ResponseBody[*v1.Host]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v11.Endpoint[v10.IDOptions, *v1.Host])
+	ret0, _ := ret[0].(v11.Endpoint[v10.IDOptions, model.ResponseBody[*v1.Host]])
 	return ret0
 }
 
@@ -255,10 +256,10 @@ func (mr *MockHostEndpointsMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockHostEndpoints) List() v11.Endpoint[v10.ListOptions, *v1.HostList] {
+func (m *MockHostEndpoints) List() v11.Endpoint[v10.ListOptions, model.ResponseBody[*v1.HostList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v11.Endpoint[v10.ListOptions, *v1.HostList])
+	ret0, _ := ret[0].(v11.Endpoint[v10.ListOptions, model.ResponseBody[*v1.HostList]])
 	return ret0
 }
 
@@ -307,10 +308,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) ChangeContextEnabledState() 
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigEndpoints) GetConfig() v11.Endpoint[v10.WebServerOptions, *v10.WebServerConfig] {
+func (m *MockWebServerConfigEndpoints) GetConfig() v11.Endpoint[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, *v10.WebServerConfig])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]])
 	return ret0
 }
 
@@ -321,10 +322,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetConfig() *gomock.Call {
 }
 
 // GetConfigTextLines mocks base method.
-func (m *MockWebServerConfigEndpoints) GetConfigTextLines() v11.Endpoint[v10.WebServerOptions, string] {
+func (m *MockWebServerConfigEndpoints) GetConfigTextLines() v11.Endpoint[v10.WebServerOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigTextLines")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, string])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -335,10 +336,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetConfigTextLines() *gomock
 }
 
 // GetContextTextLines mocks base method.
-func (m *MockWebServerConfigEndpoints) GetContextTextLines() v11.Endpoint[v10.WebServerConfigTargetContextOptions, string] {
+func (m *MockWebServerConfigEndpoints) GetContextTextLines() v11.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContextTextLines")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigTargetContextOptions, string])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -349,10 +350,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetContextTextLines() *gomoc
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigEndpoints) GetIncludedConfigs() v11.Endpoint[v10.WebServerConfigTargetContextOptions, []string] {
+func (m *MockWebServerConfigEndpoints) GetIncludedConfigs() v11.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncludedConfigs")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigTargetContextOptions, []string])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]])
 	return ret0
 }
 
@@ -363,10 +364,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetIncludedConfigs() *gomock
 }
 
 // GetOptions mocks base method.
-func (m *MockWebServerConfigEndpoints) GetOptions() v11.Endpoint[v11.NilBody, []v1.BifrostGroupMeta] {
+func (m *MockWebServerConfigEndpoints) GetOptions() v11.Endpoint[v11.NilBody, model.ResponseBody[[]v1.BifrostGroupMeta]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOptions")
-	ret0, _ := ret[0].(v11.Endpoint[v11.NilBody, []v1.BifrostGroupMeta])
+	ret0, _ := ret[0].(v11.Endpoint[v11.NilBody, model.ResponseBody[[]v1.BifrostGroupMeta]])
 	return ret0
 }
 
@@ -475,10 +476,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) Remove() *gomock.Call {
 }
 
 // SearchContextPositions mocks base method.
-func (m *MockWebServerConfigEndpoints) SearchContextPositions() v11.Endpoint[v10.WebServerConfigContextPosSearchOptions, []v10.ConfigContextPos] {
+func (m *MockWebServerConfigEndpoints) SearchContextPositions() v11.Endpoint[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContextPositions")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigContextPosSearchOptions, []v10.ConfigContextPos])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]])
 	return ret0
 }
 
@@ -486,6 +487,20 @@ func (m *MockWebServerConfigEndpoints) SearchContextPositions() v11.Endpoint[v10
 func (mr *MockWebServerConfigEndpointsMockRecorder) SearchContextPositions() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContextPositions", reflect.TypeOf((*MockWebServerConfigEndpoints)(nil).SearchContextPositions))
+}
+
+// UpdateConfig mocks base method.
+func (m *MockWebServerConfigEndpoints) UpdateConfig() v11.Endpoint[*v10.WebServerConfigUpdateOptions, v11.NilBody] {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig")
+	ret0, _ := ret[0].(v11.Endpoint[*v10.WebServerConfigUpdateOptions, v11.NilBody])
+	return ret0
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig.
+func (mr *MockWebServerConfigEndpointsMockRecorder) UpdateConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockWebServerConfigEndpoints)(nil).UpdateConfig))
 }
 
 // MockWebServerBinCMDEndpoints is a mock of WebServerBinCMDEndpoints interface.
@@ -513,10 +528,10 @@ func (m *MockWebServerBinCMDEndpoints) EXPECT() *MockWebServerBinCMDEndpointsMoc
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDEndpoints) Exec() v11.Endpoint[v10.WebServerBinCMDExecRequest, *v10.WebServerBinCMDExecResponse] {
+func (m *MockWebServerBinCMDEndpoints) Exec() v11.Endpoint[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exec")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerBinCMDExecRequest, *v10.WebServerBinCMDExecResponse])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]])
 	return ret0
 }
 
@@ -551,10 +566,10 @@ func (m *MockWebServerStatisticsEndpoints) EXPECT() *MockWebServerStatisticsEndp
 }
 
 // ConnectivityCheckOfProxyService mocks base method.
-func (m *MockWebServerStatisticsEndpoints) ConnectivityCheckOfProxyService() v11.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo] {
+func (m *MockWebServerStatisticsEndpoints) ConnectivityCheckOfProxyService() v11.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v1.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService")
-	ret0, _ := ret[0].(v11.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, v1.ProxyServiceInfo])
+	ret0, _ := ret[0].(v11.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v1.ProxyServiceInfo]])
 	return ret0
 }
 
@@ -565,10 +580,10 @@ func (mr *MockWebServerStatisticsEndpointsMockRecorder) ConnectivityCheckOfProxy
 }
 
 // ExportProxyServiceInfoToExcel mocks base method.
-func (m *MockWebServerStatisticsEndpoints) ExportProxyServiceInfoToExcel() v11.Endpoint[v10.WebServerOptions, []byte] {
+func (m *MockWebServerStatisticsEndpoints) ExportProxyServiceInfoToExcel() v11.Endpoint[v10.WebServerOptions, model.ResponseBody[[]byte]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, []byte])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, model.ResponseBody[[]byte]])
 	return ret0
 }
 
@@ -579,10 +594,10 @@ func (mr *MockWebServerStatisticsEndpointsMockRecorder) ExportProxyServiceInfoTo
 }
 
 // GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsEndpoints) GetProxyServiceInfo() v11.Endpoint[v10.WebServerOptions, []v1.ProxyServiceInfo] {
+func (m *MockWebServerStatisticsEndpoints) GetProxyServiceInfo() v11.Endpoint[v10.WebServerOptions, model.ResponseBody[[]v1.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyServiceInfo")
-	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, []v1.ProxyServiceInfo])
+	ret0, _ := ret[0].(v11.Endpoint[v10.WebServerOptions, model.ResponseBody[[]v1.ProxyServiceInfo]])
 	return ret0
 }
 

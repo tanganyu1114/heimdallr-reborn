@@ -5,6 +5,7 @@ import (
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -73,7 +74,7 @@ func Test_webServerConfigMiddleware_GetConfig(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, *metav1.WebServerConfig](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().GetConfig().Return(mockClientBuilder)
@@ -112,7 +113,7 @@ func Test_webServerConfigMiddleware_GetConfigTextLines(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, string](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[string]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().GetConfigTextLines().Return(mockClientBuilder)
@@ -151,7 +152,7 @@ func Test_webServerConfigMiddleware_GetContextTextLines(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, string](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().GetContextTextLines().Return(mockClientBuilder)
@@ -190,7 +191,7 @@ func Test_webServerConfigMiddleware_GetIncludedConfigs(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, []string](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().GetIncludedConfigs().Return(mockClientBuilder)
@@ -229,7 +230,7 @@ func Test_webServerConfigMiddleware_GetOptions(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, []v1.BifrostGroupMeta](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().GetOptions().Return(mockClientBuilder)
@@ -541,7 +542,7 @@ func Test_webServerConfigMiddleware_SearchContextPositions(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextPosSearchOptions, []metav1.ConfigContextPos](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]](ctrl)
 
 			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
 			mockWebServerConfigTransport.EXPECT().SearchContextPositions().Return(mockClientBuilder)
@@ -553,6 +554,45 @@ func Test_webServerConfigMiddleware_SearchContextPositions(t *testing.T) {
 				md: authMw,
 			}
 			got := w.SearchContextPositions()
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func Test_webServerConfigMiddleware_UpdateConfig(t *testing.T) {
+	type fields struct {
+		md *authMiddleware
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "update config middleware",
+			fields: fields{
+				md: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockFactory := transport.NewMockFactory(ctrl)
+			mockWebServerConfigTransport := transport.NewMockWebServerConfigTransport(ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[*metav1.WebServerConfigUpdateOptions, httpclientv1.NilBody](ctrl)
+
+			mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigTransport)
+			mockWebServerConfigTransport.EXPECT().UpdateConfig().Return(mockClientBuilder)
+			mockClientBuilder.EXPECT().Use(gomock.Any()).Return(mockClientBuilder)
+			mockClientBuilder.EXPECT().WithOptions(gomock.Any()).Return(mockClientBuilder)
+
+			authMw := &authMiddleware{txp: mockFactory}
+			w := &webServerConfigMiddleware{
+				md: authMw,
+			}
+			got := w.UpdateConfig()
 			assert.NotNil(t, got)
 		})
 	}

@@ -45,7 +45,11 @@ func (s *webServerStatisticsService) GetProxyServiceInfo(opts *metav1.WebServerO
 	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
 		Body: *opts,
 	}
-	return s.eps.GetProxyServiceInfo()(s.ctx, req)
+	resp, err := s.eps.GetProxyServiceInfo()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }
 
 // ConnectivityCheckOfProxyService performs connectivity check of proxy service
@@ -56,7 +60,11 @@ func (s *webServerStatisticsService) ConnectivityCheckOfProxyService(opts *metav
 	req := httpclientv1.HTTPRequest[metav1.ConnectivityCheckOfProxiedServersRequestOptions]{
 		Body: *opts,
 	}
-	return s.eps.ConnectivityCheckOfProxyService()(s.ctx, req)
+	resp, err := s.eps.ConnectivityCheckOfProxyService()(s.ctx, req)
+	if err != nil {
+		return v1.ProxyServiceInfo{}, err
+	}
+	return resp.Response()
 }
 
 // ExportProxyServiceInfoToExcel exports proxy service info to Excel
@@ -67,5 +75,9 @@ func (s *webServerStatisticsService) ExportProxyServiceInfoToExcel(opts *metav1.
 	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
 		Body: *opts,
 	}
-	return s.eps.ExportProxyServiceInfoToExcel()(s.ctx, req)
+	resp, err := s.eps.ExportProxyServiceInfoToExcel()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }

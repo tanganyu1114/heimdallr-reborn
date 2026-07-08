@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 	"gin-vue-admin/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -33,7 +34,7 @@ func Test_webServerBinCMDMiddleware_Exec(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerBinCMDTransport := transport.NewMockWebServerBinCMDTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, *metav1.WebServerBinCMDExecResponse](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerBinCMDExecRequest, modelclientv1.ResponseBody[*metav1.WebServerBinCMDExecResponse]](ctrl)
 
 			mockFactory.EXPECT().WebServerBinCMDs().Return(mockWebServerBinCMDTransport)
 			mockWebServerBinCMDTransport.EXPECT().Exec().Return(mockClientBuilder)

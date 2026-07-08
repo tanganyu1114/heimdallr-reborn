@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"testing"
 
 	v1 "gin-vue-admin/api/heimdallr_api/v1"
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"go.uber.org/mock/gomock"
@@ -19,8 +21,9 @@ func Test_agentInfoService_Get(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockAgentInfoEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[httpclientv1.NilBody, []v1.GroupInfo](func(ctx context.Context, req interface{}) (interface{}, error) {
-		return []v1.GroupInfo{{Name: "test-group"}}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.GroupInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal([]v1.GroupInfo{{Name: "test-group"}})
+		return modelclientv1.ResponseBody[[]v1.GroupInfo]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().Get().Return(mockEndpoint)
 

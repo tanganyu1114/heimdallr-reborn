@@ -6,6 +6,7 @@ import (
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
 
+	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"github.com/marmotedu/errors"
 )
@@ -19,7 +20,7 @@ type WebServerConfigService interface {
 	// GetContextTextLines retrieves context configuration text lines
 	GetContextTextLines(opts *metav1.WebServerConfigTargetContextOptions) (string, error)
 	// GetConfig retrieves configuration JSON data
-	GetConfig(opts *metav1.WebServerOptions) (*metav1.WebServerConfig, error)
+	GetConfig(opts *metav1.WebServerOptions) (configuration.NginxConfig, error)
 	// GetIncludedConfigs retrieves included configuration file paths
 	GetIncludedConfigs(opts *metav1.WebServerConfigTargetContextOptions) ([]string, error)
 	// SearchContextPositions searches context positions
@@ -30,6 +31,8 @@ type WebServerConfigService interface {
 	InsertWithNew(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error
 	// Remove removes configuration context
 	Remove(opts *metav1.WebServerConfigTargetContextOptions) error
+	// UpdateConfig updates configuration JSON data
+	UpdateConfig(opts *metav1.WebServerConfigUpdateOptions) error
 	// ModifyContextValue modifies context value
 	ModifyContextValue(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error
 	// ModifyWithClone modifies configuration context with clone
@@ -64,7 +67,11 @@ func (s *webServerConfigService) GetOptions() ([]v1.BifrostGroupMeta, error) {
 	req := httpclientv1.HTTPRequest[httpclientv1.NilBody]{
 		Body: httpclientv1.NilBody{},
 	}
-	return s.eps.GetOptions()(s.ctx, req)
+	resp, err := s.eps.GetOptions()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }
 
 // GetConfigTextLines retrieves configuration file text lines
@@ -75,7 +82,11 @@ func (s *webServerConfigService) GetConfigTextLines(opts *metav1.WebServerOption
 	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
 		Body: *opts,
 	}
-	return s.eps.GetConfigTextLines()(s.ctx, req)
+	resp, err := s.eps.GetConfigTextLines()(s.ctx, req)
+	if err != nil {
+		return "", err
+	}
+	return resp.Response()
 }
 
 // GetContextTextLines retrieves context configuration text lines
@@ -86,18 +97,30 @@ func (s *webServerConfigService) GetContextTextLines(opts *metav1.WebServerConfi
 	req := httpclientv1.HTTPRequest[metav1.WebServerConfigTargetContextOptions]{
 		Body: *opts,
 	}
-	return s.eps.GetContextTextLines()(s.ctx, req)
+	resp, err := s.eps.GetContextTextLines()(s.ctx, req)
+	if err != nil {
+		return "", err
+	}
+	return resp.Response()
 }
 
 // GetConfig retrieves configuration JSON data
-func (s *webServerConfigService) GetConfig(opts *metav1.WebServerOptions) (*metav1.WebServerConfig, error) {
+func (s *webServerConfigService) GetConfig(opts *metav1.WebServerOptions) (configuration.NginxConfig, error) {
 	if opts == nil {
 		return nil, errors.New("opts cannot be nil")
 	}
 	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
 		Body: *opts,
 	}
-	return s.eps.GetConfig()(s.ctx, req)
+	resp, err := s.eps.GetConfig()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	webServerConfig, err := resp.Response()
+	if err != nil {
+		return nil, err
+	}
+	return configuration.NewNginxConfigFromJsonBytes(webServerConfig.Config)
 }
 
 // GetIncludedConfigs retrieves included configuration file paths
@@ -108,7 +131,11 @@ func (s *webServerConfigService) GetIncludedConfigs(opts *metav1.WebServerConfig
 	req := httpclientv1.HTTPRequest[metav1.WebServerConfigTargetContextOptions]{
 		Body: *opts,
 	}
-	return s.eps.GetIncludedConfigs()(s.ctx, req)
+	resp, err := s.eps.GetIncludedConfigs()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }
 
 // SearchContextPositions searches context positions
@@ -119,7 +146,11 @@ func (s *webServerConfigService) SearchContextPositions(opts *metav1.WebServerCo
 	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextPosSearchOptions]{
 		Body: *opts,
 	}
-	return s.eps.SearchContextPositions()(s.ctx, req)
+	resp, err := s.eps.SearchContextPositions()(s.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }
 
 // InsertWithClone inserts configuration context with clone
@@ -155,6 +186,18 @@ func (s *webServerConfigService) Remove(opts *metav1.WebServerConfigTargetContex
 		Body: *opts,
 	}
 	_, err := s.eps.Remove()(s.ctx, req)
+	return err
+}
+
+// UpdateConfig updates configuration JSON data
+func (s *webServerConfigService) UpdateConfig(opts *metav1.WebServerConfigUpdateOptions) error {
+	if opts == nil {
+		return errors.New("opts cannot be nil")
+	}
+	req := httpclientv1.HTTPRequest[*metav1.WebServerConfigUpdateOptions]{
+		Body: opts,
+	}
+	_, err := s.eps.UpdateConfig()(s.ctx, req)
 	return err
 }
 

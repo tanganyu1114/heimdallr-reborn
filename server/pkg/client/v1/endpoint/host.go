@@ -6,28 +6,30 @@ import (
 	txpclientv1 "gin-vue-admin/pkg/client/v1/transport"
 	"sync"
 
+	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 )
 
 // HostEndpoints defines the interface for host related endpoints
 type HostEndpoints interface {
 	// Get returns the get host endpoint
-	Get() httpclientv1.Endpoint[metav1.IDOptions, *v1.Host]
+	Get() httpclientv1.Endpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
 	// List returns the list hosts endpoint
-	List() httpclientv1.Endpoint[metav1.ListOptions, *v1.HostList]
+	List() httpclientv1.Endpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 }
 
 // hostEndpoints implements HostEndpoints interface
 type hostEndpoints struct {
 	transport    txpclientv1.HostTransport
 	onceGet      sync.Once
-	getEndpoint  httpclientv1.Endpoint[metav1.IDOptions, *v1.Host]
+	getEndpoint  httpclientv1.Endpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
 	onceList     sync.Once
-	listEndpoint httpclientv1.Endpoint[metav1.ListOptions, *v1.HostList]
+	listEndpoint httpclientv1.Endpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 }
 
 // Get returns the get host endpoint
-func (h *hostEndpoints) Get() httpclientv1.Endpoint[metav1.IDOptions, *v1.Host] {
+func (h *hostEndpoints) Get() httpclientv1.Endpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]] {
 	h.onceGet.Do(func() {
 		h.getEndpoint = h.transport.Get().Build().Endpoint()
 	})
@@ -35,7 +37,7 @@ func (h *hostEndpoints) Get() httpclientv1.Endpoint[metav1.IDOptions, *v1.Host] 
 }
 
 // List returns the list hosts endpoint
-func (h *hostEndpoints) List() httpclientv1.Endpoint[metav1.ListOptions, *v1.HostList] {
+func (h *hostEndpoints) List() httpclientv1.Endpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]] {
 	h.onceList.Do(func() {
 		h.listEndpoint = h.transport.List().Build().Endpoint()
 	})

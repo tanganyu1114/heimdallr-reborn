@@ -6,6 +6,7 @@ import (
 	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
 	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
 	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 )
@@ -53,6 +54,10 @@ func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.
 
 func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
 	return w.store.WebServerConfigs().Remove(ctx, opts, ofp, pos)
+}
+
+func (w *webServerConfigService) UpdateConfig(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+	return w.store.WebServerConfigs().UpdateConfig(ctx, opts, ofp, configJsonData)
 }
 
 func (w *webServerConfigService) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {

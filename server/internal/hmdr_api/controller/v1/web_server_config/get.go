@@ -55,6 +55,7 @@ func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
 
 		return
 	}
+
 	lines, err := configmeta.Config.ConfigLines(false)
 	if err != nil {
 		global.GVA_LOG.Error("解析配置文本失败!", zap.Any("err", err))

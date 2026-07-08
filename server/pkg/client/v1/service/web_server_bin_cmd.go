@@ -40,5 +40,9 @@ func (s *webServerBinCMDService) Exec(req *metav1.WebServerBinCMDExecRequest) (*
 	httpReq := httpclientv1.HTTPRequest[metav1.WebServerBinCMDExecRequest]{
 		Body: *req,
 	}
-	return s.eps.Exec()(s.ctx, httpReq)
+	resp, err := s.eps.Exec()(s.ctx, httpReq)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Response()
 }

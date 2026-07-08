@@ -79,6 +79,7 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 			POST("insert-clone-ctx", webSrvConfController.InsertWithClone).
 			POST("insert-new-ctx", webSrvConfController.InsertWithNew).
 			DELETE("remove-ctx", webSrvConfController.Remove).
+			POST("update-conf", webSrvConfController.UpdateConfig).
 			POST("modify-ctx-value", webSrvConfController.ModifyContextValue).
 			POST("modify-clone-ctx", webSrvConfController.ModifyWithClone).
 			POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState).
