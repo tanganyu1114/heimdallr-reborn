@@ -1,9 +1,9 @@
 package agent_info
 
 import (
-	"gin-vue-admin/global"
-	"gin-vue-admin/model/response"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
 	"go.uber.org/zap"
 )
 

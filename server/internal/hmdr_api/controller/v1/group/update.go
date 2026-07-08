@@ -1,10 +1,10 @@
 package group
 
 import (
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	"gin-vue-admin/model/response"
 	"github.com/gin-gonic/gin"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
 	"go.uber.org/zap"
 )
 

@@ -2,10 +2,10 @@ package fake
 
 import (
 	"context"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
-	"gin-vue-admin/internal/pkg/bifrosts/fake"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	storev1utils "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts/fake"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"

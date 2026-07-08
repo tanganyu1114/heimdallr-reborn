@@ -3,12 +3,12 @@ package bifrosts
 import (
 	"context"
 	"encoding/json"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	"gin-vue-admin/internal/pkg/bifrosts"
-	"gin-vue-admin/internal/pkg/bifrosts/fake"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"gin-vue-admin/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts/fake"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
 	"reflect"
 	"testing"
 

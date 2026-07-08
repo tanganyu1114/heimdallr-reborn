@@ -1,6 +1,6 @@
 package response
 
-import "gin-vue-admin/config"
+import "github.com/tanganyu1114/heimdallr-reborn/config"
 
 type SysConfigResponse struct {
 	Config config.Server `json:"config"`

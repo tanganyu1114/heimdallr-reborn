@@ -1,4 +1,4 @@
-module gin-vue-admin
+module github.com/tanganyu1114/heimdallr-reborn
 
 go 1.25
 

@@ -2,9 +2,9 @@ package bifrosts
 
 import (
 	"context"
-	svcv1 "gin-vue-admin/internal/hmdr_api/service/v1"
-	storev1 "gin-vue-admin/internal/hmdr_api/store/v1"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 )
 
 type webServerBinCMDService struct {

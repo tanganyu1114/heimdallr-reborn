@@ -1,7 +1,7 @@
 package web_server_config
 
 import (
-	v1 "gin-vue-admin/internal/hmdr_api/service/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/service/v1"
 	"reflect"
 	"testing"
 

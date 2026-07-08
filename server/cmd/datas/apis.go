@@ -1,8 +1,8 @@
 package datas
 
 import (
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 	"os"
 	"time"
 

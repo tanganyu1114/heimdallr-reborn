@@ -10,9 +10,9 @@
 package bifrosts
 
 import (
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	v10 "gin-vue-admin/internal/pkg/meta/v1"
-	sort_map "gin-vue-admin/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	v10 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	sort_map "github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
 	reflect "reflect"
 
 	v11 "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"

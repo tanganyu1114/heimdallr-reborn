@@ -2,10 +2,10 @@ package bifrosts
 
 import (
 	"fmt"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	"gin-vue-admin/pkg/sort_map"
 	"github.com/marmotedu/errors"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
 	"go.uber.org/zap"
 	"sync"
 )

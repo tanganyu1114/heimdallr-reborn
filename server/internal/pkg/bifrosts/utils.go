@@ -1,7 +1,7 @@
 package bifrosts
 
 import (
-	"gin-vue-admin/pkg/sort_map"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
 
 	"github.com/marmotedu/errors"
 )

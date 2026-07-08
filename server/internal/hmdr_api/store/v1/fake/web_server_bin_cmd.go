@@ -2,9 +2,9 @@ package fake
 
 import (
 	"context"
-	"gin-vue-admin/internal/pkg/bifrosts/fake"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/marmotedu/errors"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts/fake"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 )
 
 type WebServerBinCMDStore struct {

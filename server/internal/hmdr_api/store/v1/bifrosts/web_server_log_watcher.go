@@ -2,8 +2,8 @@ package bifrosts
 
 import (
 	"context"
-	"gin-vue-admin/internal/pkg/bifrosts"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 	"sync"
 
 	bifrostapiv1 "github.com/ClessLi/bifrost/api/bifrost/v1"

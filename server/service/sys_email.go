@@ -1,7 +1,7 @@
 package service
 
 import (
-	"gin-vue-admin/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/utils"
 )
 
 //@author: [maplepie](https://github.com/maplepie)

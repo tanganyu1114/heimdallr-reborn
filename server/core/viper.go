@@ -3,11 +3,11 @@ package core
 import (
 	"flag"
 	"fmt"
-	"gin-vue-admin/global"
-	_ "gin-vue-admin/packfile"
-	"gin-vue-admin/utils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	_ "github.com/tanganyu1114/heimdallr-reborn/packfile"
+	"github.com/tanganyu1114/heimdallr-reborn/utils"
 	"os"
 )
 

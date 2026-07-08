@@ -1,9 +1,9 @@
 package initialize
 
 import (
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

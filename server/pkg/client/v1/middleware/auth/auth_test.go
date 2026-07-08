@@ -3,10 +3,10 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/model/request"
-	"gin-vue-admin/model/response"
-	modelclientv1 "gin-vue-admin/pkg/client/v1/model"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/model"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"gin-vue-admin/pkg/client/v1/transport"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/transport"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	"github.com/marmotedu/errors"

@@ -1,10 +1,11 @@
+//go:build !windows
 // +build !windows
 
 package utils
 
 import (
-	"gin-vue-admin/global"
 	zaprotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"path"

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"gin-vue-admin/global"
 	"github.com/gin-gonic/gin"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 	"go.uber.org/zap"
 	"net"
 	"net/http"

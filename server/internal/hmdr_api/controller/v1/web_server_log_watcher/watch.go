@@ -3,10 +3,10 @@ package web_server_log_watcher
 import (
 	"encoding/json"
 	"fmt"
-	"gin-vue-admin/global"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"

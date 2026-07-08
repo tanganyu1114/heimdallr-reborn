@@ -1,9 +1,9 @@
 package web_server_config
 
 import (
-	"gin-vue-admin/global"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"gin-vue-admin/model/response"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/model/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"

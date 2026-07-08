@@ -2,12 +2,12 @@ package bifrosts
 
 import (
 	"context"
-	v1 "gin-vue-admin/api/heimdallr_api/v1"
-	"gin-vue-admin/global"
-	storev1utils "gin-vue-admin/internal/hmdr_api/store/v1/utils"
-	"gin-vue-admin/internal/pkg/bifrosts"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
-	"gin-vue-admin/pkg/sort_map"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	storev1utils "github.com/tanganyu1114/heimdallr-reborn/internal/hmdr_api/store/v1/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/internal/pkg/bifrosts"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/pkg/sort_map"
 	"sync"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"

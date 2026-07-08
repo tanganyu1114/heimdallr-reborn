@@ -1,6 +1,6 @@
 package response
 
-import "gin-vue-admin/model"
+import "github.com/tanganyu1114/heimdallr-reborn/model"
 
 type FilePathResponse struct {
 	FilePath string `json:"filePath"`

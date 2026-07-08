@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"gin-vue-admin/global"
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 )
 
 type Group struct {

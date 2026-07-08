@@ -2,7 +2,7 @@
 package model
 
 import (
-	"gin-vue-admin/global"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
 )
 
 // 如果含有time.Time 请自行import time包

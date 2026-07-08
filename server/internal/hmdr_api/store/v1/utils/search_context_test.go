@@ -1,7 +1,7 @@
 package utils
 
 import (
-	metav1 "gin-vue-admin/internal/pkg/meta/v1"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/internal/pkg/meta/v1"
 	"reflect"
 	"testing"
 

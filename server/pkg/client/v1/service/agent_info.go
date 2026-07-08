@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"gin-vue-admin/api/heimdallr_api/v1"
-	epclientv1 "gin-vue-admin/pkg/client/v1/endpoint"
+	"github.com/tanganyu1114/heimdallr-reborn/api/heimdallr_api/v1"
+	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/pkg/client/v1/endpoint"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 )

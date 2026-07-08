@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"gin-vue-admin/global"
-	"gin-vue-admin/model"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/model"
 	"gorm.io/gorm"
 	"time"
 )

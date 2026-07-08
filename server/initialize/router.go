@@ -1,13 +1,13 @@
 package initialize
 
 import (
-	_ "gin-vue-admin/docs"
-	"gin-vue-admin/global"
-	"gin-vue-admin/middleware"
-	"gin-vue-admin/router"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	_ "github.com/tanganyu1114/heimdallr-reborn/docs"
+	"github.com/tanganyu1114/heimdallr-reborn/global"
+	"github.com/tanganyu1114/heimdallr-reborn/middleware"
+	"github.com/tanganyu1114/heimdallr-reborn/router"
 	"net/http"
 )
 
