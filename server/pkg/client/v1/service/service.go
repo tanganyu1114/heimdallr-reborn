@@ -1,6 +1,6 @@
 package service
 
-//go:generate mockgen -self_package=gin-vue-admin/pkg/client/v1/service -destination=mock_service.go -package=service gin-vue-admin/pkg/client/v1/service Factory,AgentInfoService,GroupService,HostService,WebServerConfigService,WebServerBinCMDService,WebServerStatisticsService
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service -destination=mock_service.go -package=service github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service Factory,AgentInfoService,GroupService,HostService,WebServerConfigService,WebServerBinCMDService,WebServerStatisticsService
 import (
 	"context"
 	"sync"

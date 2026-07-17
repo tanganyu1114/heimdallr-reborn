@@ -17,6 +17,7 @@ type Login struct {
 	Password  string `json:"password"`
 	Captcha   string `json:"captcha"`
 	CaptchaId string `json:"captchaId"`
+	Challenge string `json:"challenge"` // 挑战码，用于防重放攻击
 }
 
 // Modify password structure
@@ -36,6 +37,34 @@ type SetUserAuth struct {
 type SDKLogin struct {
 	APIKey    string `json:"apiKey"`    // API密钥
 	APISecret string `json:"apiSecret"` // API密钥密码
+	Challenge string `json:"challenge"` // 挑战码，用于防重放攻击
+}
+
+// SDKChallengeRequest 获取SDK挑战码请求
+type SDKChallengeRequest struct {
+	APIKey string `json:"apiKey" binding:"required"` // API密钥
+}
+
+// SDKChallengeResponse 获取SDK挑战码响应
+type SDKChallengeResponse struct {
+	PublicKey string `json:"publicKey"` // RSA公钥
+	Challenge string `json:"challenge"` // 挑战码
+}
+
+// GetPublicKeyRequest 获取公钥和挑战码请求
+type GetPublicKeyRequest struct {
+	CaptchaId string `json:"captchaId" binding:"required"` // 验证码ID，用作会话标识
+}
+
+// GetPublicKeyResponse 获取公钥和挑战码响应
+type GetPublicKeyResponse struct {
+	PublicKey string `json:"publicKey"` // RSA公钥
+	Challenge string `json:"challenge"` // 挑战码
+}
+
+// EncryptedLoginRequest 加密登录请求包装
+type EncryptedLoginRequest struct {
+	EncryptedData string `json:"encrypted_data" binding:"required"` // RSA加密后的数据
 }
 
 // GenerateAPIKeyRequest 生成API Key请求

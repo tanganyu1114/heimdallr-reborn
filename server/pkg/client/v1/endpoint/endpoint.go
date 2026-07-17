@@ -1,6 +1,6 @@
 package endpoint
 
-//go:generate mockgen -self_package=gin-vue-admin/pkg/client/v1/endpoint -destination=mock_endpoint.go -package=endpoint gin-vue-admin/pkg/client/v1/endpoint Factory,AgentInfoEndpoints,GroupEndpoints,HostEndpoints,WebServerConfigEndpoints,WebServerBinCMDEndpoints,WebServerStatisticsEndpoints
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint -destination=mock_endpoint.go -package=endpoint github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint Factory,AgentInfoEndpoints,GroupEndpoints,HostEndpoints,WebServerConfigEndpoints,WebServerBinCMDEndpoints,WebServerStatisticsEndpoints
 import (
 	"sync"
 

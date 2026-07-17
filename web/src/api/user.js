@@ -1,5 +1,15 @@
 import service from '@/utils/request'
 
+// @Summary 获取RSA公钥
+// @Router /base/publicKey [post]
+export const getPublicKey = (data) => {
+  return service({
+    url: '/base/publicKey',
+    method: 'post',
+    data: data
+  })
+}
+
 // @Summary 用户登录
 // @Produce  application/json
 // @Param data body {username:"string",password:"string"}

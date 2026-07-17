@@ -14,6 +14,11 @@ type LoginResponse struct {
 	ExpiresAt int64         `json:"expiresAt"`
 }
 
+type SDKChallengeResponse struct {
+	PublicKey string `json:"publicKey"` // RSA公钥
+	Challenge string `json:"challenge"` // 挑战码
+}
+
 type APIKeyResponse struct {
 	APIKey    string `json:"apiKey"`
 	APISecret string `json:"apiSecret"`

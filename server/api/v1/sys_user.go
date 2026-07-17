@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"encoding/json"
+	"time"
+
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model"
@@ -8,7 +11,6 @@ import (
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"github.com/tanganyu1114/heimdallr-reborn/server/service"
 	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -17,18 +19,98 @@ import (
 )
 
 // @Tags Base
+// @Summary 获取RSA公钥和挑战码
+// @Produce  application/json
+// @Param data body request.GetPublicKeyRequest true "验证码ID"
+// @Success 200 {string} string "{"success":true,"data":{"publicKey":"...","challenge":"..."},"msg":"获取成功"}"
+// @Router /base/publicKey [post]
+func GetPublicKey(c *gin.Context) {
+	var req request.GetPublicKeyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.FailWithMessage("请求参数错误", c)
+		return
+	}
+
+	// Use captchaId as session identifier
+	publicKey, challenge, err := utils.GetPublicKeyWithChallenge(req.CaptchaId)
+	if err != nil {
+		global.GVA_LOG.Error("获取公钥失败", zap.Any("err", err))
+		response.FailWithMessage("获取公钥失败", c)
+		return
+	}
+	response.OkWithDetailed(gin.H{
+		"publicKey": publicKey,
+		"challenge": challenge,
+	}, "获取成功", c)
+}
+
+// @Tags Base
+// @Summary 获取SDK登录挑战码
+// @Produce  application/json
+// @Param data body request.SDKChallengeRequest true "API Key"
+// @Success 200 {string} string "{"success":true,"data":{"publicKey":"...","challenge":"..."},"msg":"获取成功"}"
+// @Router /base/sdkChallenge [post]
+func GetSDKChallenge(c *gin.Context) {
+	var req request.SDKChallengeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.FailWithMessage("请求参数错误", c)
+		return
+	}
+
+	// Use APIKey as session identifier
+	publicKey, challenge, err := utils.GetPublicKeyWithChallenge(req.APIKey)
+	if err != nil {
+		global.GVA_LOG.Error("获取公钥失败", zap.Any("err", err))
+		response.FailWithMessage("获取公钥失败", c)
+		return
+	}
+	response.OkWithDetailed(gin.H{
+		"publicKey": publicKey,
+		"challenge": challenge,
+	}, "获取成功", c)
+}
+
+// @Tags Base
 // @Summary 用户登录
 // @Produce  application/json
 // @Param data body request.Login true "用户名, 密码, 验证码"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"登陆成功"}"
 // @Router /base/login [post]
 func Login(c *gin.Context) {
+	// Receive encrypted login data
+	var encryptedReq request.EncryptedLoginRequest
+	if err := c.ShouldBindJSON(&encryptedReq); err != nil {
+		response.FailWithMessage("请求参数错误，请检查加密数据", c)
+		return
+	}
+
+	// Decrypt the entire JSON string
+	decryptedJSON, err := utils.RSADecrypt(encryptedReq.EncryptedData)
+	if err != nil {
+		global.GVA_LOG.Error("登录数据解密失败", zap.Any("err", err))
+		response.FailWithMessage("登录数据解密失败，请重试", c)
+		return
+	}
+
+	// Parse decrypted JSON into Login struct
 	var L request.Login
-	_ = c.ShouldBindJSON(&L)
+	if err := json.Unmarshal([]byte(decryptedJSON), &L); err != nil {
+		global.GVA_LOG.Error("解析登录数据失败", zap.Any("err", err))
+		response.FailWithMessage("登录数据格式错误，请重试", c)
+		return
+	}
+
+	// Validate challenge to prevent replay attacks
+	if !utils.VerifyChallenge(L.CaptchaId, L.Challenge) {
+		response.FailWithMessage("挑战码无效，请刷新页面重试", c)
+		return
+	}
+
 	if err := utils.Verify(L, utils.LoginVerify); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+
 	if store.Verify(L.CaptchaId, L.Captcha, true) {
 		U := &model.SysUser{Username: L.Username, Password: L.Password}
 		if err, user := service.Login(U); err != nil {
@@ -49,8 +131,35 @@ func Login(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"登陆成功"}"
 // @Router /base/sdk_login [post]
 func SDKLogin(c *gin.Context) {
+	// Receive encrypted SDK login data
+	var encryptedReq request.EncryptedLoginRequest
+	if err := c.ShouldBindJSON(&encryptedReq); err != nil {
+		response.FailWithMessage("请求参数错误，请检查加密数据", c)
+		return
+	}
+
+	// Decrypt the entire JSON string
+	decryptedJSON, err := utils.RSADecrypt(encryptedReq.EncryptedData)
+	if err != nil {
+		global.GVA_LOG.Error("SDK登录数据解密失败", zap.Any("err", err))
+		response.FailWithMessage("SDK登录数据解密失败，请重试", c)
+		return
+	}
+
+	// Parse decrypted JSON into SDKLogin struct
 	var L request.SDKLogin
-	_ = c.ShouldBindJSON(&L)
+	if err := json.Unmarshal([]byte(decryptedJSON), &L); err != nil {
+		global.GVA_LOG.Error("解析SDK登录数据失败", zap.Any("err", err))
+		response.FailWithMessage("SDK登录数据格式错误，请重试", c)
+		return
+	}
+
+	// Validate challenge to prevent replay attacks
+	if !utils.VerifyChallenge(L.APIKey, L.Challenge) {
+		response.FailWithMessage("挑战码无效，请重试", c)
+		return
+	}
+
 	if err := utils.Verify(L, utils.SDKLoginVerify); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

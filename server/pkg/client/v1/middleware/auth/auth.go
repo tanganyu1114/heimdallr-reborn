@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/middleware"
 	txpclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
@@ -87,31 +89,89 @@ func (a *authMiddleware) fetchNewToken() error {
 		return errors.New("sysUser transport is nil")
 	}
 
-	sdkLoginBuilder := sysUsers.SDKLogin()
-	if sdkLoginBuilder == nil {
-		return errors.New("sdkLogin client builder is nil")
+	// Step 1: Get SDK challenge (public key + challenge)
+	sdkChallengeBuilder := sysUsers.GetSDKChallenge()
+	if sdkChallengeBuilder == nil {
+		return errors.New("sdkChallenge client builder is nil")
 	}
 
-	client := sdkLoginBuilder.Build()
-	if client == nil {
-		return errors.New("sdkLogin client is nil")
+	sdkChallengeClient := sdkChallengeBuilder.Build()
+	if sdkChallengeClient == nil {
+		return errors.New("sdkChallenge client is nil")
 	}
 
-	sdkLoginEP := client.Endpoint()
-	if sdkLoginEP == nil {
-		return errors.New("sdk login endpoint is nil")
+	sdkChallengeEP := sdkChallengeClient.Endpoint()
+	if sdkChallengeEP == nil {
+		return errors.New("sdk challenge endpoint is nil")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	challengeReq := &request.SDKChallengeRequest{
+		APIKey: currentAPIKey,
+	}
+
+	challengeHTTPReq := httpclientv1.HTTPRequest[*request.SDKChallengeRequest]{
+		Body: challengeReq,
+	}
+
+	challengeResp, err := sdkChallengeEP(ctx, challengeHTTPReq)
+	if err != nil {
+		logV1.Errorf("failed to get SDK challenge: %v", err)
+		return err
+	}
+
+	challengeRespData, err := challengeResp.Response()
+	if err != nil {
+		logV1.Errorf("failed to parse SDK challenge response: %v", err)
+		return err
+	}
+
+	// Step 2: Build SDK login request with challenge and encrypt it
 	loginReq := &request.SDKLogin{
 		APIKey:    currentAPIKey,
 		APISecret: currentAPISecret,
+		Challenge: challengeRespData.Challenge,
 	}
 
-	req := httpclientv1.HTTPRequest[*request.SDKLogin]{
-		Body: loginReq,
+	// Serialize login request to JSON
+	loginJSON, err := json.Marshal(loginReq)
+	if err != nil {
+		logV1.Errorf("failed to marshal SDK login request: %v", err)
+		return err
+	}
+
+	// Encrypt the login request with the public key
+	encryptedData, err := utils.RSAEncrypt(challengeRespData.PublicKey, string(loginJSON))
+	if err != nil {
+		logV1.Errorf("failed to encrypt SDK login request: %v", err)
+		return err
+	}
+
+	// Step 3: Send encrypted SDK login request
+	sdkLoginBuilder := sysUsers.SDKLogin()
+	if sdkLoginBuilder == nil {
+		return errors.New("sdkLogin client builder is nil")
+	}
+
+	sdkLoginClient := sdkLoginBuilder.Build()
+	if sdkLoginClient == nil {
+		return errors.New("sdkLogin client is nil")
+	}
+
+	sdkLoginEP := sdkLoginClient.Endpoint()
+	if sdkLoginEP == nil {
+		return errors.New("sdk login endpoint is nil")
+	}
+
+	// Create encrypted request wrapper
+	encryptedReq := request.EncryptedLoginRequest{
+		EncryptedData: encryptedData,
+	}
+
+	req := httpclientv1.HTTPRequest[*request.EncryptedLoginRequest]{
+		Body: &encryptedReq,
 	}
 
 	resp, err := sdkLoginEP(ctx, req)

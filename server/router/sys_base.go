@@ -10,6 +10,8 @@ import (
 func InitBaseRouter(Router *gin.RouterGroup) (R gin.IRoutes) {
 	BaseRouter := Router.Group("base")
 	{
+		BaseRouter.POST("publicKey", v1.GetPublicKey)
+		BaseRouter.POST("sdkChallenge", v1.GetSDKChallenge)
 		BaseRouter.POST("login", v1.Login)
 		BaseRouter.POST("sdkLogin", middleware.OperationRecord(), v1.SDKLogin)
 		BaseRouter.POST("captcha", v1.Captcha)

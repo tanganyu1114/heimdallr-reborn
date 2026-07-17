@@ -11,19 +11,28 @@ import (
 
 // SysUserTransport defines the interface for sys user related transport
 type SysUserTransport interface {
-	// SDKLogin returns the SDK login client
-	SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
+	// GetSDKChallenge returns the SDK challenge client
+	GetSDKChallenge() httpclientv1.ClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]]
+	// SDKLogin returns the SDK login client (accepts encrypted request)
+	SDKLogin() httpclientv1.ClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]]
 }
 
 // sysUserTransport implements SysUserTransport interface
 type sysUserTransport struct {
-	sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
+	sdkChallengeClient httpclientv1.ClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]]
+	sdkLoginClient     httpclientv1.ClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]]
 }
 
 // newSysUserTransport creates a new sysUser transport
 func newSysUserTransport(transport *transport) SysUserTransport {
 	t := &sysUserTransport{
-		sdkLoginClient: httpclientv1.NewClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](
+		sdkChallengeClient: httpclientv1.NewClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](
+			httpclientv1.HTTPMethodPost,
+			transport.baseURL+"/base/sdkChallenge",
+		).WithOptions(
+			http_transport.SetClient(transport.Client),
+		),
+		sdkLoginClient: httpclientv1.NewClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](
 			httpclientv1.HTTPMethodPost,
 			transport.baseURL+"/base/sdkLogin",
 		).WithOptions(
@@ -33,7 +42,12 @@ func newSysUserTransport(transport *transport) SysUserTransport {
 	return t
 }
 
-// SDKLogin returns the SDK login client
-func (s *sysUserTransport) SDKLogin() httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]] {
+// GetSDKChallenge returns the SDK challenge client
+func (s *sysUserTransport) GetSDKChallenge() httpclientv1.ClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]] {
+	return s.sdkChallengeClient
+}
+
+// SDKLogin returns the SDK login client (accepts encrypted request)
+func (s *sysUserTransport) SDKLogin() httpclientv1.ClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]] {
 	return s.sdkLoginClient
 }

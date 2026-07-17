@@ -1,6 +1,6 @@
 package transport
 
-//go:generate mockgen -self_package=gin-vue-admin/pkg/client/v1/transport -destination=mock_transport.go -package=transport gin-vue-admin/pkg/client/v1/transport Factory,SysUserTransport,AgentInfoTransport,GroupTransport,HostTransport,WebServerConfigTransport,WebServerBinCMDTransport,WebServerStatisticsTransport
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport -destination=mock_transport.go -package=transport github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport Factory,SysUserTransport,AgentInfoTransport,GroupTransport,HostTransport,WebServerConfigTransport,WebServerBinCMDTransport,WebServerStatisticsTransport
 import (
 	"net/http"
 	"sync"

@@ -3,16 +3,18 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
+
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
+	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
@@ -403,7 +405,7 @@ func TestAuthMiddleware_EnsureValidToken(t *testing.T) {
 				expiresAt: 0,
 			},
 			wantErr: true,
-			errMsg:  "sdkLogin client builder is nil",
+			errMsg:  "sdkChallenge client builder is nil",
 		},
 		{
 			name: "token expiring soon",
@@ -415,7 +417,7 @@ func TestAuthMiddleware_EnsureValidToken(t *testing.T) {
 				expiresAt:  time.Now().Unix() + 100,
 			},
 			wantErr: true,
-			errMsg:  "sdkLogin client builder is nil",
+			errMsg:  "sdkChallenge client builder is nil",
 		},
 	}
 	for _, tt := range tests {
@@ -428,7 +430,7 @@ func TestAuthMiddleware_EnsureValidToken(t *testing.T) {
 			if tt.fields.token == "" || (tt.fields.expiresAt > 0 && tt.fields.expiresAt-time.Now().Unix() < tt.fields.bufferTime) {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport).AnyTimes()
-				mockSysUserTransport.EXPECT().SDKLogin().Return(nil).AnyTimes()
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(nil).AnyTimes()
 			}
 
 			mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
@@ -699,7 +701,7 @@ func Test_authMiddleware_injectTokenToContext(t *testing.T) {
 			if tt.fields.token == "" || (tt.fields.expiresAt > 0 && tt.fields.expiresAt-time.Now().Unix() < tt.fields.bufferTime) {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport).AnyTimes()
-				mockSysUserTransport.EXPECT().SDKLogin().Return(nil).AnyTimes()
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(nil).AnyTimes()
 			}
 
 			mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
@@ -724,6 +726,10 @@ func Test_authMiddleware_injectTokenToContext(t *testing.T) {
 }
 
 func Test_authMiddleware_fetchNewToken(t *testing.T) {
+	// Generate real RSA keys for testing
+	utils.GenerateRSAKeys()
+	testPublicKey, _, _ := utils.GetPublicKeyWithChallenge("test-api-key")
+
 	type fields struct {
 		apiKey     string
 		apiSecret  string
@@ -754,6 +760,60 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "sysUser transport is nil",
+		},
+		{
+			name: "sdkChallenge client builder is nil",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "sdkChallenge client builder is nil",
+		},
+		{
+			name: "sdkChallenge client is nil",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "sdkChallenge client is nil",
+		},
+		{
+			name: "sdk challenge endpoint is nil",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "sdk challenge endpoint is nil",
+		},
+		{
+			name: "sdkChallenge request fails",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "challenge request failed",
+		},
+		{
+			name: "sdkChallenge response parse fails",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "invalid character",
+		},
+		{
+			name: "failed to encrypt SDK login request",
+			fields: fields{
+				apiKey:    "key",
+				apiSecret: "secret",
+			},
+			wantErr: true,
+			errMsg:  "failed to parse PEM block containing the public key",
 		},
 		{
 			name: "sdkLogin client builder is nil",
@@ -839,9 +899,139 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 				return
 			}
 
-			if tt.errMsg == "sdkLogin client builder is nil" {
+			if tt.errMsg == "sdkChallenge client builder is nil" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(nil)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "sdkChallenge client is nil" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(nil)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "sdk challenge endpoint is nil" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(nil)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "challenge request failed" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{}, errors.New("challenge request failed")
+				}
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "invalid character" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: json.RawMessage("invalid-json"),
+					}, nil
+				}
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "failed to parse PEM block containing the public key" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: json.RawMessage(`{"public_key":"invalid-key","challenge":"test-challenge"}`),
+					}, nil
+				}
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+
+				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
+				authMw := mw(mockFactory).(*authMiddleware)
+
+				err := authMw.fetchNewToken()
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				return
+			}
+
+			if tt.errMsg == "sdkLogin client builder is nil" {
+				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData := &response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					}
+					rawData, _ := json.Marshal(challengeData)
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: rawData,
+					}, nil
+				}
+				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
 				mockSysUserTransport.EXPECT().SDKLogin().Return(nil)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
@@ -855,10 +1045,24 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 
 			if tt.errMsg == "sdkLogin client is nil" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData, _ := json.Marshal(&response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					})
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: challengeData,
+					}, nil
+				}
+				mockLoginBuilder := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
-				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
-				mockClientBuilder.EXPECT().Build().Return(nil)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockLoginBuilder)
+				mockLoginBuilder.EXPECT().Build().Return(nil)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
@@ -871,12 +1075,26 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 
 			if tt.errMsg == "sdk login endpoint is nil" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData, _ := json.Marshal(&response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					})
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: challengeData,
+					}, nil
+				}
+				mockLoginBuilder := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginClient := httpclientv1.NewMockClient[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
-				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
-				mockClientBuilder.EXPECT().Build().Return(mockClient)
-				mockClient.EXPECT().Endpoint().Return(nil)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockLoginBuilder)
+				mockLoginBuilder.EXPECT().Build().Return(mockLoginClient)
+				mockLoginClient.EXPECT().Endpoint().Return(nil)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
@@ -889,15 +1107,29 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 
 			if tt.errMsg == "login error" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData, _ := json.Marshal(&response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					})
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: challengeData,
+					}, nil
+				}
+				mockLoginBuilder := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginClient := httpclientv1.NewMockClient[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.EncryptedLoginRequest]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
 					return modelclientv1.ResponseBody[*response.LoginResponse]{}, errors.New("login error")
 				}
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
-				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
-				mockClientBuilder.EXPECT().Build().Return(mockClient)
-				mockClient.EXPECT().Endpoint().Return(mockEndpoint)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockLoginBuilder)
+				mockLoginBuilder.EXPECT().Build().Return(mockLoginClient)
+				mockLoginClient.EXPECT().Endpoint().Return(mockLoginEndpoint)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
@@ -910,18 +1142,32 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 
 			if tt.name == "login response code is non-zero" {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockEndpoint := httpclientv1.Endpoint[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (resp modelclientv1.ResponseBody[*response.LoginResponse], err error) {
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData, _ := json.Marshal(&response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					})
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: challengeData,
+					}, nil
+				}
+				mockLoginBuilder := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginClient := httpclientv1.NewMockClient[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginEndpoint := httpclientv1.Endpoint[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](func(ctx context.Context, req httpclientv1.HTTPRequest[*request.EncryptedLoginRequest]) (resp modelclientv1.ResponseBody[*response.LoginResponse], err error) {
 					return modelclientv1.ResponseBody[*response.LoginResponse]{
 						Code:    500,
 						Message: "internal server error",
 					}, nil
 				})
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
-				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
-				mockClientBuilder.EXPECT().Build().Return(mockClient)
-				mockClient.EXPECT().Endpoint().Return(mockEndpoint)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockLoginBuilder)
+				mockLoginBuilder.EXPECT().Build().Return(mockLoginClient)
+				mockLoginClient.EXPECT().Endpoint().Return(mockLoginEndpoint)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)
@@ -934,11 +1180,22 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 
 			if !tt.wantErr {
 				mockSysUserTransport := transport.NewMockSysUserTransport(ctrl)
-				mockClientBuilder := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
-				mockClient := httpclientv1.NewMockClient[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockChallengeBuilder := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeClient := httpclientv1.NewMockClient[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
+				mockChallengeEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKChallengeRequest]) (modelclientv1.ResponseBody[*response.SDKChallengeResponse], error) {
+					challengeData, _ := json.Marshal(&response.SDKChallengeResponse{
+						PublicKey: testPublicKey,
+						Challenge: "test-challenge",
+					})
+					return modelclientv1.ResponseBody[*response.SDKChallengeResponse]{
+						Data: challengeData,
+					}, nil
+				}
+				mockLoginBuilder := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+				mockLoginClient := httpclientv1.NewMockClient[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
 				expectedToken := "new-test-token"
 				expectedExpiresAt := time.Now().Unix() + 7200
-				mockEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.SDKLogin]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
+				mockLoginEndpoint := func(ctx context.Context, req httpclientv1.HTTPRequest[*request.EncryptedLoginRequest]) (modelclientv1.ResponseBody[*response.LoginResponse], error) {
 					data, _ := json.Marshal(&response.LoginResponse{
 						Token:     expectedToken,
 						ExpiresAt: expectedExpiresAt,
@@ -948,9 +1205,12 @@ func Test_authMiddleware_fetchNewToken(t *testing.T) {
 					}, nil
 				}
 				mockFactory.EXPECT().SysUsers().Return(mockSysUserTransport)
-				mockSysUserTransport.EXPECT().SDKLogin().Return(mockClientBuilder)
-				mockClientBuilder.EXPECT().Build().Return(mockClient)
-				mockClient.EXPECT().Endpoint().Return(mockEndpoint)
+				mockSysUserTransport.EXPECT().GetSDKChallenge().Return(mockChallengeBuilder)
+				mockChallengeBuilder.EXPECT().Build().Return(mockChallengeClient)
+				mockChallengeClient.EXPECT().Endpoint().Return(mockChallengeEndpoint)
+				mockSysUserTransport.EXPECT().SDKLogin().Return(mockLoginBuilder)
+				mockLoginBuilder.EXPECT().Build().Return(mockLoginClient)
+				mockLoginClient.EXPECT().Endpoint().Return(mockLoginEndpoint)
 
 				mw := AuthMiddleware(tt.fields.apiKey, tt.fields.apiSecret, tt.fields.bufferTime)
 				authMw := mw(mockFactory).(*authMiddleware)

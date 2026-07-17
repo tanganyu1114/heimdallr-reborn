@@ -5,8 +5,7 @@
         <div class="desc">
           <img class="logo_login" src="@/assets/logo_login.png" alt="">
         </div>
-        <div class="header">
-        </div>
+        <div class="header" />
       </div>
       <div class="main">
         <el-form
@@ -52,7 +51,7 @@
                 width="100%"
                 height="100%"
                 alt="请输入验证码"
-                @click="loginVefify()"
+                @click="loginVerify()"
               >
             </div>
           </el-form-item>
@@ -77,7 +76,9 @@
 
 <script>
 import { mapActions } from 'vuex'
-import { captcha } from '@/api/user'
+import { captcha, getPublicKey } from '@/api/user'
+import JSEncrypt from 'jsencrypt/bin/jsencrypt.min'
+
 export default {
   name: 'Login',
   data() {
@@ -109,30 +110,73 @@ export default {
         password: [{ validator: checkPassword, trigger: 'blur' }]
       },
       logVerify: '',
-      picPath: ''
+      picPath: '',
+      publicKey: '',
+      challenge: ''
     }
   },
   created() {
-    this.loginVefify()
     this.curYear = new Date().getFullYear()
+    this.initLogin()
   },
   methods: {
     ...mapActions('user', ['LoginIn']),
+    async initLogin() {
+      // Get captcha and public key with challenge
+      await this.loginVerify()
+    },
+    async fetchPublicKey() {
+      try {
+        const res = await getPublicKey({ captchaId: this.loginForm.captchaId })
+        if (res.code === 0) {
+          this.publicKey = res.data.publicKey
+          this.challenge = res.data.challenge
+        }
+      } catch (error) {
+        console.error('Failed to fetch public key:', error)
+      }
+    },
+    encryptLoginData(loginData) {
+      if (!this.publicKey || !this.challenge) {
+        return null
+      }
+      const encryptor = new JSEncrypt()
+      encryptor.setPublicKey(this.publicKey)
+
+      // Add challenge for replay attack prevention
+      const dataWithChallenge = {
+        ...loginData,
+        challenge: this.challenge
+      }
+
+      // Encrypt the entire JSON string
+      const jsonString = JSON.stringify(dataWithChallenge)
+      return encryptor.encrypt(jsonString)
+    },
     async login() {
-      await this.LoginIn(this.loginForm)
+      const encryptedData = this.encryptLoginData(this.loginForm)
+      if (!encryptedData) {
+        this.$message({
+          type: 'error',
+          message: '加密初始化失败，请刷新页面',
+          showClose: true
+        })
+        return
+      }
+      await this.LoginIn({ encrypted_data: encryptedData })
     },
     async submitForm() {
       this.$refs.loginForm.validate(async(v) => {
         if (v) {
           this.login()
-          this.loginVefify()
+          this.loginVerify()
         } else {
           this.$message({
             type: 'error',
             message: '请正确填写登录信息',
             showClose: true
           })
-          this.loginVefify()
+          this.loginVerify()
           return false
         }
       })
@@ -140,10 +184,12 @@ export default {
     changeLock() {
       this.lock === 'lock' ? (this.lock = 'unlock') : (this.lock = 'lock')
     },
-    loginVefify() {
-      captcha({}).then((ele) => {
+    loginVerify() {
+      return captcha({}).then((ele) => {
         this.picPath = ele.data.picPath
         this.loginForm.captchaId = ele.data.captchaId
+        // After getting captchaId, fetch public key and challenge
+        return this.fetchPublicKey()
       })
     }
   }
