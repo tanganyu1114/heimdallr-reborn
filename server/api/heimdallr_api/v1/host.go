@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 )
 
 type Host struct {
@@ -20,7 +19,7 @@ type Host struct {
 type HostList struct {
 	// Standard list metadata.
 	// +optional
-	metav1.ListMeta `json:",inline"`
+	ListMeta `json:",inline"`
 
 	Items []*Host `json:"items"`
 }

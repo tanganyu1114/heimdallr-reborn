@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
@@ -35,7 +34,7 @@ func Test_groupMiddleware_Get(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockGroupTransport := transport.NewMockGroupTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](ctrl)
 
 			mockFactory.EXPECT().Groups().Return(mockGroupTransport)
 			mockGroupTransport.EXPECT().Get().Return(mockClientBuilder)
@@ -74,7 +73,7 @@ func Test_groupMiddleware_List(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockGroupTransport := transport.NewMockGroupTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](ctrl)
 
 			mockFactory.EXPECT().Groups().Return(mockGroupTransport)
 			mockGroupTransport.EXPECT().List().Return(mockClientBuilder)

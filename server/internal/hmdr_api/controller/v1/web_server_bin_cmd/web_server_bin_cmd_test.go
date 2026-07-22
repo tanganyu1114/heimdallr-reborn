@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	log "github.com/ClessLi/component-base/pkg/log/v1"
-	"github.com/gin-gonic/gin"
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1/fake"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
-	"go.uber.org/mock/gomock"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	log "github.com/ClessLi/component-base/pkg/log/v1"
+	"github.com/gin-gonic/gin"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1/fake"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
+	"go.uber.org/mock/gomock"
 )
 
 func TestWebServerBinCMDController_Exec(t *testing.T) {

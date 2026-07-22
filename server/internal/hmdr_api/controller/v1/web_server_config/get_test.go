@@ -3,13 +3,14 @@ package web_server_config
 import (
 	"bytes"
 	"encoding/json"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts/fake"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
-	"net/http/httptest"
-	"testing"
 
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
@@ -28,13 +29,13 @@ func TestWebServerConfigController_GetConfig(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerOptions{
+	validMeta := v1.WebServerOptions{
 		GroupID:    0,
 		HostID:     0,
 		ServerName: "test-bifrost",
 	}
 
-	invalidMeta := metav1.WebServerOptions{
+	invalidMeta := v1.WebServerOptions{
 		GroupID:    0,
 		HostID:     0,
 		ServerName: "",
@@ -80,9 +81,9 @@ func TestWebServerConfigController_GetConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "get config returns error" {
-				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(metav1.WebServerConfig{}, errors.New("get config failed"))
+				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(v1.WebServerConfig{}, errors.New("get config failed"))
 			} else if tt.name == "valid request body" {
-				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(metav1.WebServerConfig{}, nil)
+				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(v1.WebServerConfig{}, nil)
 			}
 
 			w := &WebServerConfigController{
@@ -116,13 +117,13 @@ func TestWebServerConfigController_GetConfigTextLines(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerOptions{
+	validMeta := v1.WebServerOptions{
 		GroupID:    0,
 		HostID:     0,
 		ServerName: "test-bifrost",
 	}
 
-	invalidMeta := metav1.WebServerOptions{
+	invalidMeta := v1.WebServerOptions{
 		GroupID:    0,
 		HostID:     0,
 		ServerName: "",
@@ -168,11 +169,11 @@ func TestWebServerConfigController_GetConfigTextLines(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "get config returns error" {
-				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(metav1.WebServerConfig{}, errors.New("get config failed"))
+				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(v1.WebServerConfig{}, errors.New("get config failed"))
 			} else if tt.name == "valid request body" {
 				fakeSvc := fake.WebServerConfigService{}
 				fakeConfig, _, _ := fakeSvc.Get("test-bifrost")
-				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(metav1.WebServerConfig{
+				mockWebServerConfigSrv.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(v1.WebServerConfig{
 					Config: fakeConfig.Main(),
 				}, nil)
 			}
@@ -208,13 +209,13 @@ func TestWebServerConfigController_GetContextTextLines(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigTargetContextOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigTargetContextOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		ConfigContextPos: metav1.ConfigContextPos{
+		ConfigContextPos: v1.ConfigContextPos{
 			Config:         "E:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
@@ -223,13 +224,13 @@ func TestWebServerConfigController_GetContextTextLines(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigTargetContextOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigTargetContextOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		ConfigContextPos:     metav1.ConfigContextPos{},
+		ConfigContextPos:     v1.ConfigContextPos{},
 		OriginalFingerprints: nil,
 	}
 
@@ -319,13 +320,13 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigTargetContextOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigTargetContextOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		ConfigContextPos: metav1.ConfigContextPos{
+		ConfigContextPos: v1.ConfigContextPos{
 			Config:         "E:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
@@ -334,13 +335,13 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigTargetContextOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigTargetContextOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		ConfigContextPos:     metav1.ConfigContextPos{},
+		ConfigContextPos:     v1.ConfigContextPos{},
 		OriginalFingerprints: nil,
 	}
 
@@ -394,7 +395,7 @@ func TestWebServerConfigController_GetIncludedConfigs(t *testing.T) {
 			if tt.name == "get included configs returns error" {
 				mockWebServerConfigSrv.EXPECT().GetIncludedConfigs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("get included configs failed"))
 			} else if tt.name == "fingerprint error" {
-				mockWebServerConfigSrv.EXPECT().GetIncludedConfigs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, metav1.ErrInconsistentFingerprints)
+				mockWebServerConfigSrv.EXPECT().GetIncludedConfigs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, v1.ErrInconsistentFingerprints)
 			} else if tt.name == "valid request body" {
 				mockWebServerConfigSrv.EXPECT().GetIncludedConfigs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil)
 			}
@@ -483,14 +484,14 @@ func TestWebServerConfigController_SearchContextPositions(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextPosSearchOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextPosSearchOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		SearchKeywordsMeta: metav1.SearchKeywordsMeta{
-			StartingPositionList: []metav1.ConfigContextPos{
+		SearchKeywordsMeta: v1.SearchKeywordsMeta{
+			StartingPositionList: []v1.ConfigContextPos{
 				{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{0, 0},
@@ -503,13 +504,13 @@ func TestWebServerConfigController_SearchContextPositions(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextPosSearchOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextPosSearchOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		SearchKeywordsMeta:   metav1.SearchKeywordsMeta{},
+		SearchKeywordsMeta:   v1.SearchKeywordsMeta{},
 		OriginalFingerprints: nil,
 	}
 
@@ -563,9 +564,9 @@ func TestWebServerConfigController_SearchContextPositions(t *testing.T) {
 			if tt.name == "search context positions returns error" {
 				mockWebServerConfigSrv.EXPECT().SearchContextPositions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("search failed"))
 			} else if tt.name == "fingerprint error" {
-				mockWebServerConfigSrv.EXPECT().SearchContextPositions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, metav1.ErrInconsistentFingerprints)
+				mockWebServerConfigSrv.EXPECT().SearchContextPositions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, v1.ErrInconsistentFingerprints)
 			} else if tt.name == "valid request body" {
-				mockWebServerConfigSrv.EXPECT().SearchContextPositions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]metav1.ConfigContextPos{
+				mockWebServerConfigSrv.EXPECT().SearchContextPositions(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]v1.ConfigContextPos{
 					{
 						Config:         "C:\\config_test\\nginx.conf",
 						ContextPosPath: []int{0, 0},
@@ -619,7 +620,7 @@ func Test_getErrorHandle(t *testing.T) {
 		},
 		{
 			name:        "fingerprint error - ErrInconsistentFingerprints",
-			err:         metav1.ErrInconsistentFingerprints,
+			err:         v1.ErrInconsistentFingerprints,
 			okdetailobj: nil,
 			okmsg:       "success",
 			failuremsg:  "failure",

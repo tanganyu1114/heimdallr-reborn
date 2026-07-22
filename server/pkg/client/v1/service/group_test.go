@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
@@ -22,7 +21,7 @@ func Test_groupService_Get(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockGroupEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal(&v1.Group{Name: "test-group"})
 		return modelclientv1.ResponseBody[*v1.Group]{Data: data}, nil
 	})
@@ -33,7 +32,7 @@ func Test_groupService_Get(t *testing.T) {
 		eps epclientv1.GroupEndpoints
 	}
 	type args struct {
-		idOptions *metav1.IDOptions
+		idOptions *v1.IDOptions
 	}
 	tests := []struct {
 		name    string
@@ -49,7 +48,7 @@ func Test_groupService_Get(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				idOptions: &metav1.IDOptions{ID: 1},
+				idOptions: &v1.IDOptions{ID: 1},
 			},
 			want:    &v1.Group{Name: "test-group"},
 			wantErr: false,
@@ -80,7 +79,7 @@ func Test_groupService_List(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockGroupEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal(&v1.GroupList{Items: []*v1.Group{{Name: "test-group"}}})
 		return modelclientv1.ResponseBody[*v1.GroupList]{Data: data}, nil
 	})
@@ -91,7 +90,7 @@ func Test_groupService_List(t *testing.T) {
 		eps epclientv1.GroupEndpoints
 	}
 	type args struct {
-		listOptions *metav1.ListOptions
+		listOptions *v1.ListOptions
 	}
 	tests := []struct {
 		name    string
@@ -107,7 +106,7 @@ func Test_groupService_List(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				listOptions: &metav1.ListOptions{},
+				listOptions: &v1.ListOptions{},
 			},
 			want:    &v1.GroupList{Items: []*v1.Group{{Name: "test-group"}}},
 			wantErr: false,

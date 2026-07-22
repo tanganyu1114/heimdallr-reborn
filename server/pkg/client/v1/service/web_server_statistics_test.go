@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
@@ -57,7 +56,7 @@ func Test_webServerStatisticsService_ConnectivityCheckOfProxyService(t *testing.
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal(v1.ProxyServiceInfo{})
 		return modelclientv1.ResponseBody[v1.ProxyServiceInfo]{Data: data}, nil
 	})
@@ -68,7 +67,7 @@ func Test_webServerStatisticsService_ConnectivityCheckOfProxyService(t *testing.
 		eps epclientv1.WebServerStatisticsEndpoints
 	}
 	type args struct {
-		opts *metav1.ConnectivityCheckOfProxiedServersRequestOptions
+		opts *v1.ConnectivityCheckOfProxiedServersRequestOptions
 	}
 	tests := []struct {
 		name    string
@@ -84,7 +83,7 @@ func Test_webServerStatisticsService_ConnectivityCheckOfProxyService(t *testing.
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.ConnectivityCheckOfProxiedServersRequestOptions{},
+				opts: &v1.ConnectivityCheckOfProxiedServersRequestOptions{},
 			},
 			want:    v1.ProxyServiceInfo{},
 			wantErr: false,
@@ -115,7 +114,7 @@ func Test_webServerStatisticsService_ExportProxyServiceInfoToExcel(t *testing.T)
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal([]byte("excel-data"))
 		return modelclientv1.ResponseBody[[]byte]{Data: data}, nil
 	})
@@ -126,7 +125,7 @@ func Test_webServerStatisticsService_ExportProxyServiceInfoToExcel(t *testing.T)
 		eps epclientv1.WebServerStatisticsEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerOptions
+		opts *v1.WebServerOptions
 	}
 	tests := []struct {
 		name    string
@@ -142,7 +141,7 @@ func Test_webServerStatisticsService_ExportProxyServiceInfoToExcel(t *testing.T)
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			want:    []byte("excel-data"),
 			wantErr: false,
@@ -173,7 +172,7 @@ func Test_webServerStatisticsService_GetProxyServiceInfo(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerStatisticsEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal([]v1.ProxyServiceInfo{{ServerName: "test-proxy"}})
 		return modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]{Data: data}, nil
 	})
@@ -184,7 +183,7 @@ func Test_webServerStatisticsService_GetProxyServiceInfo(t *testing.T) {
 		eps epclientv1.WebServerStatisticsEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerOptions
+		opts *v1.WebServerOptions
 	}
 	tests := []struct {
 		name    string
@@ -200,7 +199,7 @@ func Test_webServerStatisticsService_GetProxyServiceInfo(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			want:    []v1.ProxyServiceInfo{{ServerName: "test-proxy"}},
 			wantErr: false,

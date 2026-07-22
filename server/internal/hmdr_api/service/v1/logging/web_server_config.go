@@ -2,12 +2,11 @@ package logging
 
 import (
 	"context"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -28,7 +27,7 @@ func (w *webServerConfigService) GetOptions(ctx context.Context) (meta []v1.Bifr
 	return w.svc.WebServerConfigs().GetOptions(ctx)
 }
 
-func (w *webServerConfigService) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configmeta metav1.WebServerConfig, err error) {
+func (w *webServerConfigService) GetConfig(ctx context.Context, opts v1.WebServerOptions) (configmeta v1.WebServerConfig, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -39,7 +38,7 @@ func (w *webServerConfigService) GetConfig(ctx context.Context, opts metav1.WebS
 	return w.svc.WebServerConfigs().GetConfig(ctx, opts)
 }
 
-func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (ngCtx nginx_context.Context, err error) {
+func (w *webServerConfigService) GetContext(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) (ngCtx nginx_context.Context, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -50,7 +49,7 @@ func (w *webServerConfigService) GetContext(ctx context.Context, opts metav1.Web
 	return w.svc.WebServerConfigs().GetContext(ctx, opts, ofp, pos)
 }
 
-func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (includedConfigs []string, err error) {
+func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) (includedConfigs []string, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -61,7 +60,7 @@ func (w *webServerConfigService) GetIncludedConfigs(ctx context.Context, opts me
 	return w.svc.WebServerConfigs().GetIncludedConfigs(ctx, opts, ofp, pos)
 }
 
-func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) (poses []metav1.ConfigContextPos, err error) {
+func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, kwmeta v1.SearchKeywordsMeta) (poses []v1.ConfigContextPos, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -72,7 +71,7 @@ func (w *webServerConfigService) SearchContextPositions(ctx context.Context, opt
 	return w.svc.WebServerConfigs().SearchContextPositions(ctx, opts, ofp, kwmeta)
 }
 
-func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) (err error) {
+func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -83,7 +82,7 @@ func (w *webServerConfigService) InsertWithClone(ctx context.Context, opts metav
 	return w.svc.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) (err error) {
+func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -94,7 +93,7 @@ func (w *webServerConfigService) InsertWithNew(ctx context.Context, opts metav1.
 	return w.svc.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (err error) {
+func (w *webServerConfigService) Remove(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -105,7 +104,7 @@ func (w *webServerConfigService) Remove(ctx context.Context, opts metav1.WebServ
 	return w.svc.WebServerConfigs().Remove(ctx, opts, ofp, pos)
 }
 
-func (w *webServerConfigService) UpdateConfig(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) (err error) {
+func (w *webServerConfigService) UpdateConfig(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -116,7 +115,7 @@ func (w *webServerConfigService) UpdateConfig(ctx context.Context, opts metav1.W
 	return w.svc.WebServerConfigs().UpdateConfig(ctx, opts, ofp, configJsonData)
 }
 
-func (w *webServerConfigService) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) (err error) {
+func (w *webServerConfigService) ModifyWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -127,7 +126,7 @@ func (w *webServerConfigService) ModifyWithClone(ctx context.Context, opts metav
 	return w.svc.WebServerConfigs().ModifyWithClone(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) (err error) {
+func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -138,7 +137,7 @@ func (w *webServerConfigService) ModifyWithNew(ctx context.Context, opts metav1.
 	return w.svc.WebServerConfigs().ModifyWithNew(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) (err error) {
+func (w *webServerConfigService) ChangeContextEnabledState(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -149,7 +148,7 @@ func (w *webServerConfigService) ChangeContextEnabledState(ctx context.Context, 
 	return w.svc.WebServerConfigs().ChangeContextEnabledState(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) (err error) {
+func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -160,7 +159,7 @@ func (w *webServerConfigService) ModifyContextValue(ctx context.Context, opts me
 	return w.svc.WebServerConfigs().ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigService) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) (err error) {
+func (w *webServerConfigService) Move(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {

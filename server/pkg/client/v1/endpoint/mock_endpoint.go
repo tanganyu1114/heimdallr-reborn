@@ -14,7 +14,6 @@ import (
 
 	v1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
 	v10 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	v11 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	model "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -190,10 +189,10 @@ func (m *MockGroupEndpoints) EXPECT() *MockGroupEndpointsMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGroupEndpoints) Get() v1.Endpoint[v11.IDOptions, model.ResponseBody[*v10.Group]] {
+func (m *MockGroupEndpoints) Get() v1.Endpoint[v10.IDOptions, model.ResponseBody[*v10.Group]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v1.Endpoint[v11.IDOptions, model.ResponseBody[*v10.Group]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.IDOptions, model.ResponseBody[*v10.Group]])
 	return ret0
 }
 
@@ -204,10 +203,10 @@ func (mr *MockGroupEndpointsMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockGroupEndpoints) List() v1.Endpoint[v11.ListOptions, model.ResponseBody[*v10.GroupList]] {
+func (m *MockGroupEndpoints) List() v1.Endpoint[v10.ListOptions, model.ResponseBody[*v10.GroupList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v1.Endpoint[v11.ListOptions, model.ResponseBody[*v10.GroupList]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.ListOptions, model.ResponseBody[*v10.GroupList]])
 	return ret0
 }
 
@@ -242,10 +241,10 @@ func (m *MockHostEndpoints) EXPECT() *MockHostEndpointsMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockHostEndpoints) Get() v1.Endpoint[v11.IDOptions, model.ResponseBody[*v10.Host]] {
+func (m *MockHostEndpoints) Get() v1.Endpoint[v10.IDOptions, model.ResponseBody[*v10.Host]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get")
-	ret0, _ := ret[0].(v1.Endpoint[v11.IDOptions, model.ResponseBody[*v10.Host]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.IDOptions, model.ResponseBody[*v10.Host]])
 	return ret0
 }
 
@@ -256,10 +255,10 @@ func (mr *MockHostEndpointsMockRecorder) Get() *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockHostEndpoints) List() v1.Endpoint[v11.ListOptions, model.ResponseBody[*v10.HostList]] {
+func (m *MockHostEndpoints) List() v1.Endpoint[v10.ListOptions, model.ResponseBody[*v10.HostList]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(v1.Endpoint[v11.ListOptions, model.ResponseBody[*v10.HostList]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.ListOptions, model.ResponseBody[*v10.HostList]])
 	return ret0
 }
 
@@ -294,10 +293,10 @@ func (m *MockWebServerConfigEndpoints) EXPECT() *MockWebServerConfigEndpointsMoc
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigEndpoints) ChangeContextEnabledState() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.ConfigContextEnabledStateMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) ChangeContextEnabledState() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeContextEnabledState")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.ConfigContextEnabledStateMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -308,10 +307,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) ChangeContextEnabledState() 
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigEndpoints) GetConfig() v1.Endpoint[v11.WebServerOptions, model.ResponseBody[*model.WebServerConfig]] {
+func (m *MockWebServerConfigEndpoints) GetConfig() v1.Endpoint[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerOptions, model.ResponseBody[*model.WebServerConfig]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerOptions, model.ResponseBody[*model.WebServerConfig]])
 	return ret0
 }
 
@@ -322,10 +321,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetConfig() *gomock.Call {
 }
 
 // GetConfigTextLines mocks base method.
-func (m *MockWebServerConfigEndpoints) GetConfigTextLines() v1.Endpoint[v11.WebServerOptions, model.ResponseBody[string]] {
+func (m *MockWebServerConfigEndpoints) GetConfigTextLines() v1.Endpoint[v10.WebServerOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigTextLines")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerOptions, model.ResponseBody[string]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -336,10 +335,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetConfigTextLines() *gomock
 }
 
 // GetContextTextLines mocks base method.
-func (m *MockWebServerConfigEndpoints) GetContextTextLines() v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[string]] {
+func (m *MockWebServerConfigEndpoints) GetContextTextLines() v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContextTextLines")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[string]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[string]])
 	return ret0
 }
 
@@ -350,10 +349,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetContextTextLines() *gomoc
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigEndpoints) GetIncludedConfigs() v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]] {
+func (m *MockWebServerConfigEndpoints) GetIncludedConfigs() v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncludedConfigs")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[[]string]])
 	return ret0
 }
 
@@ -378,10 +377,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) GetOptions() *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigEndpoints) InsertWithClone() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) InsertWithClone() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithClone")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -392,10 +391,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) InsertWithClone() *gomock.Ca
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigEndpoints) InsertWithNew() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) InsertWithNew() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithNew")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -406,10 +405,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) InsertWithNew() *gomock.Call
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigEndpoints) ModifyContextValue() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) ModifyContextValue() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyContextValue")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -420,10 +419,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) ModifyContextValue() *gomock
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigEndpoints) ModifyWithClone() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) ModifyWithClone() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithClone")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -434,10 +433,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) ModifyWithClone() *gomock.Ca
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigEndpoints) ModifyWithNew() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) ModifyWithNew() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithNew")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -448,10 +447,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) ModifyWithNew() *gomock.Call
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigEndpoints) Move() v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) Move() v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextUpdateOptions[v11.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta], model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -462,10 +461,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) Move() *gomock.Call {
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigEndpoints) Remove() v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) Remove() v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigTargetContextOptions, model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigTargetContextOptions, model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -476,10 +475,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) Remove() *gomock.Call {
 }
 
 // SearchContextPositions mocks base method.
-func (m *MockWebServerConfigEndpoints) SearchContextPositions() v1.Endpoint[v11.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v11.ConfigContextPos]] {
+func (m *MockWebServerConfigEndpoints) SearchContextPositions() v1.Endpoint[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContextPositions")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v11.ConfigContextPos]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerConfigContextPosSearchOptions, model.ResponseBody[[]v10.ConfigContextPos]])
 	return ret0
 }
 
@@ -490,10 +489,10 @@ func (mr *MockWebServerConfigEndpointsMockRecorder) SearchContextPositions() *go
 }
 
 // UpdateConfig mocks base method.
-func (m *MockWebServerConfigEndpoints) UpdateConfig() v1.Endpoint[*v11.WebServerConfigUpdateOptions, model.ResponseBody[v1.NilBody]] {
+func (m *MockWebServerConfigEndpoints) UpdateConfig() v1.Endpoint[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v1.NilBody]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig")
-	ret0, _ := ret[0].(v1.Endpoint[*v11.WebServerConfigUpdateOptions, model.ResponseBody[v1.NilBody]])
+	ret0, _ := ret[0].(v1.Endpoint[*v10.WebServerConfigUpdateOptions, model.ResponseBody[v1.NilBody]])
 	return ret0
 }
 
@@ -528,10 +527,10 @@ func (m *MockWebServerBinCMDEndpoints) EXPECT() *MockWebServerBinCMDEndpointsMoc
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDEndpoints) Exec() v1.Endpoint[v11.WebServerBinCMDExecRequest, model.ResponseBody[*v11.WebServerBinCMDExecResponse]] {
+func (m *MockWebServerBinCMDEndpoints) Exec() v1.Endpoint[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exec")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerBinCMDExecRequest, model.ResponseBody[*v11.WebServerBinCMDExecResponse]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerBinCMDExecRequest, model.ResponseBody[*v10.WebServerBinCMDExecResponse]])
 	return ret0
 }
 
@@ -566,10 +565,10 @@ func (m *MockWebServerStatisticsEndpoints) EXPECT() *MockWebServerStatisticsEndp
 }
 
 // ConnectivityCheckOfProxyService mocks base method.
-func (m *MockWebServerStatisticsEndpoints) ConnectivityCheckOfProxyService() v1.Endpoint[v11.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v10.ProxyServiceInfo]] {
+func (m *MockWebServerStatisticsEndpoints) ConnectivityCheckOfProxyService() v1.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v10.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService")
-	ret0, _ := ret[0].(v1.Endpoint[v11.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v10.ProxyServiceInfo]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.ConnectivityCheckOfProxiedServersRequestOptions, model.ResponseBody[v10.ProxyServiceInfo]])
 	return ret0
 }
 
@@ -580,10 +579,10 @@ func (mr *MockWebServerStatisticsEndpointsMockRecorder) ConnectivityCheckOfProxy
 }
 
 // ExportProxyServiceInfoToExcel mocks base method.
-func (m *MockWebServerStatisticsEndpoints) ExportProxyServiceInfoToExcel() v1.Endpoint[v11.WebServerOptions, model.ResponseBody[[]byte]] {
+func (m *MockWebServerStatisticsEndpoints) ExportProxyServiceInfoToExcel() v1.Endpoint[v10.WebServerOptions, model.ResponseBody[[]byte]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerOptions, model.ResponseBody[[]byte]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerOptions, model.ResponseBody[[]byte]])
 	return ret0
 }
 
@@ -594,10 +593,10 @@ func (mr *MockWebServerStatisticsEndpointsMockRecorder) ExportProxyServiceInfoTo
 }
 
 // GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsEndpoints) GetProxyServiceInfo() v1.Endpoint[v11.WebServerOptions, model.ResponseBody[[]v10.ProxyServiceInfo]] {
+func (m *MockWebServerStatisticsEndpoints) GetProxyServiceInfo() v1.Endpoint[v10.WebServerOptions, model.ResponseBody[[]v10.ProxyServiceInfo]] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyServiceInfo")
-	ret0, _ := ret[0].(v1.Endpoint[v11.WebServerOptions, model.ResponseBody[[]v10.ProxyServiceInfo]])
+	ret0, _ := ret[0].(v1.Endpoint[v10.WebServerOptions, model.ResponseBody[[]v10.ProxyServiceInfo]])
 	return ret0
 }
 

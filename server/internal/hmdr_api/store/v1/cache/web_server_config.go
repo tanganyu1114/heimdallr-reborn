@@ -2,16 +2,15 @@ package cache
 
 import (
 	"context"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	"github.com/marmotedu/errors"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
 	"go.uber.org/zap"
 )
 
@@ -23,23 +22,23 @@ func (w *webServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGrou
 	return w.cacheStore.next.WebServerConfigs().GetOptions(ctx)
 }
 
-func (w *webServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+func (w *webServerConfigStore) GetConfig(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 	return w.cacheStore.GetConfig(ctx, opts)
 }
 
-func (w *webServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
+func (w *webServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
 	config, ofp, err := w.cacheStore.GetConfig(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 	if ofp.Diff(fp) {
 		global.GVA_LOG.Info("the config fingerprints to be checked are different from remote server's", zap.Any("checking", fp), zap.Any("remote", ofp.Fingerprints()))
-		return nil, errors.Wrapf(metav1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
+		return nil, errors.Wrapf(v1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
 	}
 	return config, nil
 }
 
-func (w *webServerConfigStore) GetContext(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+func (w *webServerConfigStore) GetContext(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) (nginx_context.Context, error) {
 	config, err := w.getConfigAndVerifyOFP(ctx, opts, fp)
 	if err != nil {
 		return nginx_context.NullContext(), err
@@ -51,7 +50,7 @@ func (w *webServerConfigStore) GetContext(ctx context.Context, opts metav1.WebSe
 	return nginxCtx, nil
 }
 
-func (w *webServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) ([]string, error) {
+func (w *webServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) ([]string, error) {
 	c, err := w.GetContext(ctx, opts, ofp, pos)
 	if err != nil {
 		return nil, err
@@ -67,7 +66,7 @@ func (w *webServerConfigStore) GetIncludedConfigs(ctx context.Context, opts meta
 	return includedConfigs, nil
 }
 
-func (w *webServerConfigStore) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) ([]metav1.ConfigContextPos, error) {
+func (w *webServerConfigStore) SearchContextPositions(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints, kwmeta v1.SearchKeywordsMeta) ([]v1.ConfigContextPos, error) {
 	starting := nginx_context.NewPosSet()
 
 	for _, ccp := range kwmeta.StartingPositionList {
@@ -81,47 +80,47 @@ func (w *webServerConfigStore) SearchContextPositions(ctx context.Context, opts 
 	return storev1utils.SearchContextPoses(starting, kwmeta.IsOnlyInCurrent, kwmeta.Keywords, kwmeta.IsRegexpRule)
 }
 
-func (w *webServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+func (w *webServerConfigStore) InsertWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().InsertWithClone(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
+func (w *webServerConfigStore) InsertWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().InsertWithNew(ctx, opts, ofp, ctxmeta, disabledTarget)
 }
 
-func (w *webServerConfigStore) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
+func (w *webServerConfigStore) Remove(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().Remove(ctx, opts, ofp, pos)
 }
 
-func (w *webServerConfigStore) UpdateConfig(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+func (w *webServerConfigStore) UpdateConfig(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().UpdateConfig(ctx, opts, ofp, configJsonData)
 }
 
-func (w *webServerConfigStore) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (w *webServerConfigStore) ModifyWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().ModifyWithClone(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigStore) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (w *webServerConfigStore) ModifyWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().ModifyWithNew(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
+func (w *webServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().ChangeContextEnabledState(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigStore) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (w *webServerConfigStore) ModifyContextValue(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().ModifyContextValue(ctx, opts, ofp, ctxmeta)
 }
 
-func (w *webServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+func (w *webServerConfigStore) Move(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	defer w.cacheStore.ReleaseConfigCache(opts)
 	return w.cacheStore.next.WebServerConfigs().Move(ctx, opts, ofp, ctxmeta, disabledTarget)
 }

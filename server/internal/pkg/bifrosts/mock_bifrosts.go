@@ -10,10 +10,10 @@
 package bifrosts
 
 import (
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	v10 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	sort_map "github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
 	reflect "reflect"
+
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	sort_map "github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
 
 	v11 "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
 	gomock "go.uber.org/mock/gomock"
@@ -44,7 +44,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // GetBifrostClient mocks base method.
-func (m *MockManager) GetBifrostClient(opts v10.WebServerOptions) (*v11.Client, error) {
+func (m *MockManager) GetBifrostClient(opts v1.WebServerOptions) (*v11.Client, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBifrostClient", opts)
 	ret0, _ := ret[0].(*v11.Client)

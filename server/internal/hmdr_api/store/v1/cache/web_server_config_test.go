@@ -2,11 +2,6 @@ package cache
 
 import (
 	"context"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts/fake"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"reflect"
 	"sync"
 	"testing"
@@ -17,6 +12,10 @@ import (
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
 	"github.com/marmotedu/errors"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts/fake"
 	"go.uber.org/mock/gomock"
 )
 
@@ -69,10 +68,10 @@ func Test_webServerConfigStore_GetOptions(t *testing.T) {
 
 	expectedResult := []v1.BifrostGroupMeta{
 		{
-			UintObjectMeta: metav1.UintObjectMeta{Label: "test-group", Value: 1},
+			UintObjectMeta: v1.UintObjectMeta{Label: "test-group", Value: 1},
 			Children: []*v1.BifrostMeta{
 				{
-					UintObjectMeta: metav1.UintObjectMeta{Label: "test-host", Value: 1},
+					UintObjectMeta: v1.UintObjectMeta{Label: "test-host", Value: 1},
 					Children:       []*v1.WebSrvMeta{},
 				},
 			},
@@ -121,7 +120,7 @@ func Test_webServerConfigStore_GetOptions(t *testing.T) {
 
 func Test_webServerConfigStore_GetConfig(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 
 	fakeSvc := fake.WebServerConfigService{}
 	expectedConfig, expectedFp, _ := fakeSvc.Get("test-server")
@@ -148,7 +147,7 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		opts metav1.WebServerOptions
+		opts v1.WebServerOptions
 	}
 	tests := []struct {
 		name                     string
@@ -340,7 +339,7 @@ func Test_webServerConfigStore_GetConfig(t *testing.T) {
 
 func Test_webServerConfigStore_GetContext(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 
 	fakeSvc := fake.WebServerConfigService{}
 	_, fakeFP, _ := fakeSvc.Get("test-server")
@@ -356,7 +355,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 	mockWebServerConfigStore := storev1.NewMockWebServerConfigStore(ctrl)
 
 	mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigStore).AnyTimes()
-	mockWebServerConfigStore.EXPECT().GetConfig(gomock.Any(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+	mockWebServerConfigStore.EXPECT().GetConfig(gomock.Any(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 		return fakeSvc.Get("test-server")
 	})
 
@@ -374,9 +373,9 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 	}
 	type args struct {
 		in0  context.Context
-		opts metav1.WebServerOptions
+		opts v1.WebServerOptions
 		fp   utilsV3.ConfigFingerprints
-		pos  metav1.ConfigContextPos
+		pos  v1.ConfigContextPos
 	}
 	tests := []struct {
 		name                    string
@@ -392,7 +391,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			args: args{
 				opts: opts,
 				fp:   ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\location.conf",
 					ContextPosPath: []int{0},
 				},
@@ -414,7 +413,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			args: args{
 				opts: opts,
 				fp:   ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\location.conf",
 					ContextPosPath: []int{0, 1},
 				},
@@ -430,7 +429,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			args: args{
 				opts: opts,
 				fp:   ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{},
 				},
@@ -595,7 +594,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			args: args{
 				opts: opts,
 				fp:   ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{1, 2, 3, 4, 5, 6, 7},
 				},
@@ -609,7 +608,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			args: args{
 				opts: opts,
 				fp:   difffp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{0},
 				},
@@ -628,7 +627,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetContext() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+			} else if err != nil && (errors.Is(err, v1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
 				t.Errorf("GetContext() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 				return
 			}
@@ -642,7 +641,7 @@ func Test_webServerConfigStore_GetContext(t *testing.T) {
 
 func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 
 	fakeSvc := fake.WebServerConfigService{}
 	_, fakeFP, _ := fakeSvc.Get("test-server")
@@ -658,7 +657,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 	mockWebServerConfigStore := storev1.NewMockWebServerConfigStore(ctrl)
 
 	mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigStore).AnyTimes()
-	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 		return fakeSvc.Get("test-server")
 	})
 
@@ -676,9 +675,9 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		opts metav1.WebServerOptions
+		opts v1.WebServerOptions
 		ofp  utilsV3.ConfigFingerprints
-		pos  metav1.ConfigContextPos
+		pos  v1.ConfigContextPos
 	}
 	tests := []struct {
 		name                    string
@@ -695,7 +694,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 				ctx:  context.Background(),
 				opts: opts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{13, 11},
 				},
@@ -713,7 +712,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 				ctx:  context.Background(),
 				opts: opts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\conf.d\\server_test1.con",
 					ContextPosPath: nil,
 				},
@@ -727,7 +726,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 				ctx:  context.Background(),
 				opts: opts,
 				ofp:  ofp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{8, 1},
 				},
@@ -741,7 +740,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 				ctx:  context.Background(),
 				opts: opts,
 				ofp:  difffp,
-				pos: metav1.ConfigContextPos{
+				pos: v1.ConfigContextPos{
 					Config:         "C:\\config_test\\nginx.conf",
 					ContextPosPath: []int{8, 2},
 				},
@@ -759,7 +758,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetIncludedConfigs() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			} else if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
+			} else if err != nil && (errors.Is(err, v1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010)) != tt.wantErrIsInconsistentFP {
 				t.Errorf("GetIncludedConfigs() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 				return
 			}
@@ -772,7 +771,7 @@ func Test_webServerConfigStore_GetIncludedConfigs(t *testing.T) {
 
 func Test_webServerConfigStore_SearchContextPositions(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 
 	fakeSvc := fake.WebServerConfigService{}
 	_, fakeFP, _ := fakeSvc.Get("test-server")
@@ -784,7 +783,7 @@ func Test_webServerConfigStore_SearchContextPositions(t *testing.T) {
 	mockWebServerConfigStore := storev1.NewMockWebServerConfigStore(ctrl)
 
 	mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigStore).AnyTimes()
-	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 		return fakeSvc.Get("test-server")
 	})
 
@@ -802,9 +801,9 @@ func Test_webServerConfigStore_SearchContextPositions(t *testing.T) {
 	}
 	type args struct {
 		ctx    context.Context
-		opts   metav1.WebServerOptions
+		opts   v1.WebServerOptions
 		fp     utilsV3.ConfigFingerprints
-		kwmeta metav1.SearchKeywordsMeta
+		kwmeta v1.SearchKeywordsMeta
 	}
 	tests := []struct {
 		name    string
@@ -819,11 +818,11 @@ func Test_webServerConfigStore_SearchContextPositions(t *testing.T) {
 				ctx:  context.Background(),
 				opts: opts,
 				fp:   ofp,
-				kwmeta: metav1.SearchKeywordsMeta{
+				kwmeta: v1.SearchKeywordsMeta{
 					Keywords:             "proxy_pass",
 					IsOnlyInCurrent:      false,
 					IsRegexpRule:         false,
-					StartingPositionList: []metav1.ConfigContextPos{},
+					StartingPositionList: []v1.ConfigContextPos{},
 				},
 			},
 			wantErr: false,
@@ -844,15 +843,15 @@ func Test_webServerConfigStore_SearchContextPositions(t *testing.T) {
 
 func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.CloneConfigContextMeta{
-			ConfigContextPos: metav1.ConfigContextPos{
+		TargetContext: v1.CloneConfigContextMeta{
+			ConfigContextPos: v1.ConfigContextPos{
 				Config:         "C:\\config_test\\nginx.conf",
 				ContextPosPath: []int{1},
 			},
@@ -881,9 +880,9 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 	}
 	type args struct {
 		ctx            context.Context
-		opts           metav1.WebServerOptions
+		opts           v1.WebServerOptions
 		ofp            utilsV3.ConfigFingerprints
-		ctxmeta        metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		ctxmeta        v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]
 		disabledTarget bool
 	}
 	tests := []struct {
@@ -913,14 +912,14 @@ func Test_webServerConfigStore_InsertWithClone(t *testing.T) {
 
 func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.NewConfigContextMeta{
+		TargetContext: v1.NewConfigContextMeta{
 			Enabled:      true,
 			ContextType:  context_type.TypeServer,
 			ContextValue: "server {}",
@@ -949,9 +948,9 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 	}
 	type args struct {
 		ctx            context.Context
-		opts           metav1.WebServerOptions
+		opts           v1.WebServerOptions
 		ofp            utilsV3.ConfigFingerprints
-		ctxmeta        metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+		ctxmeta        v1.TargetConfigContextOptions[v1.NewConfigContextMeta]
 		disabledTarget bool
 	}
 	tests := []struct {
@@ -981,9 +980,9 @@ func Test_webServerConfigStore_InsertWithNew(t *testing.T) {
 
 func Test_webServerConfigStore_Remove(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	pos := metav1.ConfigContextPos{
+	pos := v1.ConfigContextPos{
 		Config:         "C:\\config_test\\nginx.conf",
 		ContextPosPath: []int{0},
 	}
@@ -1010,9 +1009,9 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		opts metav1.WebServerOptions
+		opts v1.WebServerOptions
 		ofp  utilsV3.ConfigFingerprints
-		pos  metav1.ConfigContextPos
+		pos  v1.ConfigContextPos
 	}
 	tests := []struct {
 		name    string
@@ -1041,7 +1040,7 @@ func Test_webServerConfigStore_Remove(t *testing.T) {
 
 func Test_webServerConfigStore_UpdateConfig(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
 	configJsonData := []byte(`{"main-config":"C:\\config_test\\nginx.conf"}`)
 
@@ -1067,7 +1066,7 @@ func Test_webServerConfigStore_UpdateConfig(t *testing.T) {
 	}
 	type args struct {
 		ctx            context.Context
-		opts           metav1.WebServerOptions
+		opts           v1.WebServerOptions
 		ofp            utilsV3.ConfigFingerprints
 		configJsonData []byte
 	}
@@ -1098,15 +1097,15 @@ func Test_webServerConfigStore_UpdateConfig(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.CloneConfigContextMeta{
-			ConfigContextPos: metav1.ConfigContextPos{
+		TargetContext: v1.CloneConfigContextMeta{
+			ConfigContextPos: v1.ConfigContextPos{
 				Config:         "C:\\config_test\\nginx.conf",
 				ContextPosPath: []int{1},
 			},
@@ -1135,9 +1134,9 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 	}
 	type args struct {
 		ctx     context.Context
-		opts    metav1.WebServerOptions
+		opts    v1.WebServerOptions
 		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -1166,14 +1165,14 @@ func Test_webServerConfigStore_ModifyWithClone(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.NewConfigContextMeta{
+		TargetContext: v1.NewConfigContextMeta{
 			Enabled:      true,
 			ContextType:  context_type.TypeServer,
 			ContextValue: "server {}",
@@ -1202,9 +1201,9 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 	}
 	type args struct {
 		ctx     context.Context
-		opts    metav1.WebServerOptions
+		opts    v1.WebServerOptions
 		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+		ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -1233,14 +1232,14 @@ func Test_webServerConfigStore_ModifyWithNew(t *testing.T) {
 
 func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.ConfigContextEnabledStateMeta{
+		TargetContext: v1.ConfigContextEnabledStateMeta{
 			Enabled: true,
 		},
 	}
@@ -1267,9 +1266,9 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 	}
 	type args struct {
 		ctx     context.Context
-		opts    metav1.WebServerOptions
+		opts    v1.WebServerOptions
 		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]
+		ctxmeta v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]
 	}
 	tests := []struct {
 		name    string
@@ -1298,14 +1297,14 @@ func Test_webServerConfigStore_ChangeContextEnabledState(t *testing.T) {
 
 func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.NewConfigContextMeta{
+		TargetContext: v1.NewConfigContextMeta{
 			Enabled:      true,
 			ContextType:  context_type.TypeDirective,
 			ContextValue: "worker_processes 2",
@@ -1334,9 +1333,9 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 	}
 	type args struct {
 		ctx     context.Context
-		opts    metav1.WebServerOptions
+		opts    v1.WebServerOptions
 		ofp     utilsV3.ConfigFingerprints
-		ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]
+		ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -1365,15 +1364,15 @@ func Test_webServerConfigStore_ModifyContextValue(t *testing.T) {
 
 func Test_webServerConfigStore_Move(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 	ofp := utilsV3.ConfigFingerprints{}
-	ctxmeta := metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-		Position: metav1.ConfigContextPos{
+	ctxmeta := v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+		Position: v1.ConfigContextPos{
 			Config:         "C:\\config_test\\nginx.conf",
 			ContextPosPath: []int{0},
 		},
-		TargetContext: metav1.CloneConfigContextMeta{
-			ConfigContextPos: metav1.ConfigContextPos{
+		TargetContext: v1.CloneConfigContextMeta{
+			ConfigContextPos: v1.ConfigContextPos{
 				Config:         "C:\\config_test\\nginx.conf",
 				ContextPosPath: []int{1},
 			},
@@ -1402,9 +1401,9 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 	}
 	type args struct {
 		ctx            context.Context
-		opts           metav1.WebServerOptions
+		opts           v1.WebServerOptions
 		ofp            utilsV3.ConfigFingerprints
-		ctxmeta        metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]
+		ctxmeta        v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]
 		disabledTarget bool
 	}
 	tests := []struct {
@@ -1434,7 +1433,7 @@ func Test_webServerConfigStore_Move(t *testing.T) {
 
 func Test_webServerConfigStore_getConfigAndVerifyOFP(t *testing.T) {
 	global.GVA_LOG = logV1.ZapLogger()
-	opts := metav1.WebServerOptions{GroupID: 1, HostID: 1}
+	opts := v1.WebServerOptions{GroupID: 1, HostID: 1}
 
 	fakeSvc := fake.WebServerConfigService{}
 	expectedConfig, expectedFp, _ := fakeSvc.Get("test-server")
@@ -1450,7 +1449,7 @@ func Test_webServerConfigStore_getConfigAndVerifyOFP(t *testing.T) {
 	mockWebServerConfigStore := storev1.NewMockWebServerConfigStore(ctrl)
 
 	mockFactory.EXPECT().WebServerConfigs().Return(mockWebServerConfigStore).AnyTimes()
-	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+	mockWebServerConfigStore.EXPECT().GetConfig(context.Background(), opts).AnyTimes().DoAndReturn(func(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 		return fakeSvc.Get("test-server")
 	})
 
@@ -1468,7 +1467,7 @@ func Test_webServerConfigStore_getConfigAndVerifyOFP(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		opts metav1.WebServerOptions
+		opts v1.WebServerOptions
 		fp   utilsV3.ConfigFingerprints
 	}
 	tests := []struct {
@@ -1502,7 +1501,7 @@ func Test_webServerConfigStore_getConfigAndVerifyOFP(t *testing.T) {
 				t.Errorf("getConfigAndVerifyOFP() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if err != nil && (errors.Is(err, metav1.ErrInconsistentFingerprints)) != tt.wantErrIsInconsistentFP {
+			if err != nil && (errors.Is(err, v1.ErrInconsistentFingerprints)) != tt.wantErrIsInconsistentFP {
 				t.Errorf("getConfigAndVerifyOFP() error = %v, wantErrIsInconsistentFP %v", err, tt.wantErrIsInconsistentFP)
 			}
 			if !tt.wantErr && !reflect.DeepEqual(got.TextLines(), expectedConfig.TextLines()) {

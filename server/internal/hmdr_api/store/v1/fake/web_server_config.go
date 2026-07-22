@@ -2,22 +2,21 @@ package fake
 
 import (
 	"context"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
-	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts/fake"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	"github.com/marmotedu/errors"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts/fake"
 )
 
 type WebServerConfigStore struct {
 }
 
-func newConfigContext(meta metav1.NewConfigContextMeta) nginx_context.Context {
+func newConfigContext(meta v1.NewConfigContextMeta) nginx_context.Context {
 	return local.NewContext(meta.ContextType, meta.ContextValue)
 }
 
@@ -26,22 +25,22 @@ func (f WebServerConfigStore) GetOptions(ctx context.Context) ([]v1.BifrostGroup
 	panic("implement me")
 }
 
-func (f WebServerConfigStore) GetConfig(ctx context.Context, opts metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
+func (f WebServerConfigStore) GetConfig(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprinter, error) {
 	return new(fake.ServiceClient).WebServerConfig().Get(opts.ServerName)
 }
 
-func (f WebServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
+func (f WebServerConfigStore) getConfigAndVerifyOFP(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints) (configuration.NginxConfig, error) {
 	config, ofp, err := f.GetConfig(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 	if ofp.Diff(fp) {
-		return nil, errors.Wrapf(metav1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
+		return nil, errors.Wrapf(v1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
 	}
 	return config, nil
 }
 
-func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) (nginx_context.Context, error) {
+func (f WebServerConfigStore) GetContext(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) (nginx_context.Context, error) {
 	config, err := f.getConfigAndVerifyOFP(ctx, opts, fp)
 	if err != nil {
 		return nginx_context.NullContext(), err
@@ -61,7 +60,7 @@ func (f WebServerConfigStore) GetContext(ctx context.Context, opts metav1.WebSer
 	return target, target.Error()
 }
 
-func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) ([]string, error) {
+func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) ([]string, error) {
 	c, err := f.GetContext(ctx, opts, ofp, pos)
 	if err != nil {
 		return nil, err
@@ -77,7 +76,7 @@ func (f WebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts metav
 	return includedConfigs, nil
 }
 
-func (f WebServerConfigStore) SearchContextPositions(ctx context.Context, opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, kwmeta metav1.SearchKeywordsMeta) ([]metav1.ConfigContextPos, error) {
+func (f WebServerConfigStore) SearchContextPositions(ctx context.Context, opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints, kwmeta v1.SearchKeywordsMeta) ([]v1.ConfigContextPos, error) {
 	starting := nginx_context.NewPosSet()
 
 	for _, ccp := range kwmeta.StartingPositionList {
@@ -91,21 +90,21 @@ func (f WebServerConfigStore) SearchContextPositions(ctx context.Context, opts m
 	return storev1utils.SearchContextPoses(starting, kwmeta.IsOnlyInCurrent, kwmeta.Keywords, kwmeta.IsRegexpRule)
 }
 
-func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+func (f WebServerConfigStore) InsertWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	if len(ctxmeta.TargetContext.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse context posision to be cloned: %v", errors.New("nginx config context pos path is null"))
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) InsertWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta], disabledTarget bool) error {
+func (f WebServerConfigStore) InsertWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta], disabledTarget bool) error {
 	if err := newConfigContext(ctxmeta.TargetContext).Error(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) UpdateConfig(_ context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
+func (f WebServerConfigStore) UpdateConfig(_ context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, configJsonData []byte) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		newConf, err := configuration.NewNginxConfigFromJsonBytes(configJsonData)
 		if err != nil {
@@ -115,34 +114,34 @@ func (f WebServerConfigStore) UpdateConfig(_ context.Context, opts metav1.WebSer
 	})
 }
 
-func (f WebServerConfigStore) Remove(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos metav1.ConfigContextPos) error {
+func (f WebServerConfigStore) Remove(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, pos v1.ConfigContextPos) error {
 	if len(pos.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse target position: %v", errors.New("nginx config context pos path is null"))
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) ModifyWithClone(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]) error {
+func (f WebServerConfigStore) ModifyWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]) error {
 	if len(ctxmeta.TargetContext.ContextPosPath) == 0 {
 		return errors.Errorf("failed to parse context posision to be cloned: %v", errors.New("nginx config context pos path is null"))
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) ModifyWithNew(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (f WebServerConfigStore) ModifyWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	if err := newConfigContext(ctxmeta.TargetContext).Error(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f WebServerConfigStore) updateConfig(opts metav1.WebServerOptions, fp utilsV3.ConfigFingerprints, operfn func(conf configuration.NginxConfig) (configuration.NginxConfig, error)) error {
+func (f WebServerConfigStore) updateConfig(opts v1.WebServerOptions, fp utilsV3.ConfigFingerprints, operfn func(conf configuration.NginxConfig) (configuration.NginxConfig, error)) error {
 	nginxConfig, ofp, err := new(fake.ServiceClient).WebServerConfig().Get(opts.ServerName)
 	if err != nil {
 		return err
 	}
 	if ofp.Diff(fp) {
-		return errors.Wrapf(metav1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
+		return errors.Wrapf(v1.ErrInconsistentFingerprints, "the config fingerprints(%v) to be checked are different from remote server's(%v)", fp, ofp.Fingerprints())
 	}
 	updating, err := operfn(nginxConfig)
 	if err != nil {
@@ -152,7 +151,7 @@ func (f WebServerConfigStore) updateConfig(opts metav1.WebServerOptions, fp util
 	return new(fake.ServiceClient).WebServerConfig().Update(opts.ServerName, updating, fp)
 }
 
-func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]) error {
+func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		target, err := storev1utils.ParseContext(conf, ctxmeta.Position.Config, ctxmeta.Position.ContextPosPath)
 		if err != nil {
@@ -168,7 +167,7 @@ func (f WebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opt
 	})
 }
 
-func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]) error {
+func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := storev1utils.ParseContextPos(conf, ctxmeta.Position)
 		if err != nil {
@@ -185,7 +184,7 @@ func (f WebServerConfigStore) ModifyContextValue(ctx context.Context, opts metav
 	})
 }
 
-func (f WebServerConfigStore) Move(ctx context.Context, opts metav1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta], disabledTarget bool) error {
+func (f WebServerConfigStore) Move(ctx context.Context, opts v1.WebServerOptions, ofp utilsV3.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	return f.updateConfig(opts, ofp, func(conf configuration.NginxConfig) (configuration.NginxConfig, error) {
 		targetPos, err := storev1utils.ParseContextPosModifyTO(conf, ctxmeta.Position)
 		if err != nil {

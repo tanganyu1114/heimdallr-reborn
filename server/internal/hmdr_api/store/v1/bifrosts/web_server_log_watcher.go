@@ -2,9 +2,10 @@ package bifrosts
 
 import (
 	"context"
-	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"sync"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
 
 	bifrostapiv1 "github.com/ClessLi/bifrost/api/bifrost/v1"
 	"github.com/marmotedu/errors"

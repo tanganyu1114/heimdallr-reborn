@@ -1,9 +1,10 @@
 package utils
 
 import (
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"reflect"
 	"testing"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context/local"

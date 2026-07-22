@@ -1,9 +1,10 @@
 package transport
 
 import (
-	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	"reflect"
 	"testing"
+
+	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
@@ -12,19 +13,53 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func Test_sysUserTransport_SDKLogin(t *testing.T) {
+func Test_sysUserTransport_GetSDKChallenge(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]](ctrl)
 
 	type fields struct {
-		sdkLoginClient httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
+		sdkChallengeClient httpclientv1.ClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[*request.SDKLogin, modelclientv1.ResponseBody[*response.LoginResponse]]
+		want   httpclientv1.ClientBuilder[*request.SDKChallengeRequest, modelclientv1.ResponseBody[*response.SDKChallengeResponse]]
+	}{
+		{
+			name: "returns SDK challenge client",
+			fields: fields{
+				sdkChallengeClient: mockClient,
+			},
+			want: mockClient,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &sysUserTransport{
+				sdkChallengeClient: tt.fields.sdkChallengeClient,
+			}
+			if got := s.GetSDKChallenge(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetSDKChallenge() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_sysUserTransport_SDKLogin(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := httpclientv1.NewMockClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]](ctrl)
+
+	type fields struct {
+		sdkLoginClient httpclientv1.ClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]]
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   httpclientv1.ClientBuilder[*request.EncryptedLoginRequest, modelclientv1.ResponseBody[*response.LoginResponse]]
 	}{
 		{
 			name: "returns SDK login client",

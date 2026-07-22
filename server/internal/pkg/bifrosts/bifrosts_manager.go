@@ -2,11 +2,11 @@ package bifrosts
 
 import (
 	"fmt"
+	"sync"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/sort_map"
-	"sync"
 
 	bifrost "github.com/ClessLi/bifrost/pkg/client/bifrost/v1"
 	"github.com/marmotedu/errors"
@@ -20,7 +20,7 @@ type Manager interface {
 	InsertHost(host v1.Host) error
 
 	GetGroup(groupid uint) (*Group, error)
-	GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client, error)
+	GetBifrostClient(opts v1.WebServerOptions) (*bifrost.Client, error)
 
 	RemoveAll() error
 	RemoveGroupByID(groupid uint) error
@@ -138,7 +138,7 @@ func (m *manager) GetGroup(groupid uint) (*Group, error) {
 	return g.(*Group), nil
 }
 
-func (m *manager) GetBifrostClient(opts metav1.WebServerOptions) (*bifrost.Client, error) {
+func (m *manager) GetBifrostClient(opts v1.WebServerOptions) (*bifrost.Client, error) {
 	g, err := m.GetGroup(opts.GroupID)
 	if err != nil {
 		return nil, err

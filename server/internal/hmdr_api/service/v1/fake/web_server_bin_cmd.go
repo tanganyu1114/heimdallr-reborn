@@ -2,8 +2,9 @@ package fake
 
 import (
 	"context"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	storefake "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/fake"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 )
 
 type WebServerBinCMD struct {

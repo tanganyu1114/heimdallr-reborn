@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -16,16 +15,16 @@ func Test_hostTransport_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Host]](ctrl)
 
 	type fields struct {
-		getHostClient   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
-		listHostsClient httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
+		getHostClient   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
+		listHostsClient httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
+		want   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
 	}{
 		{
 			name: "returns get host client",
@@ -52,16 +51,16 @@ func Test_hostTransport_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]](ctrl)
 
 	type fields struct {
-		getHostClient   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
-		listHostsClient httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
+		getHostClient   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Host]]
+		listHostsClient httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
+		want   httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.HostList]]
 	}{
 		{
 			name: "returns list hosts client",

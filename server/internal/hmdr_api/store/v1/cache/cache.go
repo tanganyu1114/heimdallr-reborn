@@ -2,10 +2,11 @@ package cache
 
 import (
 	"context"
-	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"sync"
 	"time"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"

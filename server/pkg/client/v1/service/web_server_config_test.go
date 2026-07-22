@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
-	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"reflect"
 	"testing"
 
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
@@ -59,7 +59,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ChangeContextEnabledState().Return(mockEndpoint).AnyTimes()
@@ -69,7 +69,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]
 	}
 	tests := []struct {
 		name    string
@@ -84,7 +84,7 @@ func Test_webServerConfigService_ChangeContextEnabledState(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]{},
 			},
 			wantErr: false,
 		},
@@ -110,14 +110,14 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerOptions
+		opts *v1.WebServerOptions
 	}
 	tests := []struct {
 		name             string
 		fields           fields
 		args             args
 		setupMock        func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints
-		wantConfig       *metav1.WebServerConfig
+		wantConfig       *v1.WebServerConfig
 		wantFingerprints utilsV3.ConfigFingerprints
 		wantErr          bool
 	}{
@@ -142,11 +142,11 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				ctx: ctx,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
 				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
-				mockErrorEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+				mockErrorEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
 					return nil, errors.New("endpoint call error")
 				})
 				mockEndpoints.EXPECT().GetConfig().Return(mockErrorEndpoint)
@@ -162,11 +162,11 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				ctx: ctx,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
 				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
-				mockInvalidResponseEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+				mockInvalidResponseEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
 					return modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]{Data: json.RawMessage(`invalid json`)}, nil
 				})
 				mockEndpoints.EXPECT().GetConfig().Return(mockInvalidResponseEndpoint)
@@ -182,11 +182,11 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				ctx: ctx,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			setupMock: func(ctrl *gomock.Controller) epclientv1.WebServerConfigEndpoints {
 				mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
-				mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
+				mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[*modelclientv1.WebServerConfig]](func(ctx context.Context, req interface{}) (interface{}, error) {
 					nginxConfigJSON := `{
 						"main-config": "E:\\config_test\\nginx.conf",
 						"configs": {
@@ -214,7 +214,7 @@ func Test_webServerConfigService_GetConfig(t *testing.T) {
 				mockEndpoints.EXPECT().GetConfig().Return(mockEndpoint)
 				return mockEndpoints
 			},
-			wantConfig: &metav1.WebServerConfig{},
+			wantConfig: &v1.WebServerConfig{},
 			wantFingerprints: utilsV3.ConfigFingerprints{
 				"E:\\config_test\\nginx.conf": "main-config-hash-123",
 			},
@@ -253,7 +253,7 @@ func Test_webServerConfigService_GetConfigTextLines(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[string]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[string]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal("config text lines")
 		return modelclientv1.ResponseBody[string]{Data: data}, nil
 	})
@@ -264,7 +264,7 @@ func Test_webServerConfigService_GetConfigTextLines(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerOptions
+		opts *v1.WebServerOptions
 	}
 	tests := []struct {
 		name    string
@@ -280,7 +280,7 @@ func Test_webServerConfigService_GetConfigTextLines(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerOptions{},
+				opts: &v1.WebServerOptions{},
 			},
 			want:    "config text lines",
 			wantErr: false,
@@ -311,7 +311,7 @@ func Test_webServerConfigService_GetContextTextLines(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[string]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal("context text lines")
 		return modelclientv1.ResponseBody[string]{Data: data}, nil
 	})
@@ -322,7 +322,7 @@ func Test_webServerConfigService_GetContextTextLines(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigTargetContextOptions
+		opts *v1.WebServerConfigTargetContextOptions
 	}
 	tests := []struct {
 		name    string
@@ -338,7 +338,7 @@ func Test_webServerConfigService_GetContextTextLines(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigTargetContextOptions{},
+				opts: &v1.WebServerConfigTargetContextOptions{},
 			},
 			want:    "context text lines",
 			wantErr: false,
@@ -369,7 +369,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[[]string]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		data, _ := json.Marshal([]string{"config1.conf", "config2.conf"})
 		return modelclientv1.ResponseBody[[]string]{Data: data}, nil
 	})
@@ -380,7 +380,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigTargetContextOptions
+		opts *v1.WebServerConfigTargetContextOptions
 	}
 	tests := []struct {
 		name    string
@@ -396,7 +396,7 @@ func Test_webServerConfigService_GetIncludedConfigs(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigTargetContextOptions{},
+				opts: &v1.WebServerConfigTargetContextOptions{},
 			},
 			want:    []string{"config1.conf", "config2.conf"},
 			wantErr: false,
@@ -428,7 +428,7 @@ func Test_webServerConfigService_GetOptions(t *testing.T) {
 	ctx := context.Background()
 
 	mockEndpoint := httpclientv1.NewEndpoint[httpclientv1.NilBody, modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]](func(ctx context.Context, req interface{}) (interface{}, error) {
-		data, _ := json.Marshal([]v1.BifrostGroupMeta{{UintObjectMeta: metav1.UintObjectMeta{Label: "test-group", Value: 1}}})
+		data, _ := json.Marshal([]v1.BifrostGroupMeta{{UintObjectMeta: v1.UintObjectMeta{Label: "test-group", Value: 1}}})
 		return modelclientv1.ResponseBody[[]v1.BifrostGroupMeta]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().GetOptions().Return(mockEndpoint).AnyTimes()
@@ -449,7 +449,7 @@ func Test_webServerConfigService_GetOptions(t *testing.T) {
 				ctx: ctx,
 				eps: mockEndpoints,
 			},
-			want:    []v1.BifrostGroupMeta{{UintObjectMeta: metav1.UintObjectMeta{Label: "test-group", Value: 1}}},
+			want:    []v1.BifrostGroupMeta{{UintObjectMeta: v1.UintObjectMeta{Label: "test-group", Value: 1}}},
 			wantErr: false,
 		},
 	}
@@ -478,7 +478,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().InsertWithClone().Return(mockEndpoint).AnyTimes()
@@ -488,7 +488,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -503,7 +503,7 @@ func Test_webServerConfigService_InsertWithClone(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -528,7 +528,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().InsertWithNew().Return(mockEndpoint)
@@ -538,7 +538,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -553,7 +553,7 @@ func Test_webServerConfigService_InsertWithNew(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -578,7 +578,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyContextValue().Return(mockEndpoint)
@@ -588,7 +588,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -603,7 +603,7 @@ func Test_webServerConfigService_ModifyContextValue(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -628,7 +628,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyWithClone().Return(mockEndpoint)
@@ -638,7 +638,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -653,7 +653,7 @@ func Test_webServerConfigService_ModifyWithClone(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -678,7 +678,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().ModifyWithNew().Return(mockEndpoint)
@@ -688,7 +688,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -703,7 +703,7 @@ func Test_webServerConfigService_ModifyWithNew(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -728,7 +728,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta], modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().Move().Return(mockEndpoint)
@@ -738,7 +738,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+		opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	}
 	tests := []struct {
 		name    string
@@ -753,7 +753,7 @@ func Test_webServerConfigService_Move(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{},
+				opts: &v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{},
 			},
 			wantErr: false,
 		},
@@ -778,7 +778,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigTargetContextOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().Remove().Return(mockEndpoint)
@@ -788,7 +788,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigTargetContextOptions
+		opts *v1.WebServerConfigTargetContextOptions
 	}
 	tests := []struct {
 		name    string
@@ -803,7 +803,7 @@ func Test_webServerConfigService_Remove(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigTargetContextOptions{},
+				opts: &v1.WebServerConfigTargetContextOptions{},
 			},
 			wantErr: false,
 		},
@@ -828,9 +828,9 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]metav1.ConfigContextPos]](func(ctx context.Context, req interface{}) (interface{}, error) {
-		data, _ := json.Marshal([]metav1.ConfigContextPos{{Config: "test.conf", ContextPosPath: []int{0, 1}}})
-		return modelclientv1.ResponseBody[[]metav1.ConfigContextPos]{Data: data}, nil
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerConfigContextPosSearchOptions, modelclientv1.ResponseBody[[]v1.ConfigContextPos]](func(ctx context.Context, req interface{}) (interface{}, error) {
+		data, _ := json.Marshal([]v1.ConfigContextPos{{Config: "test.conf", ContextPosPath: []int{0, 1}}})
+		return modelclientv1.ResponseBody[[]v1.ConfigContextPos]{Data: data}, nil
 	})
 	mockEndpoints.EXPECT().SearchContextPositions().Return(mockEndpoint).AnyTimes()
 
@@ -839,13 +839,13 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigContextPosSearchOptions
+		opts *v1.WebServerConfigContextPosSearchOptions
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    []metav1.ConfigContextPos
+		want    []v1.ConfigContextPos
 		wantErr bool
 	}{
 		{
@@ -855,9 +855,9 @@ func Test_webServerConfigService_SearchContextPositions(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigContextPosSearchOptions{},
+				opts: &v1.WebServerConfigContextPosSearchOptions{},
 			},
-			want:    []metav1.ConfigContextPos{{Config: "test.conf", ContextPosPath: []int{0, 1}}},
+			want:    []v1.ConfigContextPos{{Config: "test.conf", ContextPosPath: []int{0, 1}}},
 			wantErr: false,
 		},
 	}
@@ -886,7 +886,7 @@ func Test_webServerConfigService_UpdateConfig(t *testing.T) {
 	mockEndpoints := epclientv1.NewMockWebServerConfigEndpoints(ctrl)
 	ctx := context.Background()
 
-	mockEndpoint := httpclientv1.NewEndpoint[*metav1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
+	mockEndpoint := httpclientv1.NewEndpoint[*v1.WebServerConfigUpdateOptions, modelclientv1.ResponseBody[httpclientv1.NilBody]](func(ctx context.Context, req interface{}) (interface{}, error) {
 		return modelclientv1.ResponseBody[httpclientv1.NilBody]{}, nil
 	})
 	mockEndpoints.EXPECT().UpdateConfig().Return(mockEndpoint).AnyTimes()
@@ -896,7 +896,7 @@ func Test_webServerConfigService_UpdateConfig(t *testing.T) {
 		eps epclientv1.WebServerConfigEndpoints
 	}
 	type args struct {
-		opts *metav1.WebServerConfigUpdateOptions
+		opts *v1.WebServerConfigUpdateOptions
 	}
 	tests := []struct {
 		name    string
@@ -911,7 +911,7 @@ func Test_webServerConfigService_UpdateConfig(t *testing.T) {
 				eps: mockEndpoints,
 			},
 			args: args{
-				opts: &metav1.WebServerConfigUpdateOptions{},
+				opts: &v1.WebServerConfigUpdateOptions{},
 			},
 			wantErr: false,
 		},

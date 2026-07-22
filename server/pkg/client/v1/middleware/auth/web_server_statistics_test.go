@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
@@ -35,7 +34,7 @@ func Test_webServerStatisticsMiddleware_ConnectivityCheckOfProxyService(t *testi
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerStatisticsTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
 
 			mockFactory.EXPECT().WebServerStatistics().Return(mockWebServerStatisticsTransport)
 			mockWebServerStatisticsTransport.EXPECT().ConnectivityCheckOfProxyService().Return(mockClientBuilder)
@@ -74,7 +73,7 @@ func Test_webServerStatisticsMiddleware_ExportProxyServiceInfoToExcel(t *testing
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerStatisticsTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
 
 			mockFactory.EXPECT().WebServerStatistics().Return(mockWebServerStatisticsTransport)
 			mockWebServerStatisticsTransport.EXPECT().ExportProxyServiceInfoToExcel().Return(mockClientBuilder)
@@ -113,7 +112,7 @@ func Test_webServerStatisticsMiddleware_GetProxyServiceInfo(t *testing.T) {
 
 			mockFactory := transport.NewMockFactory(ctrl)
 			mockWebServerStatisticsTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-			mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
+			mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
 
 			mockFactory.EXPECT().WebServerStatistics().Return(mockWebServerStatisticsTransport)
 			mockWebServerStatisticsTransport.EXPECT().GetProxyServiceInfo().Return(mockClientBuilder)

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+
 	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -13,9 +13,9 @@ import (
 // GroupService defines the interface for group related services
 type GroupService interface {
 	// Get retrieves a group by ID
-	Get(idOptions *metav1.IDOptions) (*v1.Group, error)
+	Get(idOptions *v1.IDOptions) (*v1.Group, error)
 	// List retrieves a list of groups
-	List(listOptions *metav1.ListOptions) (*v1.GroupList, error)
+	List(listOptions *v1.ListOptions) (*v1.GroupList, error)
 }
 
 // groupService implements GroupService interface
@@ -36,11 +36,11 @@ func newGroupService(svc *factory) GroupService {
 }
 
 // Get retrieves a group by ID
-func (s *groupService) Get(idOptions *metav1.IDOptions) (*v1.Group, error) {
+func (s *groupService) Get(idOptions *v1.IDOptions) (*v1.Group, error) {
 	if idOptions == nil {
 		return nil, errors.New("idOptions cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.IDOptions]{
+	req := httpclientv1.HTTPRequest[v1.IDOptions]{
 		Body: *idOptions,
 	}
 	resp, err := s.eps.Get()(s.ctx, req)
@@ -51,11 +51,11 @@ func (s *groupService) Get(idOptions *metav1.IDOptions) (*v1.Group, error) {
 }
 
 // List retrieves a list of groups
-func (s *groupService) List(listOptions *metav1.ListOptions) (*v1.GroupList, error) {
+func (s *groupService) List(listOptions *v1.ListOptions) (*v1.GroupList, error) {
 	if listOptions == nil {
 		return nil, errors.New("listOptions cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.ListOptions]{
+	req := httpclientv1.HTTPRequest[v1.ListOptions]{
 		Body: *listOptions,
 	}
 	resp, err := s.eps.List()(s.ctx, req)

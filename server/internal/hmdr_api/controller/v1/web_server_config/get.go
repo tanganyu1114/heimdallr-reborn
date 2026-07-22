@@ -1,10 +1,11 @@
 package web_server_config
 
 import (
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"strings"
+
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/marmotedu/errors"
@@ -13,7 +14,7 @@ import (
 
 func getErrorHandle(c *gin.Context, err error, okdetailobj interface{}, okmsg, failuremsg string) {
 	if err != nil {
-		if errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
+		if errors.Is(err, v1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
 			global.GVA_LOG.Info("查询时，指纹校验失败!", zap.Error(err))
 			response.FailWithMessage("指纹校验失败, 请重新查询, 刷新配置文件!", c)
 
@@ -39,7 +40,7 @@ func (w *WebServerConfigController) GetOptions(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
-	var r metav1.WebServerOptions
+	var r v1.WebServerOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -67,7 +68,7 @@ func (w *WebServerConfigController) GetConfigTextLines(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) GetContextTextLines(c *gin.Context) {
-	var r metav1.WebServerConfigTargetContextOptions
+	var r v1.WebServerConfigTargetContextOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -99,7 +100,7 @@ func (w *WebServerConfigController) GetContextTextLines(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) GetConfig(c *gin.Context) {
-	var r metav1.WebServerOptions
+	var r v1.WebServerOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -120,7 +121,7 @@ func (w *WebServerConfigController) GetConfig(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) GetIncludedConfigs(c *gin.Context) {
-	var r metav1.WebServerConfigTargetContextOptions
+	var r v1.WebServerConfigTargetContextOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -134,7 +135,7 @@ func (w *WebServerConfigController) GetIncludedConfigs(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) SearchContextPositions(c *gin.Context) {
-	var r metav1.WebServerConfigContextPosSearchOptions
+	var r v1.WebServerConfigContextPosSearchOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))

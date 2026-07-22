@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
+	"sync"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
 	storev1utils "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/utils"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"strings"
-	"sync"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	nginx_context "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
@@ -348,7 +348,7 @@ type webServerStatisticsStore struct {
 	bm bifrosts.Manager
 }
 
-func (w *webServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts metav1.WebServerOptions, proxyPassPos metav1.ConfigContextPos) (info v1.ProxyServiceInfo, err error) {
+func (w *webServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts v1.WebServerOptions, proxyPassPos v1.ConfigContextPos) (info v1.ProxyServiceInfo, err error) {
 	bc, err := w.bm.GetBifrostClient(opts)
 	if err != nil {
 		return
@@ -402,7 +402,7 @@ func (w *webServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.C
 	return
 }
 
-func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts v1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	bc, err := w.bm.GetBifrostClient(opts)
 	if err != nil {
 		global.GVA_LOG.Debug("获取bifrost managers客户端失败", zap.Any("err", err))
@@ -425,7 +425,7 @@ func (w *webServerStatisticsStore) GetProxyServiceInfo(_ context.Context, opts m
 	return infos, nil
 }
 
-func (w *webServerStatisticsStore) ExportProxyServiceInfoToExcel(ctx context.Context, opts metav1.WebServerOptions) ([]byte, error) {
+func (w *webServerStatisticsStore) ExportProxyServiceInfoToExcel(ctx context.Context, opts v1.WebServerOptions) ([]byte, error) {
 	proxies, err := w.GetProxyServiceInfo(ctx, opts)
 	if err != nil {
 		return nil, err

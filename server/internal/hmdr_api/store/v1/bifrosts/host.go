@@ -2,12 +2,12 @@ package bifrosts
 
 import (
 	"context"
+	"sync"
+
 	"github.com/marmotedu/errors"
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"sync"
 )
 
 var (
@@ -42,7 +42,7 @@ func (b *hostStore) Delete(ctx context.Context, hostid uint) error {
 	return b.bm.RemoveHost(*host)
 }
 
-func (b *hostStore) DeleteCollection(ctx context.Context, ids metav1.IDsOptions) error {
+func (b *hostStore) DeleteCollection(ctx context.Context, ids v1.IDsOptions) error {
 	var hosts []v1.Host
 	// find hosts from DB
 	err := global.GVA_DB.Find(&hosts, "id in ?", ids.IDs).Error
@@ -68,7 +68,7 @@ func (b *hostStore) Get(ctx context.Context, hostid uint) (v1.Host, error) {
 	return host, err
 }
 
-func (b *hostStore) List(ctx context.Context, opts metav1.ListOptions) (v1.HostList, error) {
+func (b *hostStore) List(ctx context.Context, opts v1.ListOptions) (v1.HostList, error) {
 	limit := opts.PageSize
 	offset := opts.PageSize * (opts.Page - 1)
 

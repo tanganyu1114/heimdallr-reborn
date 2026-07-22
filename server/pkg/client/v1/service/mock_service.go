@@ -15,7 +15,6 @@ import (
 	configuration "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	v10 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -191,7 +190,7 @@ func (m *MockGroupService) EXPECT() *MockGroupServiceMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGroupService) Get(idOptions *v10.IDOptions) (*v1.Group, error) {
+func (m *MockGroupService) Get(idOptions *v1.IDOptions) (*v1.Group, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", idOptions)
 	ret0, _ := ret[0].(*v1.Group)
@@ -206,7 +205,7 @@ func (mr *MockGroupServiceMockRecorder) Get(idOptions any) *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockGroupService) List(listOptions *v10.ListOptions) (*v1.GroupList, error) {
+func (m *MockGroupService) List(listOptions *v1.ListOptions) (*v1.GroupList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", listOptions)
 	ret0, _ := ret[0].(*v1.GroupList)
@@ -245,7 +244,7 @@ func (m *MockHostService) EXPECT() *MockHostServiceMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockHostService) Get(idOptions *v10.IDOptions) (*v1.Host, error) {
+func (m *MockHostService) Get(idOptions *v1.IDOptions) (*v1.Host, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", idOptions)
 	ret0, _ := ret[0].(*v1.Host)
@@ -260,7 +259,7 @@ func (mr *MockHostServiceMockRecorder) Get(idOptions any) *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockHostService) List(listOptions *v10.ListOptions) (*v1.HostList, error) {
+func (m *MockHostService) List(listOptions *v1.ListOptions) (*v1.HostList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", listOptions)
 	ret0, _ := ret[0].(*v1.HostList)
@@ -299,7 +298,7 @@ func (m *MockWebServerConfigService) EXPECT() *MockWebServerConfigServiceMockRec
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigService) ChangeContextEnabledState(opts *v10.WebServerConfigContextUpdateOptions[v10.ConfigContextEnabledStateMeta]) error {
+func (m *MockWebServerConfigService) ChangeContextEnabledState(opts *v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeContextEnabledState", opts)
 	ret0, _ := ret[0].(error)
@@ -313,7 +312,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) ChangeContextEnabledState(opts
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigService) GetConfig(opts *v10.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprints, error) {
+func (m *MockWebServerConfigService) GetConfig(opts *v1.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprints, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", opts)
 	ret0, _ := ret[0].(configuration.NginxConfig)
@@ -329,7 +328,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) GetConfig(opts any) *gomock.Ca
 }
 
 // GetConfigTextLines mocks base method.
-func (m *MockWebServerConfigService) GetConfigTextLines(opts *v10.WebServerOptions) (string, error) {
+func (m *MockWebServerConfigService) GetConfigTextLines(opts *v1.WebServerOptions) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigTextLines", opts)
 	ret0, _ := ret[0].(string)
@@ -344,7 +343,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) GetConfigTextLines(opts any) *
 }
 
 // GetContextTextLines mocks base method.
-func (m *MockWebServerConfigService) GetContextTextLines(opts *v10.WebServerConfigTargetContextOptions) (string, error) {
+func (m *MockWebServerConfigService) GetContextTextLines(opts *v1.WebServerConfigTargetContextOptions) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContextTextLines", opts)
 	ret0, _ := ret[0].(string)
@@ -359,7 +358,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) GetContextTextLines(opts any) 
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigService) GetIncludedConfigs(opts *v10.WebServerConfigTargetContextOptions) ([]string, error) {
+func (m *MockWebServerConfigService) GetIncludedConfigs(opts *v1.WebServerConfigTargetContextOptions) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncludedConfigs", opts)
 	ret0, _ := ret[0].([]string)
@@ -389,7 +388,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) GetOptions() *gomock.Call {
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigService) InsertWithClone(opts *v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigService) InsertWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithClone", opts)
 	ret0, _ := ret[0].(error)
@@ -403,7 +402,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) InsertWithClone(opts any) *gom
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigService) InsertWithNew(opts *v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigService) InsertWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithNew", opts)
 	ret0, _ := ret[0].(error)
@@ -417,7 +416,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) InsertWithNew(opts any) *gomoc
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigService) ModifyContextValue(opts *v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigService) ModifyContextValue(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyContextValue", opts)
 	ret0, _ := ret[0].(error)
@@ -431,7 +430,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) ModifyContextValue(opts any) *
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigService) ModifyWithClone(opts *v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigService) ModifyWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithClone", opts)
 	ret0, _ := ret[0].(error)
@@ -445,7 +444,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) ModifyWithClone(opts any) *gom
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigService) ModifyWithNew(opts *v10.WebServerConfigContextUpdateOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigService) ModifyWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithNew", opts)
 	ret0, _ := ret[0].(error)
@@ -459,7 +458,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) ModifyWithNew(opts any) *gomoc
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigService) Move(opts *v10.WebServerConfigContextUpdateOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigService) Move(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", opts)
 	ret0, _ := ret[0].(error)
@@ -473,7 +472,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) Move(opts any) *gomock.Call {
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigService) Remove(opts *v10.WebServerConfigTargetContextOptions) error {
+func (m *MockWebServerConfigService) Remove(opts *v1.WebServerConfigTargetContextOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", opts)
 	ret0, _ := ret[0].(error)
@@ -487,10 +486,10 @@ func (mr *MockWebServerConfigServiceMockRecorder) Remove(opts any) *gomock.Call 
 }
 
 // SearchContextPositions mocks base method.
-func (m *MockWebServerConfigService) SearchContextPositions(opts *v10.WebServerConfigContextPosSearchOptions) ([]v10.ConfigContextPos, error) {
+func (m *MockWebServerConfigService) SearchContextPositions(opts *v1.WebServerConfigContextPosSearchOptions) ([]v1.ConfigContextPos, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContextPositions", opts)
-	ret0, _ := ret[0].([]v10.ConfigContextPos)
+	ret0, _ := ret[0].([]v1.ConfigContextPos)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -502,7 +501,7 @@ func (mr *MockWebServerConfigServiceMockRecorder) SearchContextPositions(opts an
 }
 
 // UpdateConfig mocks base method.
-func (m *MockWebServerConfigService) UpdateConfig(opts *v10.WebServerConfigUpdateOptions) error {
+func (m *MockWebServerConfigService) UpdateConfig(opts *v1.WebServerConfigUpdateOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig", opts)
 	ret0, _ := ret[0].(error)
@@ -540,10 +539,10 @@ func (m *MockWebServerBinCMDService) EXPECT() *MockWebServerBinCMDServiceMockRec
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDService) Exec(req *v10.WebServerBinCMDExecRequest) (*v10.WebServerBinCMDExecResponse, error) {
+func (m *MockWebServerBinCMDService) Exec(req *v1.WebServerBinCMDExecRequest) (*v1.WebServerBinCMDExecResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exec", req)
-	ret0, _ := ret[0].(*v10.WebServerBinCMDExecResponse)
+	ret0, _ := ret[0].(*v1.WebServerBinCMDExecResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -579,7 +578,7 @@ func (m *MockWebServerStatisticsService) EXPECT() *MockWebServerStatisticsServic
 }
 
 // ConnectivityCheckOfProxyService mocks base method.
-func (m *MockWebServerStatisticsService) ConnectivityCheckOfProxyService(opts *v10.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error) {
+func (m *MockWebServerStatisticsService) ConnectivityCheckOfProxyService(opts *v1.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService", opts)
 	ret0, _ := ret[0].(v1.ProxyServiceInfo)
@@ -594,7 +593,7 @@ func (mr *MockWebServerStatisticsServiceMockRecorder) ConnectivityCheckOfProxySe
 }
 
 // ExportProxyServiceInfoToExcel mocks base method.
-func (m *MockWebServerStatisticsService) ExportProxyServiceInfoToExcel(opts *v10.WebServerOptions) ([]byte, error) {
+func (m *MockWebServerStatisticsService) ExportProxyServiceInfoToExcel(opts *v1.WebServerOptions) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel", opts)
 	ret0, _ := ret[0].([]byte)
@@ -609,7 +608,7 @@ func (mr *MockWebServerStatisticsServiceMockRecorder) ExportProxyServiceInfoToEx
 }
 
 // GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsService) GetProxyServiceInfo(opts *v10.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+func (m *MockWebServerStatisticsService) GetProxyServiceInfo(opts *v1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyServiceInfo", opts)
 	ret0, _ := ret[0].([]v1.ProxyServiceInfo)

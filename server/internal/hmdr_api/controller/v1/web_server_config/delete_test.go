@@ -3,12 +3,13 @@ package web_server_config
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"net/http/httptest"
 	"testing"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
 	"github.com/gin-gonic/gin"

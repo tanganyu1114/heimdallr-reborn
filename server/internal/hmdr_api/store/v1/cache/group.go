@@ -2,8 +2,8 @@ package cache
 
 import (
 	"context"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 )
 
 type groupStore struct {
@@ -20,7 +20,7 @@ func (g *groupStore) Delete(ctx context.Context, groupid uint) error {
 	return g.cacheStore.next.Groups().Delete(ctx, groupid)
 }
 
-func (g *groupStore) DeleteCollections(ctx context.Context, ids metav1.IDsOptions) error {
+func (g *groupStore) DeleteCollections(ctx context.Context, ids v1.IDsOptions) error {
 	for _, id := range ids.IDs {
 		g.cacheStore.cache.ReleaseGroup(uint(id))
 	}
@@ -31,7 +31,7 @@ func (g *groupStore) Get(ctx context.Context, groupid uint) (v1.Group, error) {
 	return g.cacheStore.next.Groups().Get(ctx, groupid)
 }
 
-func (g *groupStore) List(ctx context.Context, opts metav1.ListOptions) (v1.GroupList, error) {
+func (g *groupStore) List(ctx context.Context, opts v1.ListOptions) (v1.GroupList, error) {
 	return g.cacheStore.next.Groups().List(ctx, opts)
 }
 

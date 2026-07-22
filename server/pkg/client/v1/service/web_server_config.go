@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
@@ -17,33 +17,33 @@ type WebServerConfigService interface {
 	// GetOptions retrieves option selection parameters
 	GetOptions() ([]v1.BifrostGroupMeta, error)
 	// GetConfigTextLines retrieves configuration file text lines
-	GetConfigTextLines(opts *metav1.WebServerOptions) (string, error)
+	GetConfigTextLines(opts *v1.WebServerOptions) (string, error)
 	// GetContextTextLines retrieves context configuration text lines
-	GetContextTextLines(opts *metav1.WebServerConfigTargetContextOptions) (string, error)
+	GetContextTextLines(opts *v1.WebServerConfigTargetContextOptions) (string, error)
 	// GetConfig retrieves configuration JSON data
-	GetConfig(opts *metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprints, error)
+	GetConfig(opts *v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprints, error)
 	// GetIncludedConfigs retrieves included configuration file paths
-	GetIncludedConfigs(opts *metav1.WebServerConfigTargetContextOptions) ([]string, error)
+	GetIncludedConfigs(opts *v1.WebServerConfigTargetContextOptions) ([]string, error)
 	// SearchContextPositions searches context positions
-	SearchContextPositions(opts *metav1.WebServerConfigContextPosSearchOptions) ([]metav1.ConfigContextPos, error)
+	SearchContextPositions(opts *v1.WebServerConfigContextPosSearchOptions) ([]v1.ConfigContextPos, error)
 	// InsertWithClone inserts configuration context with clone
-	InsertWithClone(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error
+	InsertWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error
 	// InsertWithNew inserts new configuration context
-	InsertWithNew(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error
+	InsertWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error
 	// Remove removes configuration context
-	Remove(opts *metav1.WebServerConfigTargetContextOptions) error
+	Remove(opts *v1.WebServerConfigTargetContextOptions) error
 	// UpdateConfig updates configuration JSON data
-	UpdateConfig(opts *metav1.WebServerConfigUpdateOptions) error
+	UpdateConfig(opts *v1.WebServerConfigUpdateOptions) error
 	// ModifyContextValue modifies context value
-	ModifyContextValue(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error
+	ModifyContextValue(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error
 	// ModifyWithClone modifies configuration context with clone
-	ModifyWithClone(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error
+	ModifyWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error
 	// ChangeContextEnabledState changes context enabled state
-	ChangeContextEnabledState(opts *metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]) error
+	ChangeContextEnabledState(opts *v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]) error
 	// ModifyWithNew modifies configuration context with new
-	ModifyWithNew(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error
+	ModifyWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error
 	// Move moves configuration context
-	Move(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error
+	Move(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error
 }
 
 // webServerConfigService implements WebServerConfigService interface
@@ -76,11 +76,11 @@ func (s *webServerConfigService) GetOptions() ([]v1.BifrostGroupMeta, error) {
 }
 
 // GetConfigTextLines retrieves configuration file text lines
-func (s *webServerConfigService) GetConfigTextLines(opts *metav1.WebServerOptions) (string, error) {
+func (s *webServerConfigService) GetConfigTextLines(opts *v1.WebServerOptions) (string, error) {
 	if opts == nil {
 		return "", errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.GetConfigTextLines()(s.ctx, req)
@@ -91,11 +91,11 @@ func (s *webServerConfigService) GetConfigTextLines(opts *metav1.WebServerOption
 }
 
 // GetContextTextLines retrieves context configuration text lines
-func (s *webServerConfigService) GetContextTextLines(opts *metav1.WebServerConfigTargetContextOptions) (string, error) {
+func (s *webServerConfigService) GetContextTextLines(opts *v1.WebServerConfigTargetContextOptions) (string, error) {
 	if opts == nil {
 		return "", errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigTargetContextOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigTargetContextOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.GetContextTextLines()(s.ctx, req)
@@ -106,11 +106,11 @@ func (s *webServerConfigService) GetContextTextLines(opts *metav1.WebServerConfi
 }
 
 // GetConfig retrieves configuration JSON data
-func (s *webServerConfigService) GetConfig(opts *metav1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprints, error) {
+func (s *webServerConfigService) GetConfig(opts *v1.WebServerOptions) (configuration.NginxConfig, utilsV3.ConfigFingerprints, error) {
 	if opts == nil {
 		return nil, utilsV3.ConfigFingerprints{}, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.GetConfig()(s.ctx, req)
@@ -129,11 +129,11 @@ func (s *webServerConfigService) GetConfig(opts *metav1.WebServerOptions) (confi
 }
 
 // GetIncludedConfigs retrieves included configuration file paths
-func (s *webServerConfigService) GetIncludedConfigs(opts *metav1.WebServerConfigTargetContextOptions) ([]string, error) {
+func (s *webServerConfigService) GetIncludedConfigs(opts *v1.WebServerConfigTargetContextOptions) ([]string, error) {
 	if opts == nil {
 		return nil, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigTargetContextOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigTargetContextOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.GetIncludedConfigs()(s.ctx, req)
@@ -144,11 +144,11 @@ func (s *webServerConfigService) GetIncludedConfigs(opts *metav1.WebServerConfig
 }
 
 // SearchContextPositions searches context positions
-func (s *webServerConfigService) SearchContextPositions(opts *metav1.WebServerConfigContextPosSearchOptions) ([]metav1.ConfigContextPos, error) {
+func (s *webServerConfigService) SearchContextPositions(opts *v1.WebServerConfigContextPosSearchOptions) ([]v1.ConfigContextPos, error) {
 	if opts == nil {
 		return nil, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextPosSearchOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextPosSearchOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.SearchContextPositions()(s.ctx, req)
@@ -159,11 +159,11 @@ func (s *webServerConfigService) SearchContextPositions(opts *metav1.WebServerCo
 }
 
 // InsertWithClone inserts configuration context with clone
-func (s *webServerConfigService) InsertWithClone(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error {
+func (s *webServerConfigService) InsertWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.InsertWithClone()(s.ctx, req)
@@ -175,11 +175,11 @@ func (s *webServerConfigService) InsertWithClone(opts *metav1.WebServerConfigCon
 }
 
 // InsertWithNew inserts new configuration context
-func (s *webServerConfigService) InsertWithNew(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error {
+func (s *webServerConfigService) InsertWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.InsertWithNew()(s.ctx, req)
@@ -191,11 +191,11 @@ func (s *webServerConfigService) InsertWithNew(opts *metav1.WebServerConfigConte
 }
 
 // Remove removes configuration context
-func (s *webServerConfigService) Remove(opts *metav1.WebServerConfigTargetContextOptions) error {
+func (s *webServerConfigService) Remove(opts *v1.WebServerConfigTargetContextOptions) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigTargetContextOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigTargetContextOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.Remove()(s.ctx, req)
@@ -207,11 +207,11 @@ func (s *webServerConfigService) Remove(opts *metav1.WebServerConfigTargetContex
 }
 
 // UpdateConfig updates configuration JSON data
-func (s *webServerConfigService) UpdateConfig(opts *metav1.WebServerConfigUpdateOptions) error {
+func (s *webServerConfigService) UpdateConfig(opts *v1.WebServerConfigUpdateOptions) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[*metav1.WebServerConfigUpdateOptions]{
+	req := httpclientv1.HTTPRequest[*v1.WebServerConfigUpdateOptions]{
 		Body: opts,
 	}
 	resp, err := s.eps.UpdateConfig()(s.ctx, req)
@@ -223,11 +223,11 @@ func (s *webServerConfigService) UpdateConfig(opts *metav1.WebServerConfigUpdate
 }
 
 // ModifyContextValue modifies context value
-func (s *webServerConfigService) ModifyContextValue(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error {
+func (s *webServerConfigService) ModifyContextValue(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ModifyContextValue()(s.ctx, req)
@@ -239,11 +239,11 @@ func (s *webServerConfigService) ModifyContextValue(opts *metav1.WebServerConfig
 }
 
 // ModifyWithClone modifies configuration context with clone
-func (s *webServerConfigService) ModifyWithClone(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error {
+func (s *webServerConfigService) ModifyWithClone(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ModifyWithClone()(s.ctx, req)
@@ -255,11 +255,11 @@ func (s *webServerConfigService) ModifyWithClone(opts *metav1.WebServerConfigCon
 }
 
 // ChangeContextEnabledState changes context enabled state
-func (s *webServerConfigService) ChangeContextEnabledState(opts *metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]) error {
+func (s *webServerConfigService) ChangeContextEnabledState(opts *v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ChangeContextEnabledState()(s.ctx, req)
@@ -271,11 +271,11 @@ func (s *webServerConfigService) ChangeContextEnabledState(opts *metav1.WebServe
 }
 
 // ModifyWithNew modifies configuration context with new
-func (s *webServerConfigService) ModifyWithNew(opts *metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]) error {
+func (s *webServerConfigService) ModifyWithNew(opts *v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ModifyWithNew()(s.ctx, req)
@@ -287,11 +287,11 @@ func (s *webServerConfigService) ModifyWithNew(opts *metav1.WebServerConfigConte
 }
 
 // Move moves configuration context
-func (s *webServerConfigService) Move(opts *metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]) error {
+func (s *webServerConfigService) Move(opts *v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]) error {
 	if opts == nil {
 		return errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]]{
+	req := httpclientv1.HTTPRequest[v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]]{
 		Body: *opts,
 	}
 	resp, err := s.eps.Move()(s.ctx, req)

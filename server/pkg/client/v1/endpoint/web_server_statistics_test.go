@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport"
 
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
@@ -52,9 +51,9 @@ func Test_webServerStatisticsEndpoints_ConnectivityCheckOfProxyService(t *testin
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
+	mockClient := httpclientv1.NewMockClient[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ConnectivityCheckOfProxyService().Return(mockClientBuilder).AnyTimes()
@@ -65,7 +64,7 @@ func Test_webServerStatisticsEndpoints_ConnectivityCheckOfProxyService(t *testin
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
+		want   httpclientv1.Endpoint[v1.ConnectivityCheckOfProxiedServersRequestOptions, modelclientv1.ResponseBody[v1.ProxyServiceInfo]]
 	}{
 		{
 			name:   "returns connectivity check of proxy service endpoint",
@@ -90,9 +89,9 @@ func Test_webServerStatisticsEndpoints_ExportProxyServiceInfoToExcel(t *testing.
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
+	mockClient := httpclientv1.NewMockClient[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().ExportProxyServiceInfoToExcel().Return(mockClientBuilder).AnyTimes()
@@ -103,7 +102,7 @@ func Test_webServerStatisticsEndpoints_ExportProxyServiceInfoToExcel(t *testing.
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
+		want   httpclientv1.Endpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]byte]]
 	}{
 		{
 			name:   "returns export proxy service info to excel endpoint",
@@ -128,9 +127,9 @@ func Test_webServerStatisticsEndpoints_GetProxyServiceInfo(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockTransport := transport.NewMockWebServerStatisticsTransport(ctrl)
-	mockClientBuilder := httpclientv1.NewMockClientBuilder[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
-	mockClient := httpclientv1.NewMockClient[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
-	mockEndpoint := httpclientv1.NewEndpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](nil)
+	mockClientBuilder := httpclientv1.NewMockClientBuilder[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
+	mockClient := httpclientv1.NewMockClient[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](ctrl)
+	mockEndpoint := httpclientv1.NewEndpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]](nil)
 	mockClientBuilder.EXPECT().Build().Return(mockClient).AnyTimes()
 	mockClient.EXPECT().Endpoint().Return(mockEndpoint).AnyTimes()
 	mockTransport.EXPECT().GetProxyServiceInfo().Return(mockClientBuilder).AnyTimes()
@@ -141,7 +140,7 @@ func Test_webServerStatisticsEndpoints_GetProxyServiceInfo(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.Endpoint[metav1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
+		want   httpclientv1.Endpoint[v1.WebServerOptions, modelclientv1.ResponseBody[[]v1.ProxyServiceInfo]]
 	}{
 		{
 			name:   "returns get proxy service info endpoint",

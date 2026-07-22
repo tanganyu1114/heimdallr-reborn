@@ -2,8 +2,8 @@ package group
 
 import (
 	"github.com/gin-gonic/gin"
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"go.uber.org/zap"
 )

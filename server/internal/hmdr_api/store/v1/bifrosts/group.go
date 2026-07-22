@@ -2,12 +2,12 @@ package bifrosts
 
 import (
 	"context"
+	"sync"
+
 	"github.com/marmotedu/errors"
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/bifrosts"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"sync"
 )
 
 var (
@@ -44,7 +44,7 @@ func (g *groupStore) Delete(ctx context.Context, groupid uint) error {
 	return g.bm.RemoveGroupByID(groupid)
 }
 
-func (g *groupStore) DeleteCollections(ctx context.Context, ids metav1.IDsOptions) error {
+func (g *groupStore) DeleteCollections(ctx context.Context, ids v1.IDsOptions) error {
 	err := global.GVA_DB.Delete(&[]v1.Group{}, "id in ?", ids.IDs).Error
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (g *groupStore) Get(ctx context.Context, groupid uint) (v1.Group, error) {
 	return group, err
 }
 
-func (g *groupStore) List(ctx context.Context, opts metav1.ListOptions) (v1.GroupList, error) {
+func (g *groupStore) List(ctx context.Context, opts v1.ListOptions) (v1.GroupList, error) {
 	limit := opts.PageSize
 	offset := opts.PageSize * (opts.Page - 1)
 

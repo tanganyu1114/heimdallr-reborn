@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+
 	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -13,11 +13,11 @@ import (
 // WebServerStatisticsService defines the interface for web server statistics related services
 type WebServerStatisticsService interface {
 	// GetProxyServiceInfo retrieves proxy service information
-	GetProxyServiceInfo(opts *metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error)
+	GetProxyServiceInfo(opts *v1.WebServerOptions) ([]v1.ProxyServiceInfo, error)
 	// ConnectivityCheckOfProxyService performs connectivity check of proxy service
-	ConnectivityCheckOfProxyService(opts *metav1.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error)
+	ConnectivityCheckOfProxyService(opts *v1.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error)
 	// ExportProxyServiceInfoToExcel exports proxy service info to Excel
-	ExportProxyServiceInfoToExcel(opts *metav1.WebServerOptions) ([]byte, error)
+	ExportProxyServiceInfoToExcel(opts *v1.WebServerOptions) ([]byte, error)
 }
 
 // webServerStatisticsService implements WebServerStatisticsService interface
@@ -38,11 +38,11 @@ func newWebServerStatisticsService(svc *factory) WebServerStatisticsService {
 }
 
 // GetProxyServiceInfo retrieves proxy service information
-func (s *webServerStatisticsService) GetProxyServiceInfo(opts *metav1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+func (s *webServerStatisticsService) GetProxyServiceInfo(opts *v1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	if opts == nil {
 		return nil, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.GetProxyServiceInfo()(s.ctx, req)
@@ -53,11 +53,11 @@ func (s *webServerStatisticsService) GetProxyServiceInfo(opts *metav1.WebServerO
 }
 
 // ConnectivityCheckOfProxyService performs connectivity check of proxy service
-func (s *webServerStatisticsService) ConnectivityCheckOfProxyService(opts *metav1.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error) {
+func (s *webServerStatisticsService) ConnectivityCheckOfProxyService(opts *v1.ConnectivityCheckOfProxiedServersRequestOptions) (v1.ProxyServiceInfo, error) {
 	if opts == nil {
 		return v1.ProxyServiceInfo{}, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.ConnectivityCheckOfProxiedServersRequestOptions]{
+	req := httpclientv1.HTTPRequest[v1.ConnectivityCheckOfProxiedServersRequestOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ConnectivityCheckOfProxyService()(s.ctx, req)
@@ -68,11 +68,11 @@ func (s *webServerStatisticsService) ConnectivityCheckOfProxyService(opts *metav
 }
 
 // ExportProxyServiceInfoToExcel exports proxy service info to Excel
-func (s *webServerStatisticsService) ExportProxyServiceInfoToExcel(opts *metav1.WebServerOptions) ([]byte, error) {
+func (s *webServerStatisticsService) ExportProxyServiceInfoToExcel(opts *v1.WebServerOptions) ([]byte, error) {
 	if opts == nil {
 		return nil, errors.New("opts cannot be nil")
 	}
-	req := httpclientv1.HTTPRequest[metav1.WebServerOptions]{
+	req := httpclientv1.HTTPRequest[v1.WebServerOptions]{
 		Body: *opts,
 	}
 	resp, err := s.eps.ExportProxyServiceInfoToExcel()(s.ctx, req)

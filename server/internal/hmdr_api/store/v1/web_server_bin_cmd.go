@@ -2,7 +2,8 @@ package v1
 
 import (
 	"context"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 )
 
 type WebServerBinCMDStore interface {

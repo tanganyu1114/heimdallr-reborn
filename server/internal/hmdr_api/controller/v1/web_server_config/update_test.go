@@ -3,12 +3,13 @@ package web_server_config
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
-	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/global"
+	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
 	"github.com/gin-gonic/gin"
@@ -40,8 +41,8 @@ func TestWebServerConfigController_UpdateConfig(t *testing.T) {
 		}
 	}`
 
-	validMeta := metav1.WebServerConfigUpdateOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigUpdateOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
@@ -52,8 +53,8 @@ func TestWebServerConfigController_UpdateConfig(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigUpdateOptions{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigUpdateOptions{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
@@ -126,18 +127,18 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.ConfigContextEnabledStateMeta{
+			TargetContext: v1.ConfigContextEnabledStateMeta{
 				Enabled: true,
 			},
 		},
@@ -146,15 +147,15 @@ func TestWebServerConfigController_ChangeContextEnabledState(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.ConfigContextEnabledStateMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.ConfigContextEnabledStateMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.ConfigContextEnabledStateMeta{},
 		},
 		OriginalFingerprints: nil,
 	}
@@ -223,19 +224,19 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.CloneConfigContextMeta{
-				ConfigContextPos: metav1.ConfigContextPos{
+			TargetContext: v1.CloneConfigContextMeta{
+				ConfigContextPos: v1.ConfigContextPos{
 					Config:         "E:\\config_test\\clone.conf",
 					ContextPosPath: []int{1},
 				},
@@ -247,15 +248,15 @@ func TestWebServerConfigController_InsertWithClone(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.CloneConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.CloneConfigContextMeta{},
 		},
 		DisableTheTarget:     false,
 		OriginalFingerprints: nil,
@@ -325,18 +326,18 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.NewConfigContextMeta{
+			TargetContext: v1.NewConfigContextMeta{
 				ContextType:  "directive",
 				ContextValue: "worker_processes 2",
 			},
@@ -347,15 +348,15 @@ func TestWebServerConfigController_InsertWithNew(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.NewConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.NewConfigContextMeta{},
 		},
 		DisableTheTarget:     false,
 		OriginalFingerprints: nil,
@@ -425,18 +426,18 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.NewConfigContextMeta{
+			TargetContext: v1.NewConfigContextMeta{
 				ContextType:  "directive",
 				ContextValue: "worker_processes 4",
 			},
@@ -446,15 +447,15 @@ func TestWebServerConfigController_ModifyContextValue(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.NewConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.NewConfigContextMeta{},
 		},
 		OriginalFingerprints: nil,
 	}
@@ -523,19 +524,19 @@ func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.CloneConfigContextMeta{
-				ConfigContextPos: metav1.ConfigContextPos{
+			TargetContext: v1.CloneConfigContextMeta{
+				ConfigContextPos: v1.ConfigContextPos{
 					Config:         "E:\\config_test\\clone.conf",
 					ContextPosPath: []int{1},
 				},
@@ -546,15 +547,15 @@ func TestWebServerConfigController_ModifyWithClone(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.CloneConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.CloneConfigContextMeta{},
 		},
 		OriginalFingerprints: nil,
 	}
@@ -623,18 +624,18 @@ func TestWebServerConfigController_ModifyWithNew(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.NewConfigContextMeta{
+			TargetContext: v1.NewConfigContextMeta{
 				ContextType:  "directive",
 				ContextValue: "worker_processes 8",
 			},
@@ -644,15 +645,15 @@ func TestWebServerConfigController_ModifyWithNew(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.NewConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.NewConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.NewConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.NewConfigContextMeta{},
 		},
 		OriginalFingerprints: nil,
 	}
@@ -721,19 +722,19 @@ func TestWebServerConfigController_Move(t *testing.T) {
 	mockWebServerConfigSrv := svcv1.NewMockWebServerConfigSrv(ctrl)
 	svc.EXPECT().WebServerConfigs().AnyTimes().Return(mockWebServerConfigSrv)
 
-	validMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	validMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "test-bifrost",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position: metav1.ConfigContextPos{
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position: v1.ConfigContextPos{
 				Config:         "E:\\config_test\\nginx.conf",
 				ContextPosPath: []int{0},
 			},
-			TargetContext: metav1.CloneConfigContextMeta{
-				ConfigContextPos: metav1.ConfigContextPos{
+			TargetContext: v1.CloneConfigContextMeta{
+				ConfigContextPos: v1.ConfigContextPos{
 					Config:         "E:\\config_test\\nginx.conf",
 					ContextPosPath: []int{2},
 				},
@@ -745,15 +746,15 @@ func TestWebServerConfigController_Move(t *testing.T) {
 		},
 	}
 
-	invalidMeta := metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]{
-		WebServerOptions: metav1.WebServerOptions{
+	invalidMeta := v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]{
+		WebServerOptions: v1.WebServerOptions{
 			GroupID:    0,
 			HostID:     0,
 			ServerName: "",
 		},
-		TargetConfigContextOptions: metav1.TargetConfigContextOptions[metav1.CloneConfigContextMeta]{
-			Position:      metav1.ConfigContextPos{},
-			TargetContext: metav1.CloneConfigContextMeta{},
+		TargetConfigContextOptions: v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]{
+			Position:      v1.ConfigContextPos{},
+			TargetContext: v1.CloneConfigContextMeta{},
 		},
 		DisableTheTarget:     false,
 		OriginalFingerprints: nil,
@@ -836,7 +837,7 @@ func Test_updateErrorHandle(t *testing.T) {
 		},
 		{
 			name:       "fingerprint error - ErrInconsistentFingerprints",
-			err:        metav1.ErrInconsistentFingerprints,
+			err:        v1.ErrInconsistentFingerprints,
 			okmsg:      "success",
 			failuremsg: "failure",
 			wantCode:   200,

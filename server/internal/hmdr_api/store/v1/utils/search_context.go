@@ -2,8 +2,9 @@ package utils
 
 import (
 	"cmp"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"slices"
+
+	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 
 	"github.com/ClessLi/bifrost/api/bifrost/v1"
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"

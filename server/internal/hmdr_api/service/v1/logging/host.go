@@ -2,9 +2,9 @@ package logging
 
 import (
 	"context"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	svcv1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/service/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -36,7 +36,7 @@ func (h *hostService) Delete(ctx context.Context, hostid uint) (err error) {
 	return h.svc.Hosts().Delete(ctx, hostid)
 }
 
-func (h *hostService) DeleteCollection(ctx context.Context, ids metav1.IDsOptions) (err error) {
+func (h *hostService) DeleteCollection(ctx context.Context, ids v1.IDsOptions) (err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {
@@ -58,7 +58,7 @@ func (h *hostService) Get(ctx context.Context, hostid uint) (host v1.Host, err e
 	return h.svc.Hosts().Get(ctx, hostid)
 }
 
-func (h *hostService) List(ctx context.Context, opts metav1.ListOptions) (hosts v1.HostList, err error) {
+func (h *hostService) List(ctx context.Context, opts v1.ListOptions) (hosts v1.HostList, err error) {
 	defer func() {
 		level := zapcore.DebugLevel
 		if err != nil {

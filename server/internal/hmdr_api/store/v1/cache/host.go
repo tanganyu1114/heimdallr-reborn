@@ -2,9 +2,9 @@ package cache
 
 import (
 	"context"
+
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 )
 
 type hostStore struct {
@@ -28,7 +28,7 @@ func (h *hostStore) Delete(ctx context.Context, hostid uint) error {
 	return h.cacheStore.next.Hosts().Delete(ctx, hostid)
 }
 
-func (h *hostStore) DeleteCollection(ctx context.Context, ids metav1.IDsOptions) error {
+func (h *hostStore) DeleteCollection(ctx context.Context, ids v1.IDsOptions) error {
 	var hosts []v1.Host
 	// find hosts from DB
 	err := global.GVA_DB.Find(&hosts, "id in ?", ids.IDs).Error
@@ -45,7 +45,7 @@ func (h *hostStore) Get(ctx context.Context, hostid uint) (v1.Host, error) {
 	return h.cacheStore.next.Hosts().Get(ctx, hostid)
 }
 
-func (h *hostStore) List(ctx context.Context, opts metav1.ListOptions) (v1.HostList, error) {
+func (h *hostStore) List(ctx context.Context, opts v1.ListOptions) (v1.HostList, error) {
 	return h.cacheStore.next.Hosts().List(ctx, opts)
 }
 

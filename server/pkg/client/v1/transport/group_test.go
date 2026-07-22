@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	modelclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/model"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
@@ -16,16 +15,16 @@ func Test_groupTransport_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]](ctrl)
 
 	type fields struct {
-		getGroupClient   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
-		listGroupsClient httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
+		getGroupClient   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
+		listGroupsClient httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
+		want   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
 	}{
 		{
 			name: "returns get group client",
@@ -52,16 +51,16 @@ func Test_groupTransport_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := httpclientv1.NewMockClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](ctrl)
+	mockClient := httpclientv1.NewMockClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]](ctrl)
 
 	type fields struct {
-		getGroupClient   httpclientv1.ClientBuilder[metav1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
-		listGroupsClient httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
+		getGroupClient   httpclientv1.ClientBuilder[v1.IDOptions, modelclientv1.ResponseBody[*v1.Group]]
+		listGroupsClient httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   httpclientv1.ClientBuilder[metav1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
+		want   httpclientv1.ClientBuilder[v1.ListOptions, modelclientv1.ResponseBody[*v1.GroupList]]
 	}{
 		{
 			name: "returns list groups client",

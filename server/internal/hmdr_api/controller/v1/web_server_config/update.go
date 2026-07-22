@@ -1,8 +1,8 @@
 package web_server_config
 
 import (
+	"github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +12,7 @@ import (
 
 func updateErrorHandle(c *gin.Context, err error, okmsg, failuremsg string) {
 	if err != nil {
-		if errors.Is(err, metav1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
+		if errors.Is(err, v1.ErrInconsistentFingerprints) || errors.IsCode(err, 110010) {
 			global.GVA_LOG.Warn("更新时，指纹校验失败!", zap.Error(err))
 			response.FailWithMessage("指纹校验失败, 请重新查询, 刷新配置文件!", c)
 
@@ -36,7 +36,7 @@ func updateErrorHandle(c *gin.Context, err error, okmsg, failuremsg string) {
 // @Success 200 {string} string "{"code":0,"data":{},"msg":"新增成功"}"
 // @Router /conf/insert-clone-ctx [post]
 func (w *WebServerConfigController) InsertWithClone(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -53,7 +53,7 @@ func (w *WebServerConfigController) InsertWithClone(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -70,7 +70,7 @@ func (w *WebServerConfigController) InsertWithNew(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) UpdateConfig(c *gin.Context) {
-	var r metav1.WebServerConfigUpdateOptions
+	var r v1.WebServerConfigUpdateOptions
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -87,7 +87,7 @@ func (w *WebServerConfigController) UpdateConfig(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) ModifyWithClone(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -104,7 +104,7 @@ func (w *WebServerConfigController) ModifyWithClone(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -128,7 +128,7 @@ func (w *WebServerConfigController) ModifyWithNew(c *gin.Context) {
 // @Success 200 {string} string "{"code":0,"data":{},"msg":"修改启用状态成功"}"
 // @Router /conf/change-ctx-enabled-state [post]
 func (w *WebServerConfigController) ChangeContextEnabledState(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.ConfigContextEnabledStateMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.ConfigContextEnabledStateMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -145,7 +145,7 @@ func (w *WebServerConfigController) ChangeContextEnabledState(c *gin.Context) {
 }
 
 func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.NewConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.NewConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))
@@ -169,7 +169,7 @@ func (w *WebServerConfigController) ModifyContextValue(c *gin.Context) {
 // @Success 200 {string} string "{"code":0,"data":{},"msg":"修改成功"}"
 // @Router /conf/move-ctx [post]
 func (w *WebServerConfigController) Move(c *gin.Context) {
-	var r metav1.WebServerConfigContextUpdateOptions[metav1.CloneConfigContextMeta]
+	var r v1.WebServerConfigContextUpdateOptions[v1.CloneConfigContextMeta]
 	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		global.GVA_LOG.Error("解析失败!", zap.Any("err", err))

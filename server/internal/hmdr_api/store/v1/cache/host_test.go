@@ -2,15 +2,15 @@ package cache
 
 import (
 	"context"
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/marmotedu/errors"
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	storev1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1"
-	metav1 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	"go.uber.org/mock/gomock"
-	"reflect"
-	"testing"
-	"time"
 )
 
 func Test_hostStore_Create(t *testing.T) {
@@ -131,7 +131,7 @@ func Test_hostStore_DeleteCollection(t *testing.T) {
 	}
 	type args struct {
 		ctx context.Context
-		ids metav1.IDsOptions
+		ids v1.IDsOptions
 	}
 	tests := []struct {
 		name    string
@@ -193,7 +193,7 @@ func Test_hostStore_List(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		opts metav1.ListOptions
+		opts v1.ListOptions
 	}
 	tests := []struct {
 		name    string

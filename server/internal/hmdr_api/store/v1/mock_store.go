@@ -17,7 +17,6 @@ import (
 	context0 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/context"
 	utils "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	v1 "github.com/tanganyu1114/heimdallr-reborn/server/api/heimdallr_api/v1"
-	v10 "github.com/tanganyu1114/heimdallr-reborn/server/internal/pkg/meta/v1"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -261,7 +260,7 @@ func (mr *MockGroupStoreMockRecorder) Delete(ctx, groupid any) *gomock.Call {
 }
 
 // DeleteCollections mocks base method.
-func (m *MockGroupStore) DeleteCollections(ctx context.Context, ids v10.IDsOptions) error {
+func (m *MockGroupStore) DeleteCollections(ctx context.Context, ids v1.IDsOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteCollections", ctx, ids)
 	ret0, _ := ret[0].(error)
@@ -290,7 +289,7 @@ func (mr *MockGroupStoreMockRecorder) Get(ctx, groupid any) *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockGroupStore) List(ctx context.Context, opts v10.ListOptions) (v1.GroupList, error) {
+func (m *MockGroupStore) List(ctx context.Context, opts v1.ListOptions) (v1.GroupList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.GroupList)
@@ -371,7 +370,7 @@ func (mr *MockHostStoreMockRecorder) Delete(ctx, hostid any) *gomock.Call {
 }
 
 // DeleteCollection mocks base method.
-func (m *MockHostStore) DeleteCollection(ctx context.Context, ids v10.IDsOptions) error {
+func (m *MockHostStore) DeleteCollection(ctx context.Context, ids v1.IDsOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteCollection", ctx, ids)
 	ret0, _ := ret[0].(error)
@@ -400,7 +399,7 @@ func (mr *MockHostStoreMockRecorder) Get(ctx, hostid any) *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockHostStore) List(ctx context.Context, opts v10.ListOptions) (v1.HostList, error) {
+func (m *MockHostStore) List(ctx context.Context, opts v1.ListOptions) (v1.HostList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, opts)
 	ret0, _ := ret[0].(v1.HostList)
@@ -453,7 +452,7 @@ func (m *MockWebServerLogWatcherStore) EXPECT() *MockWebServerLogWatcherStoreMoc
 }
 
 // Watch mocks base method.
-func (m *MockWebServerLogWatcherStore) Watch(ctx context.Context, opts v10.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
+func (m *MockWebServerLogWatcherStore) Watch(ctx context.Context, opts v1.WebServerLogOptions) (<-chan []byte, context.CancelFunc, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", ctx, opts)
 	ret0, _ := ret[0].(<-chan []byte)
@@ -493,7 +492,7 @@ func (m *MockWebServerStatisticsStore) EXPECT() *MockWebServerStatisticsStoreMoc
 }
 
 // ConnectivityCheckOfProxyService mocks base method.
-func (m *MockWebServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts v10.WebServerOptions, proxyPassPos v10.ConfigContextPos) (v1.ProxyServiceInfo, error) {
+func (m *MockWebServerStatisticsStore) ConnectivityCheckOfProxyService(ctx context.Context, opts v1.WebServerOptions, proxyPassPos v1.ConfigContextPos) (v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConnectivityCheckOfProxyService", ctx, opts, proxyPassPos)
 	ret0, _ := ret[0].(v1.ProxyServiceInfo)
@@ -508,7 +507,7 @@ func (mr *MockWebServerStatisticsStoreMockRecorder) ConnectivityCheckOfProxyServ
 }
 
 // ExportProxyServiceInfoToExcel mocks base method.
-func (m *MockWebServerStatisticsStore) ExportProxyServiceInfoToExcel(ctx context.Context, opts v10.WebServerOptions) ([]byte, error) {
+func (m *MockWebServerStatisticsStore) ExportProxyServiceInfoToExcel(ctx context.Context, opts v1.WebServerOptions) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExportProxyServiceInfoToExcel", ctx, opts)
 	ret0, _ := ret[0].([]byte)
@@ -523,7 +522,7 @@ func (mr *MockWebServerStatisticsStoreMockRecorder) ExportProxyServiceInfoToExce
 }
 
 // GetProxyServiceInfo mocks base method.
-func (m *MockWebServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts v10.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
+func (m *MockWebServerStatisticsStore) GetProxyServiceInfo(ctx context.Context, opts v1.WebServerOptions) ([]v1.ProxyServiceInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyServiceInfo", ctx, opts)
 	ret0, _ := ret[0].([]v1.ProxyServiceInfo)
@@ -562,7 +561,7 @@ func (m *MockWebServerConfigStore) EXPECT() *MockWebServerConfigStoreMockRecorde
 }
 
 // ChangeContextEnabledState mocks base method.
-func (m *MockWebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.ConfigContextEnabledStateMeta]) error {
+func (m *MockWebServerConfigStore) ChangeContextEnabledState(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.ConfigContextEnabledStateMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeContextEnabledState", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
@@ -576,7 +575,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) ChangeContextEnabledState(ctx, o
 }
 
 // GetConfig mocks base method.
-func (m *MockWebServerConfigStore) GetConfig(ctx context.Context, opts v10.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprinter, error) {
+func (m *MockWebServerConfigStore) GetConfig(ctx context.Context, opts v1.WebServerOptions) (configuration.NginxConfig, utils.ConfigFingerprinter, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", ctx, opts)
 	ret0, _ := ret[0].(configuration.NginxConfig)
@@ -592,7 +591,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) GetConfig(ctx, opts any) *gomock
 }
 
 // GetContext mocks base method.
-func (m *MockWebServerConfigStore) GetContext(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) (context0.Context, error) {
+func (m *MockWebServerConfigStore) GetContext(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, pos v1.ConfigContextPos) (context0.Context, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContext", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].(context0.Context)
@@ -607,7 +606,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) GetContext(ctx, opts, ofp, pos a
 }
 
 // GetIncludedConfigs mocks base method.
-func (m *MockWebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) ([]string, error) {
+func (m *MockWebServerConfigStore) GetIncludedConfigs(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, pos v1.ConfigContextPos) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncludedConfigs", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].([]string)
@@ -637,7 +636,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) GetOptions(ctx any) *gomock.Call
 }
 
 // InsertWithClone mocks base method.
-func (m *MockWebServerConfigStore) InsertWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
+func (m *MockWebServerConfigStore) InsertWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithClone", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
@@ -651,7 +650,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) InsertWithClone(ctx, opts, ofp, 
 }
 
 // InsertWithNew mocks base method.
-func (m *MockWebServerConfigStore) InsertWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta], disabledTarget bool) error {
+func (m *MockWebServerConfigStore) InsertWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertWithNew", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
@@ -665,7 +664,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) InsertWithNew(ctx, opts, ofp, ct
 }
 
 // ModifyContextValue mocks base method.
-func (m *MockWebServerConfigStore) ModifyContextValue(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) ModifyContextValue(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyContextValue", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
@@ -679,7 +678,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) ModifyContextValue(ctx, opts, of
 }
 
 // ModifyWithClone mocks base method.
-func (m *MockWebServerConfigStore) ModifyWithClone(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) ModifyWithClone(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithClone", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
@@ -693,7 +692,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) ModifyWithClone(ctx, opts, ofp, 
 }
 
 // ModifyWithNew mocks base method.
-func (m *MockWebServerConfigStore) ModifyWithNew(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.NewConfigContextMeta]) error {
+func (m *MockWebServerConfigStore) ModifyWithNew(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.NewConfigContextMeta]) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ModifyWithNew", ctx, opts, ofp, ctxmeta)
 	ret0, _ := ret[0].(error)
@@ -707,7 +706,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) ModifyWithNew(ctx, opts, ofp, ct
 }
 
 // Move mocks base method.
-func (m *MockWebServerConfigStore) Move(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v10.TargetConfigContextOptions[v10.CloneConfigContextMeta], disabledTarget bool) error {
+func (m *MockWebServerConfigStore) Move(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, ctxmeta v1.TargetConfigContextOptions[v1.CloneConfigContextMeta], disabledTarget bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", ctx, opts, ofp, ctxmeta, disabledTarget)
 	ret0, _ := ret[0].(error)
@@ -721,7 +720,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) Move(ctx, opts, ofp, ctxmeta, di
 }
 
 // Remove mocks base method.
-func (m *MockWebServerConfigStore) Remove(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, pos v10.ConfigContextPos) error {
+func (m *MockWebServerConfigStore) Remove(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, pos v1.ConfigContextPos) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", ctx, opts, ofp, pos)
 	ret0, _ := ret[0].(error)
@@ -735,10 +734,10 @@ func (mr *MockWebServerConfigStoreMockRecorder) Remove(ctx, opts, ofp, pos any) 
 }
 
 // SearchContextPositions mocks base method.
-func (m *MockWebServerConfigStore) SearchContextPositions(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, kwmeta v10.SearchKeywordsMeta) ([]v10.ConfigContextPos, error) {
+func (m *MockWebServerConfigStore) SearchContextPositions(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, kwmeta v1.SearchKeywordsMeta) ([]v1.ConfigContextPos, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContextPositions", ctx, opts, ofp, kwmeta)
-	ret0, _ := ret[0].([]v10.ConfigContextPos)
+	ret0, _ := ret[0].([]v1.ConfigContextPos)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -750,7 +749,7 @@ func (mr *MockWebServerConfigStoreMockRecorder) SearchContextPositions(ctx, opts
 }
 
 // UpdateConfig mocks base method.
-func (m *MockWebServerConfigStore) UpdateConfig(ctx context.Context, opts v10.WebServerOptions, ofp utils.ConfigFingerprints, configJsonData []byte) error {
+func (m *MockWebServerConfigStore) UpdateConfig(ctx context.Context, opts v1.WebServerOptions, ofp utils.ConfigFingerprints, configJsonData []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig", ctx, opts, ofp, configJsonData)
 	ret0, _ := ret[0].(error)
@@ -788,14 +787,14 @@ func (m *MockWebServerBinCMDStore) EXPECT() *MockWebServerBinCMDStoreMockRecorde
 }
 
 // Exec mocks base method.
-func (m *MockWebServerBinCMDStore) Exec(ctx context.Context, opts v10.WebServerOptions, arg ...string) (v10.WebServerBinCMDExecResponse, error) {
+func (m *MockWebServerBinCMDStore) Exec(ctx context.Context, opts v1.WebServerOptions, arg ...string) (v1.WebServerBinCMDExecResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, opts}
 	for _, a := range arg {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Exec", varargs...)
-	ret0, _ := ret[0].(v10.WebServerBinCMDExecResponse)
+	ret0, _ := ret[0].(v1.WebServerBinCMDExecResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
