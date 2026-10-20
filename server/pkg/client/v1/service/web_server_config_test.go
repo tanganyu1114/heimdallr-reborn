@@ -13,7 +13,7 @@ import (
 
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
-	"github.com/marmotedu/errors"
+	"github.com/ClessLi/component-base/pkg/errors"
 	"go.uber.org/mock/gomock"
 )
 

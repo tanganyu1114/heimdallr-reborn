@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/marmotedu/errors"
+	"github.com/ClessLi/component-base/pkg/errors"
 )
 
 type ResponseBody[RESP any] struct {

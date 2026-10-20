@@ -7,7 +7,7 @@ import (
 
 	epclientv1 "github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint"
 
-	"github.com/marmotedu/errors"
+	"github.com/ClessLi/component-base/pkg/errors"
 )
 
 // Factory defines the service layer interface

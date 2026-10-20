@@ -38,7 +38,7 @@ func (gm *GinMiddleware) Group(rg *gin.RouterGroup, relativePath string, handler
 
 // Group creates a new router group with the given relative path and middleware
 func (a *RouteRegistry) Group(relativePath string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, "", "", handlers)
+	return a.registerRoute(relativePath, "", "", handlers)
 }
 
 // Use adds middleware to the router group
@@ -49,60 +49,81 @@ func (a *RouteRegistry) Use(middleware ...gin.HandlerFunc) *RouteRegistry {
 
 // POST registers a POST route and automatically creates an API entry
 func (a *RouteRegistry) POST(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodPost, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodPost, desc, handlers)
 }
 
 // GET registers a GET route and automatically creates an API entry
 func (a *RouteRegistry) GET(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodGet, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodGet, desc, handlers)
 }
 
 // PUT registers a PUT route and automatically creates an API entry
 func (a *RouteRegistry) PUT(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodPut, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodPut, desc, handlers)
 }
 
 // DELETE registers a DELETE route and automatically creates an API entry
 func (a *RouteRegistry) DELETE(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodDelete, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodDelete, desc, handlers)
 }
 
 // PATCH registers a PATCH route and automatically creates an API entry
 func (a *RouteRegistry) PATCH(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodPatch, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodPatch, desc, handlers)
 }
 
 // HEAD registers a HEAD route and automatically creates an API entry
 func (a *RouteRegistry) HEAD(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodHead, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodHead, desc, handlers)
 }
 
 // OPTIONS registers an OPTIONS route and automatically creates an API entry
 func (a *RouteRegistry) OPTIONS(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, http.MethodOptions, desc, handlers)
+	return a.registerRoute(relativePath, http.MethodOptions, desc, handlers)
 }
 
 // Any registers a route for all HTTP methods and automatically creates an API entry
 func (a *RouteRegistry) Any(relativePath, desc string, handlers ...gin.HandlerFunc) *RouteRegistry {
-	return a.routeRegistry(relativePath, "ANY", desc, handlers)
+	return a.registerRoute(relativePath, "ANY", desc, handlers)
 }
 
-// routeRegistry registers a route with the given method, description, and handlers
+// registerRoute registers a route with the given method, description, and handlers
 // and automatically creates an API entry
-func (a *RouteRegistry) routeRegistry(relativePath, method, desc string, handlers []gin.HandlerFunc) *RouteRegistry {
-	var group *gin.RouterGroup
-	if len(handlers) > 0 {
-		group = a.group.Group(relativePath, handlers...)
-	} else {
-		group = a.group.Group(relativePath)
-	}
+func (a *RouteRegistry) registerRoute(relativePath, method, desc string, handlers []gin.HandlerFunc) *RouteRegistry {
 	if method != "" {
 		a.applyAPIEntry(method, relativePath, desc)
+		a.routerHandle(method, relativePath, handlers)
+	} else {
+		a.group = a.group.Group(relativePath, handlers...)
 	}
 	return &RouteRegistry{
-		group:    group,
+		group:    a.group,
 		client:   a.client,
 		apiGroup: a.apiGroup,
+	}
+}
+
+// routerHandle registers the actual route with gin based on the HTTP method.
+// It dispatches the route registration to the appropriate gin.RouterGroup method
+// (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, or Any) according to the method parameter.
+func (a *RouteRegistry) routerHandle(method, relativePath string, handlers []gin.HandlerFunc) {
+	switch method {
+	case http.MethodGet:
+		a.group.GET(relativePath, handlers...)
+	case http.MethodPost:
+		a.group.POST(relativePath, handlers...)
+	case http.MethodPut:
+		a.group.PUT(relativePath, handlers...)
+	case http.MethodDelete:
+		a.group.DELETE(relativePath, handlers...)
+	case http.MethodPatch:
+		a.group.PATCH(relativePath, handlers...)
+	case http.MethodHead:
+		a.group.HEAD(relativePath, handlers...)
+	case http.MethodOptions:
+		a.group.OPTIONS(relativePath, handlers...)
+	case "ANY":
+		a.group.Any(relativePath, handlers...)
 	}
 }
 
@@ -132,6 +153,10 @@ func (a *RouteRegistry) applyAPIEntry(method, subPath, description string) {
 	}
 }
 
+// applyAPI creates or updates an API entry in the system.
+// It validates the API object, loads existing API cache, and either updates
+// an existing entry or creates a new one based on the cache lookup.
+// Returns error if validation fails or API operations encounter issues.
 func (a *RouteRegistry) applyAPI(api *model.SysApi) error {
 	if api == nil {
 		return errors.New("Ensure API object is initialized before registration")

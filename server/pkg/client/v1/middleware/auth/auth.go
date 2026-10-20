@@ -14,9 +14,9 @@ import (
 	"github.com/tanganyu1114/heimdallr-reborn/server/utils"
 
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
+	"github.com/ClessLi/component-base/pkg/errors"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
 	http_transport "github.com/go-kit/kit/transport/http"
-	"github.com/marmotedu/errors"
 )
 
 const (

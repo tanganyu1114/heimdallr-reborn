@@ -9,7 +9,7 @@ import (
 	"github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration"
 	utilsV3 "github.com/ClessLi/bifrost/pkg/resolv/V3/nginx/configuration/utils"
 	httpclientv1 "github.com/ClessLi/component-base/pkg/client-sdk/http/v1"
-	"github.com/marmotedu/errors"
+	"github.com/ClessLi/component-base/pkg/errors"
 )
 
 // WebServerConfigService defines the interface for web server config related services

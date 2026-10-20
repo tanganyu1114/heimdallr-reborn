@@ -1,6 +1,6 @@
 package ginmiddleware
 
-import "errors"
+import "github.com/ClessLi/component-base/pkg/errors"
 
 var (
 	ErrClientNil     = errors.New("client cannot be nil")

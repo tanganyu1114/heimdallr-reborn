@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ClessLi/component-base/pkg/errors"
 	logV1 "github.com/ClessLi/component-base/pkg/log/v1"
-	"github.com/marmotedu/errors"
 )
 
 // Factory defines the interface for creating transport clients
