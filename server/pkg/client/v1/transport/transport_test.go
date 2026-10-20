@@ -222,3 +222,51 @@ func Test_transport_WebServerStatistics(t1 *testing.T) {
 		})
 	}
 }
+
+func Test_transport_Apis(t1 *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+	}{
+		{
+			name:    "returns api transport singleton",
+			baseURL: "http://localhost:8080",
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			t := &transport{
+				Client:  &http.Client{},
+				baseURL: tt.baseURL,
+			}
+			got := t.Apis()
+			if got == nil {
+				t1.Errorf("Apis() = nil, want non-nil")
+			}
+		})
+	}
+}
+
+func Test_transport_Authz(t1 *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+	}{
+		{
+			name:    "returns auth transport singleton",
+			baseURL: "http://localhost:8080",
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			t := &transport{
+				Client:  &http.Client{},
+				baseURL: tt.baseURL,
+			}
+			got := t.Authz()
+			if got == nil {
+				t1.Errorf("Authz() = nil, want non-nil")
+			}
+		})
+	}
+}

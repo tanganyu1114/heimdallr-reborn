@@ -1494,3 +1494,141 @@ func TestAuthMiddleware_FullRequestResponseFlow(t *testing.T) {
 		})
 	}
 }
+
+func Test_authMiddleware_Apis(t *testing.T) {
+	type fields struct {
+		txp        transport.Factory
+		apiKey     string
+		apiSecret  string
+		bufferTime int64
+		mu         sync.RWMutex
+		token      string
+		expiresAt  int64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   transport.ApiTransport
+	}{
+		{
+			name: "create API transport with valid factory",
+			fields: fields{
+				txp: func() transport.Factory {
+					ctrl := gomock.NewController(&testing.T{})
+					defer ctrl.Finish()
+					return transport.NewMockFactory(ctrl)
+				}(),
+				apiKey:     "test-api-key",
+				apiSecret:  "test-api-secret",
+				bufferTime: 3600,
+				token:      "test-token",
+				expiresAt:  time.Now().Unix() + 3600,
+			},
+			want: nil,
+		},
+		{
+			name: "create API transport with empty credentials",
+			fields: fields{
+				txp: func() transport.Factory {
+					ctrl := gomock.NewController(&testing.T{})
+					defer ctrl.Finish()
+					return transport.NewMockFactory(ctrl)
+				}(),
+				apiKey:     "",
+				apiSecret:  "",
+				bufferTime: 0,
+				token:      "",
+				expiresAt:  0,
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockFactory := transport.NewMockFactory(ctrl)
+			a := &authMiddleware{
+				txp:        mockFactory,
+				apiKey:     tt.fields.apiKey,
+				apiSecret:  tt.fields.apiSecret,
+				bufferTime: tt.fields.bufferTime,
+				mu:         tt.fields.mu,
+				token:      tt.fields.token,
+				expiresAt:  tt.fields.expiresAt,
+			}
+			got := a.Apis()
+			assert.NotNil(t, got, "Apis() should return non-nil ApiTransport")
+		})
+	}
+}
+
+func Test_authMiddleware_Authz(t *testing.T) {
+	type fields struct {
+		txp        transport.Factory
+		apiKey     string
+		apiSecret  string
+		bufferTime int64
+		mu         sync.RWMutex
+		token      string
+		expiresAt  int64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   transport.AuthTransport
+	}{
+		{
+			name: "create Authz transport with valid factory",
+			fields: fields{
+				txp: func() transport.Factory {
+					ctrl := gomock.NewController(&testing.T{})
+					defer ctrl.Finish()
+					return transport.NewMockFactory(ctrl)
+				}(),
+				apiKey:     "test-api-key",
+				apiSecret:  "test-api-secret",
+				bufferTime: 3600,
+				token:      "test-token",
+				expiresAt:  time.Now().Unix() + 3600,
+			},
+			want: nil,
+		},
+		{
+			name: "create Authz transport with empty credentials",
+			fields: fields{
+				txp: func() transport.Factory {
+					ctrl := gomock.NewController(&testing.T{})
+					defer ctrl.Finish()
+					return transport.NewMockFactory(ctrl)
+				}(),
+				apiKey:     "",
+				apiSecret:  "",
+				bufferTime: 0,
+				token:      "",
+				expiresAt:  0,
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockFactory := transport.NewMockFactory(ctrl)
+			a := &authMiddleware{
+				txp:        mockFactory,
+				apiKey:     tt.fields.apiKey,
+				apiSecret:  tt.fields.apiSecret,
+				bufferTime: tt.fields.bufferTime,
+				mu:         tt.fields.mu,
+				token:      tt.fields.token,
+				expiresAt:  tt.fields.expiresAt,
+			}
+			got := a.Authz()
+			assert.NotNil(t, got, "Authz() should return non-nil AuthTransport")
+		})
+	}
+}

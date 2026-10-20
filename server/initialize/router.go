@@ -1,6 +1,8 @@
 package initialize
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
@@ -8,7 +10,6 @@ import (
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
 	"github.com/tanganyu1114/heimdallr-reborn/server/router"
-	"net/http"
 )
 
 // 初始化总路由
@@ -40,6 +41,7 @@ func Routers() *gin.Engine {
 		router.InitEmailRouter(PrivateGroup)                 // 邮件相关路由
 		router.InitSystemRouter(PrivateGroup)                // system相关路由
 		router.InitCasbinRouter(PrivateGroup)                // 权限相关路由
+		router.InitAuthRouter(PrivateGroup)                  // 鉴权相关路由
 		router.InitWorkflowRouter(PrivateGroup)              // 工作流相关路由
 		router.InitCustomerRouter(PrivateGroup)              // 客户路由
 		router.InitAutoCodeRouter(PrivateGroup)              // 创建自动化代码

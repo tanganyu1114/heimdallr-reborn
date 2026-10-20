@@ -1,6 +1,6 @@
 package transport
 
-//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport -destination=mock_transport.go -package=transport github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport Factory,SysUserTransport,AgentInfoTransport,GroupTransport,HostTransport,WebServerConfigTransport,WebServerBinCMDTransport,WebServerStatisticsTransport
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport -destination=mock_transport.go -package=transport github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/transport Factory,SysUserTransport,AgentInfoTransport,GroupTransport,HostTransport,WebServerConfigTransport,WebServerBinCMDTransport,WebServerStatisticsTransport,AuthTransport,ApiTransport
 import (
 	"net/http"
 	"sync"
@@ -26,6 +26,10 @@ type Factory interface {
 	WebServerBinCMDs() WebServerBinCMDTransport
 	// WebServerStatistics returns the WebServerStatistics transport
 	WebServerStatistics() WebServerStatisticsTransport
+	// Authz returns the authentication and authorization transport
+	Authz() AuthTransport
+	// Apis returns the API management transport
+	Apis() ApiTransport
 	// TODO: WebServerLogWatchers transport is not implemented yet.
 	// Implement when there is a requirement for websocket log watching.
 	// WebServerLogWatchers returns the WebServerLogWatchers transport
@@ -64,6 +68,14 @@ type transport struct {
 	// WebServerStatistics transport
 	onceWebServerStatistics      sync.Once
 	singletonWebServerStatistics WebServerStatisticsTransport
+
+	// Auth transport
+	onceAuth      sync.Once
+	singletonAuth AuthTransport
+
+	// API transport
+	onceApi      sync.Once
+	singletonApi ApiTransport
 }
 
 // NewTransport creates a new transport client
@@ -178,4 +190,32 @@ func (t *transport) WebServerStatistics() WebServerStatisticsTransport {
 		return nil
 	}
 	return t.singletonWebServerStatistics
+}
+
+// Authz returns the authentication and authorization transport
+func (t *transport) Authz() AuthTransport {
+	t.onceAuth.Do(func() {
+		if t.singletonAuth == nil {
+			t.singletonAuth = newAuthTransport(t)
+		}
+	})
+	if t.singletonAuth == nil {
+		logV1.Fatal("auth transport client is nil")
+		return nil
+	}
+	return t.singletonAuth
+}
+
+// Apis returns the API management transport
+func (t *transport) Apis() ApiTransport {
+	t.onceApi.Do(func() {
+		if t.singletonApi == nil {
+			t.singletonApi = newApiTransport(t)
+		}
+	})
+	if t.singletonApi == nil {
+		logV1.Fatal("api transport client is nil")
+		return nil
+	}
+	return t.singletonApi
 }

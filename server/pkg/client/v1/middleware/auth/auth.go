@@ -73,6 +73,14 @@ func (a *authMiddleware) WebServerStatistics() txpclientv1.WebServerStatisticsTr
 	return newWebServerStatisticsMiddleware(a)
 }
 
+func (a *authMiddleware) Authz() txpclientv1.AuthTransport {
+	return newAuthzMiddleware(a)
+}
+
+func (a *authMiddleware) Apis() txpclientv1.ApiTransport {
+	return newApisMiddleware(a)
+}
+
 func (a *authMiddleware) fetchNewToken() error {
 	a.mu.RLock()
 	currentAPIKey := a.apiKey

@@ -1,6 +1,6 @@
 package endpoint
 
-//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint -destination=mock_endpoint.go -package=endpoint github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint Factory,AgentInfoEndpoints,GroupEndpoints,HostEndpoints,WebServerConfigEndpoints,WebServerBinCMDEndpoints,WebServerStatisticsEndpoints
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint -destination=mock_endpoint.go -package=endpoint github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/endpoint Factory,AgentInfoEndpoints,GroupEndpoints,HostEndpoints,WebServerConfigEndpoints,WebServerBinCMDEndpoints,WebServerStatisticsEndpoints,AuthEndpoints,ApiEndpoints
 import (
 	"sync"
 
@@ -23,6 +23,10 @@ type Factory interface {
 	WebServerBinCMDs() WebServerBinCMDEndpoints
 	// WebServerStatistics returns the WebServerStatistics endpoint
 	WebServerStatistics() WebServerStatisticsEndpoints
+	// Authz returns the authentication and authorization endpoint
+	Authz() AuthEndpoints
+	// Apis returns the API management endpoint
+	Apis() ApiEndpoints
 	//// WebServerLogWatcher returns the WebServerLogWatcher endpoint
 	//WebServerLogWatcher() WebServerLogWatcherEndpoints
 }
@@ -43,6 +47,10 @@ type factory struct {
 	singletonWebServerBinCMD     WebServerBinCMDEndpoints
 	onceWebServerStatistics      sync.Once
 	singletonWebServerStatistics WebServerStatisticsEndpoints
+	onceAuth                     sync.Once
+	singletonAuth                AuthEndpoints
+	onceApi                      sync.Once
+	singletonApi                 ApiEndpoints
 }
 
 // AgentInfos returns the AgentInfos endpoint
@@ -91,6 +99,22 @@ func (f *factory) WebServerStatistics() WebServerStatisticsEndpoints {
 		f.singletonWebServerStatistics = newWebServerStatisticsEndpoints(f)
 	})
 	return f.singletonWebServerStatistics
+}
+
+// Authz returns the authentication and authorization endpoint
+func (f *factory) Authz() AuthEndpoints {
+	f.onceAuth.Do(func() {
+		f.singletonAuth = newAuthEndpoints(f)
+	})
+	return f.singletonAuth
+}
+
+// Apis returns the API management endpoint
+func (f *factory) Apis() ApiEndpoints {
+	f.onceApi.Do(func() {
+		f.singletonApi = newApiEndpoints(f)
+	})
+	return f.singletonApi
 }
 
 //// WebServerLogWatcher returns the WebServerLogWatcher endpoint

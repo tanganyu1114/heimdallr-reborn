@@ -1,6 +1,6 @@
 package service
 
-//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service -destination=mock_service.go -package=service github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service Factory,AgentInfoService,GroupService,HostService,WebServerConfigService,WebServerBinCMDService,WebServerStatisticsService
+//go:generate mockgen -self_package=github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service -destination=mock_service.go -package=service github.com/tanganyu1114/heimdallr-reborn/server/pkg/client/v1/service Factory,AgentInfoService,GroupService,HostService,WebServerConfigService,WebServerBinCMDService,WebServerStatisticsService,AuthService,ApiService
 import (
 	"context"
 	"sync"
@@ -24,6 +24,10 @@ type Factory interface {
 	WebServerBinCMDs() WebServerBinCMDService
 	// WebServerStatistics returns the WebServerStatistics service
 	WebServerStatistics() WebServerStatisticsService
+	// Authz returns the authentication and authorization service
+	Authz() AuthService
+	// Apis returns the API management service
+	Apis() ApiService
 	//// WebServerLogWatcher returns the WebServerLogWatcher service
 	//WebServerLogWatcher() WebServerLogWatcherService
 }
@@ -45,6 +49,10 @@ type factory struct {
 	singletonWebServerBinCMD     WebServerBinCMDService
 	onceWebServerStatistics      sync.Once
 	singletonWebServerStatistics WebServerStatisticsService
+	onceAuth                     sync.Once
+	singletonAuth                AuthService
+	onceApi                      sync.Once
+	singletonApi                 ApiService
 }
 
 // AgentInfos returns the AgentInfo service
@@ -93,6 +101,22 @@ func (f *factory) WebServerStatistics() WebServerStatisticsService {
 		f.singletonWebServerStatistics = newWebServerStatisticsService(f)
 	})
 	return f.singletonWebServerStatistics
+}
+
+// Authz returns the authentication and authorization service
+func (f *factory) Authz() AuthService {
+	f.onceAuth.Do(func() {
+		f.singletonAuth = newAuthService(f)
+	})
+	return f.singletonAuth
+}
+
+// Apis returns the API management service
+func (f *factory) Apis() ApiService {
+	f.onceApi.Do(func() {
+		f.singletonApi = newApiService(f)
+	})
+	return f.singletonApi
 }
 
 //// WebServerLogWatcher returns the WebServerLogWatcher service

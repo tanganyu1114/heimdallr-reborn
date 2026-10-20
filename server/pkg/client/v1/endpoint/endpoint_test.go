@@ -257,3 +257,73 @@ func Test_factory_WebServerStatistics(t *testing.T) {
 		})
 	}
 }
+
+func Test_factory_Apis(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTransport := transport.NewMockFactory(ctrl)
+	mockApiTransport := transport.NewMockApiTransport(ctrl)
+	mockTransport.EXPECT().Apis().Return(mockApiTransport).AnyTimes()
+
+	type fields struct {
+		transport transport.Factory
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "returns api endpoints",
+			fields: fields{
+				transport: mockTransport,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &factory{
+				transport: tt.fields.transport,
+			}
+			got := f.Apis()
+			if got == nil {
+				t.Errorf("Apis() = nil, want non-nil")
+			}
+		})
+	}
+}
+
+func Test_factory_Authz(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTransport := transport.NewMockFactory(ctrl)
+	mockAuthTransport := transport.NewMockAuthTransport(ctrl)
+	mockTransport.EXPECT().Authz().Return(mockAuthTransport).AnyTimes()
+
+	type fields struct {
+		transport transport.Factory
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "returns auth endpoints",
+			fields: fields{
+				transport: mockTransport,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &factory{
+				transport: tt.fields.transport,
+			}
+			got := f.Authz()
+			if got == nil {
+				t.Errorf("Authz() = nil, want non-nil")
+			}
+		})
+	}
+}

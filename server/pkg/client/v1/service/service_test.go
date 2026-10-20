@@ -285,3 +285,79 @@ func Test_factory_WebServerStatistics(t *testing.T) {
 		})
 	}
 }
+
+func Test_factory_Apis(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockEndpoints := epclientv1.NewMockFactory(ctrl)
+	mockApiEndpoints := epclientv1.NewMockApiEndpoints(ctrl)
+	mockEndpoints.EXPECT().Apis().Return(mockApiEndpoints).AnyTimes()
+
+	type fields struct {
+		ctx context.Context
+		eps epclientv1.Factory
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "returns api service",
+			fields: fields{
+				ctx: context.Background(),
+				eps: mockEndpoints,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &factory{
+				ctx: tt.fields.ctx,
+				eps: tt.fields.eps,
+			}
+			got := f.Apis()
+			if got == nil {
+				t.Errorf("Apis() = nil, want non-nil")
+			}
+		})
+	}
+}
+
+func Test_factory_Authz(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockEndpoints := epclientv1.NewMockFactory(ctrl)
+	mockAuthEndpoints := epclientv1.NewMockAuthEndpoints(ctrl)
+	mockEndpoints.EXPECT().Authz().Return(mockAuthEndpoints).AnyTimes()
+
+	type fields struct {
+		ctx context.Context
+		eps epclientv1.Factory
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "returns auth service",
+			fields: fields{
+				ctx: context.Background(),
+				eps: mockEndpoints,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &factory{
+				ctx: tt.fields.ctx,
+				eps: tt.fields.eps,
+			}
+			got := f.Authz()
+			if got == nil {
+				t.Errorf("Authz() = nil, want non-nil")
+			}
+		})
+	}
+}

@@ -21,6 +21,16 @@ type Client struct {
 	svcclientv1.Factory
 }
 
+// Authz returns the authentication and authorization service
+func (c *Client) Authz() svcclientv1.AuthService {
+	return c.Factory.Authz()
+}
+
+// Apis returns the API management service
+func (c *Client) Apis() svcclientv1.ApiService {
+	return c.Factory.Apis()
+}
+
 // Close closes the client
 func (c *Client) Close() error {
 	return nil
