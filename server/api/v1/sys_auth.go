@@ -1,9 +1,12 @@
 package v1
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tanganyu1114/heimdallr-reborn/server/global"
 	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
+	"github.com/tanganyu1114/heimdallr-reborn/server/model"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/request"
 	"github.com/tanganyu1114/heimdallr-reborn/server/model/response"
 	"github.com/tanganyu1114/heimdallr-reborn/server/service"
@@ -125,7 +128,27 @@ func LogOperation(c *gin.Context) {
 		return
 	}
 
-	// Log the operation record (implementation depends on your logging service)
+	// Convert request to model and save to database
+	record := model.SysOperationRecord{
+		Ip:           req.IP,
+		Method:       req.Method,
+		Path:         req.Path,
+		Status:       req.Status,
+		Latency:      time.Duration(req.Latency),
+		Agent:        req.Agent,
+		ErrorMessage: req.ErrorMessage,
+		Body:         req.Body,
+		Resp:         req.Resp,
+		UserID:       req.UserID,
+		IsSDKLogin:   req.IsSDKLogin,
+	}
+
+	if err := service.CreateSysOperationRecord(record); err != nil {
+		global.GVA_LOG.Error("create operation record error:", zap.Any("err", err))
+		response.FailWithMessage("failed to create operation record", c)
+		return
+	}
+
 	global.GVA_LOG.Info("operation logged",
 		zap.String("ip", req.IP),
 		zap.String("method", req.Method),
