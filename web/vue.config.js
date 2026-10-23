@@ -21,8 +21,13 @@ module.exports = {
       errors: true
     },
     proxy: {
-      // 把key的路径代理到target位置
-      // detail: https://cli.vuejs.org/config/#devserver-proxy
+      '/api/gjallarhorn': { // 号角服务代理（必须在 /api 之前，否则会被 /api 规则捕获）
+        target: `http://127.0.0.1:8888`, // 代理到目标路径
+        changeOrigin: true,
+        pathRewrite: { // 修改路径数据
+          '^/api/gjallarhorn': '/api/gjallarhorn' // 保留 /api/gjallarhorn 路径前缀
+        }
+      },
       [process.env.VUE_APP_BASE_API]: { // 需要代理的路径   例如 '/api'
         target: `http://127.0.0.1:8888/`, // 代理到 目标路径
         changeOrigin: true,
