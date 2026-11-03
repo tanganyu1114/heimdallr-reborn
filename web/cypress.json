@@ -1,0 +1,15 @@
+{
+  "baseUrl": "http://localhost:8080",
+  "viewportWidth": 1280,
+  "viewportHeight": 720,
+  "defaultCommandTimeout": 10000,
+  "requestTimeout": 10000,
+  "responseTimeout": 10000,
+  "video": false,
+  "screenshotOnRunFailure": true,
+  "chromeWebSecurity": false,
+  "experimentalSessionAndOrigin": true,
+  "env": {
+    "E2E_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVVUlEIjoiYjM1ZGNjOTMtMDI0YS00ZGYwLWEyNzctOWM2NTdmYmM0OTQ1IiwiSUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJOaWNrTmFtZSI6Iui2hee6p-euoeeQhuWRmCIsIkF1dGhvcml0eUlkIjoiODg4IiwiQnVmZmVyVGltZSI6ODY0MDAsImV4cCI6MTc5MzU5ODc5MywiaXNzIjoicW1QbHVzIiwibmJmIjoxNzkyNDY0MDczfQ.bGdRb78Z1QNr4TEqx-VECF8FyVsVC0-ZhQ5Syl5Krc4"
+  }
+}

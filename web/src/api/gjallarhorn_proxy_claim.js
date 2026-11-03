@@ -88,11 +88,27 @@ export const approveProxyClaim = (oaID) => {
 // @Produce application/json
 // @Param data body model.MigrateProxyClaimRequest true "迁移代理声明请求"
 // @Success 200 {string} string "{"code":0,"message":"success","data":null}"
-// @Router /gjallarhorn/v1/proxy-claims/migrate [post]
+// @Router /gjallarhorn/v1/proxy-claims/migrations [post]
 export const migrateProxyClaim = (data) => {
   return service({
-    url: '/gjallarhorn/v1/proxy-claims/migrate',
+    url: '/gjallarhorn/v1/proxy-claims/migrations',
     method: 'post',
     data
+  })
+}
+
+// @Tags ProxyClaim
+// @Summary 获取代理迁移请求列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param target_oa_id query string true "目标OA ID"
+// @Success 200 {string} string "{"code":0,"message":"success","data":[]}"
+// @Router /gjallarhorn/v1/proxy-claims/migrations [get]
+export const listMigrationRequests = (params) => {
+  return service({
+    url: '/gjallarhorn/v1/proxy-claims/migrations',
+    method: 'get',
+    params
   })
 }
