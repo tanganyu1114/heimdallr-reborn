@@ -25,7 +25,7 @@ module.exports = {
         target: `http://127.0.0.1:8888`, // 代理到目标路径
         changeOrigin: true,
         pathRewrite: { // 修改路径数据
-          '^/api/gjallarhorn': '/api/gjallarhorn' // 保留 /api/gjallarhorn 路径前缀
+          '^/api/gjallarhorn': '/gjallarhorn' // 保留 /api/gjallarhorn 路径前缀
         }
       },
       [process.env.VUE_APP_BASE_API]: { // 需要代理的路径   例如 '/api'

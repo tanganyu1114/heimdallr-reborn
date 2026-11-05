@@ -46,10 +46,19 @@
             v-model="addr.host"
             placeholder="请输入主机地址，如 127.0.0.1"
             size="small"
-            :class="{ 'is-error': !addr.host || !addr.host.trim() }"
+            :class="{ 'is-error': showError && (!addr.host || !addr.host.trim()) }"
             style="width: 220px;"
+            @blur="handleAddressChange"
           />
-          <el-input-number v-model="addr.port" :min="0" :max="65535" size="small" style="width: 130px; margin-left: 10px;" />
+          <el-input-number
+            v-model="addr.port"
+            :min="1"
+            :max="65535"
+            size="small"
+            :class="{ 'is-error': showError && (!addr.port || Number(addr.port) < 1 || Number(addr.port) > 65535) }"
+            style="width: 130px; margin-left: 10px;"
+            @change="handleAddressChange"
+          />
           <el-button
             v-if="addrGroup.addresses.length > 1"
             size="small"
@@ -87,20 +96,31 @@ export default {
     showDeprecateSwitch: {
       type: Boolean,
       default: false
+    },
+    showError: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
     handleAddGroup() {
       this.$emit('add-group')
+      this.handleAddressChange()
     },
     handleRemoveGroup(index) {
       this.$emit('remove-group', index)
+      this.handleAddressChange()
     },
     handleAddAddress(groupIndex) {
       this.$emit('add-address', groupIndex)
+      this.handleAddressChange()
     },
     handleRemoveAddress(groupIndex, addressIndex) {
       this.$emit('remove-address', groupIndex, addressIndex)
+      this.handleAddressChange()
+    },
+    handleAddressChange() {
+      this.$emit('change')
     }
   }
 }

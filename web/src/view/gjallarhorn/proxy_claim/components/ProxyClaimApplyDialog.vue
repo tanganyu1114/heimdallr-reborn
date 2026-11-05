@@ -33,14 +33,19 @@
         <span class="import-tip">从现有OA中导入代理地址配置，避免重复填写</span>
       </div>
 
-      <AddressGroupEditor
-        :address-groups="formData.proxy_pass_addresses"
-        :show-deprecate-switch="applyType === 'update'"
-        @add-group="handleAddGroup"
-        @remove-group="handleRemoveGroup"
-        @add-address="handleAddAddress"
-        @remove-address="handleRemoveAddress"
-      />
+      <div class="address-group-block">
+        <AddressGroupEditor
+          :address-groups="formData.proxy_pass_addresses"
+          :show-deprecate-switch="applyType === 'update'"
+          :show-error="addressGroupError !== ''"
+          @add-group="handleAddGroup"
+          @remove-group="handleRemoveGroup"
+          @add-address="handleAddAddress"
+          @remove-address="handleRemoveAddress"
+          @change="handleAddressGroupsChange"
+        />
+        <div v-if="addressGroupError" class="address-group-error">{{ addressGroupError }}</div>
+      </div>
 
       <el-form-item label="环境名" prop="claim_env_ids">
         <el-select v-model="formData.claim_env_ids" multiple placeholder="选择环境名" style="width: 100%;">
@@ -94,58 +99,18 @@ export default {
   data() {
     return {
       applyType: 'create',
-      formData: {
-        id: 0,
-        oa_id: '',
-        applicant: '',
-        source_project_desc: '',
-        target_project_desc: '',
-        proxy_pass_addresses: [
-          {
-            protocol: 'http',
-            addresses: [
-              { host: '', port: 8080 }
-            ],
-            is_deprecated: false
-          }
-        ],
-        claim_env_ids: [],
-        claim_state: CLAIM_STATES.ClaimStateSubmitted
-      },
+      formData: this.getInitialFormData(),
       envOptions: ENV_OPTIONS,
       importDialogVisible: false,
       importDialogInitialSelection: [],
+      addressGroupError: '',
       rules: {
         oa_id: [
           { required: true, message: '请输入OA ID', trigger: 'blur' },
           { pattern: /^[a-zA-Z0-9_-]+$/, message: 'OA ID仅允许字母、数字、下划线和破折号', trigger: 'blur' }
         ],
         applicant: [{ required: true, message: '请输入申请人', trigger: 'blur' }],
-        target_project_desc: [{ required: true, message: '请输入目标项目描述', trigger: 'blur' }],
-        proxy_pass_addresses: [
-          {
-            validator: (rule, value, callback) => {
-              if (!value || value.length === 0) {
-                callback(new Error('请至少添加一个对端地址组'))
-              } else {
-                const hasEmptyAddress = value.some(group => !group.addresses || group.addresses.length === 0)
-                if (hasEmptyAddress) {
-                  callback(new Error('每个对端地址组请至少添加一个地址'))
-                } else {
-                  const hasEmptyHost = value.some(group =>
-                    group.addresses.some(addr => !addr.host || !addr.host.trim())
-                  )
-                  if (hasEmptyHost) {
-                    callback(new Error('请填写所有地址的主机地址'))
-                  } else {
-                    callback()
-                  }
-                }
-              }
-            },
-            trigger: 'change'
-          }
-        ]
+        target_project_desc: [{ required: true, message: '请输入目标项目描述', trigger: 'blur' }]
       }
     }
   },
@@ -168,7 +133,9 @@ export default {
     },
     visible: {
       handler(val) {
-        if (val && this.applyType === 'update' && this.oaId) {
+        if (!val) return
+        this.resetValidationState()
+        if (this.applyType === 'update' && this.oaId) {
           this.loadClaimData()
         }
       }
@@ -220,6 +187,7 @@ export default {
           claim_env_ids: res.claim_env_ids || [],
           claim_state: res.claim_state
         }
+        this.resetValidationState()
       } catch (error) {
         this.$message({
           type: 'error',
@@ -249,7 +217,49 @@ export default {
     handleRemoveAddress(groupIndex, addressIndex) {
       this.formData.proxy_pass_addresses[groupIndex].addresses.splice(addressIndex, 1)
     },
+    handleAddressGroupsChange() {
+      if (this.addressGroupError) {
+        this.addressGroupError = this.validateAddressGroups()
+      }
+    },
+    validateAddressGroups() {
+      const groups = this.formData.proxy_pass_addresses || []
+      if (groups.length === 0) {
+        return '请至少添加一个代理服务'
+      }
+      for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+        const group = groups[groupIndex]
+        if (!group.addresses || group.addresses.length === 0) {
+          return `代理服务 ${groupIndex + 1} 请至少添加一个地址`
+        }
+        for (let addrIndex = 0; addrIndex < group.addresses.length; addrIndex++) {
+          const addr = group.addresses[addrIndex]
+          if (!addr.host || !String(addr.host).trim()) {
+            return `请填写代理服务 ${groupIndex + 1} 第 ${addrIndex + 1} 个地址的主机地址`
+          }
+          const port = Number(addr.port)
+          if (addr.port === null || addr.port === undefined || addr.port === '' ||
+            !Number.isInteger(port) || port < 1 || port > 65535) {
+            return `代理服务 ${groupIndex + 1} 第 ${addrIndex + 1} 个地址的端口须为 1-65535 之间的整数`
+          }
+        }
+      }
+      return ''
+    },
     async handleSubmit() {
+      const addressError = this.validateAddressGroups()
+      if (addressError) {
+        this.addressGroupError = addressError
+        this.$message({
+          type: 'warning',
+          message: addressError,
+          duration: 3000
+        })
+        return
+      }
+
+      this.addressGroupError = ''
+
       this.$refs.applyForm.validate(async(valid) => {
         if (!valid) {
           this.$message({
@@ -418,12 +428,20 @@ export default {
       this.resetForm()
     },
     resetForm() {
+      this.addressGroupError = ''
       this.formData = this.getInitialFormData()
-      this.$nextTick(() => {
+      this.resetValidationState()
+    },
+    resetValidationState() {
+      this.addressGroupError = ''
+      const clear = () => {
         if (this.$refs.applyForm) {
-          this.$refs.applyForm.resetFields()
+          this.$refs.applyForm.clearValidate()
         }
-      })
+      }
+      clear()
+      this.$nextTick(clear)
+      setTimeout(clear, 0)
     },
     showImportDialog() {
       const seen = new Set()
@@ -473,6 +491,7 @@ export default {
         ...this.formData.proxy_pass_addresses,
         ...dedupedNew
       ]
+      this.handleAddressGroupsChange()
     }
   }
 }
@@ -506,5 +525,14 @@ export default {
   margin-left: 12px;
   font-size: 13px;
   color: #409eff;
+}
+.address-group-block {
+  margin-bottom: 18px;
+}
+.address-group-error {
+  color: #f56c6c;
+  font-size: 12px;
+  line-height: 1;
+  padding-top: 6px;
 }
 </style>
