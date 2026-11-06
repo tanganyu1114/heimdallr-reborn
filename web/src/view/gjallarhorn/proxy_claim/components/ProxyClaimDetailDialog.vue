@@ -81,28 +81,43 @@
                 </el-tag>
                 <div class="proxy-endpoint">
                   <template v-if="proxy.target_protocol !== 'tcp_or_udp'">
-                    <span class="endpoint-primary">
-                      <el-tag v-if="serverDetail.server" size="small" type="success" class="vserver-tag">
-                        {{ serverDetail.server.http_virtual_server_name }}
-                        <span class="vserver-ip">({{ serverDetail.server_ip || '-' }})</span>
-                      </el-tag>
-                      <span class="endpoint-port">:{{ proxy.listen_port || '-' }}</span>
-                    </span>
+                    <div class="endpoint-primary">
+                      <div
+                        v-for="(vhostName, vhostIdx) in getVirtualHostNames(serverDetail)"
+                        :key="vhostIdx"
+                        class="endpoint-address-item"
+                      >
+                        <el-tag v-if="serverDetail.server" size="small" type="success" class="vserver-tag">
+                          {{ vhostName }}
+                          <span class="vserver-ip">({{ serverDetail.server_ip || '-' }})</span>
+                        </el-tag>
+                        <span class="endpoint-port">:{{ proxy.listen_port || '-' }}</span>
+                        <el-tooltip :content="`复制代理地址: ${getProxyCopyAddress(proxy, serverDetail, vhostName)}`" placement="top">
+                          <el-button
+                            size="mini"
+                            type="text"
+                            icon="el-icon-document-copy"
+                            class="copy-proxy-btn"
+                            @click="copyToClipboard(getProxyCopyAddress(proxy, serverDetail, vhostName))"
+                          />
+                        </el-tooltip>
+                      </div>
+                    </div>
                   </template>
                   <template v-else>
                     <span class="endpoint-addr tcp">
                       {{ serverDetail.server_ip || '-' }}:{{ proxy.listen_port || '-' }}
                     </span>
+                    <el-tooltip :content="`复制代理地址: ${getProxyCopyAddress(proxy, serverDetail)}`" placement="top">
+                      <el-button
+                        size="mini"
+                        type="text"
+                        icon="el-icon-document-copy"
+                        class="copy-proxy-btn"
+                        @click="copyToClipboard(getProxyCopyAddress(proxy, serverDetail))"
+                      />
+                    </el-tooltip>
                   </template>
-                  <el-tooltip :content="`复制代理地址: ${getProxyCopyAddress(proxy, serverDetail)}`" placement="top">
-                    <el-button
-                      size="mini"
-                      type="text"
-                      icon="el-icon-document-copy"
-                      class="copy-proxy-btn"
-                      @click="copyToClipboard(getProxyCopyAddress(proxy, serverDetail))"
-                    />
-                  </el-tooltip>
                 </div>
                 <el-tag :type="getPortStateTagType(proxy.state)" size="small" class="state-tag">
                   {{ getPortStateLabel(proxy.state) }}
@@ -210,13 +225,13 @@ export default {
       this.activeEnvTab = ''
       this.migrationExpanded = false
     },
-    getProxyCopyAddress(proxy, serverDetail) {
+    getProxyCopyAddress(proxy, serverDetail, vhostName) {
       const port = proxy.listen_port || '-'
       if (proxy.target_protocol === 'tcp_or_udp') {
         const serverIP = serverDetail.server_ip || '-'
         return `${serverIP}:${port}`
       } else {
-        const vserverName = serverDetail.server ? serverDetail.server.http_virtual_server_name : '-'
+        const vserverName = vhostName || (serverDetail.server ? serverDetail.server.http_virtual_server_name : '-')
         return `http://${vserverName}:${port}`
       }
     },
@@ -412,6 +427,12 @@ export default {
   flex: 1;
 }
 .endpoint-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.endpoint-address-item {
   display: inline-flex;
   align-items: center;
   gap: 6px;

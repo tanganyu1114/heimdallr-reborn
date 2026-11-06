@@ -262,9 +262,13 @@ export default {
             for (const proxy of proxiesArray) {
               const isTcpUdp = proxy.target_protocol === 'tcp_or_udp'
               const serverIP = serverDetail.server_ip || '-'
-              const vserverName = isTcpUdp
+              const rawVserverName = isTcpUdp
                 ? serverIP
-                : (serverDetail.server ? (serverDetail.server.http_virtual_server_name || '-') : '-')
+                : (serverDetail.server ? (serverDetail.server.http_virtual_server_name || '') : '')
+              const vserverNames = String(rawVserverName).split(/\s+/).filter(name => name)
+              if (vserverNames.length === 0) {
+                vserverNames.push('-')
+              }
               const listenPort = proxy.listen_port || '-'
               const protocol = proxy.target_protocol || 'http'
               const backendAddresses = proxy.backend_addresses || []
@@ -294,18 +298,20 @@ export default {
               const group = proxyGroupMap.get(groupKey)
               group.env_ids.add(envDetail.env_id)
 
-              const serviceKey = vserverName + ':' + listenPort
-              const existingService = group.services.find(s => s.key === serviceKey)
+              for (const vserverName of vserverNames) {
+                const serviceKey = vserverName + ':' + listenPort
+                const existingService = group.services.find(s => s.key === serviceKey)
 
-              if (!existingService) {
-                group.services.push({
-                  key: serviceKey,
-                  domain: vserverName,
-                  port: listenPort,
-                  envs: new Set([envLabel])
-                })
-              } else {
-                existingService.envs.add(envLabel)
+                if (!existingService) {
+                  group.services.push({
+                    key: serviceKey,
+                    domain: vserverName,
+                    port: listenPort,
+                    envs: new Set([envLabel])
+                  })
+                } else {
+                  existingService.envs.add(envLabel)
+                }
               }
             }
           }

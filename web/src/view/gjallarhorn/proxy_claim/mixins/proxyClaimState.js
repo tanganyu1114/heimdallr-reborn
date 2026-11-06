@@ -63,6 +63,12 @@ export default {
       const env = ENV_OPTIONS.find(e => e.value === envId)
       return env ? env.label : envId
     },
+    getVirtualHostNames(serverDetail) {
+      const server = serverDetail ? serverDetail.server : null
+      const rawName = server ? (server.http_virtual_server_name || '') : ''
+      const names = String(rawName).split(/\s+/).filter(name => name)
+      return names.length > 0 ? names : ['-']
+    },
     getMigrationStateLabel(state) {
       return MIGRATION_STATE_LABELS[state] || '未知'
     },
