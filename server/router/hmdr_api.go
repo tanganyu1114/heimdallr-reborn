@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/controller/v1/agent_info"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/controller/v1/group"
 	"github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/controller/v1/host"
@@ -13,7 +15,6 @@ import (
 	bifrostsstore "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/bifrosts"
 	cachestore "github.com/tanganyu1114/heimdallr-reborn/server/internal/hmdr_api/store/v1/cache"
 	"github.com/tanganyu1114/heimdallr-reborn/server/middleware"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -65,26 +66,30 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 			GET("getHmdrHostList", hostController.List)                     // 获取HmdrHost列表
 	}
 
-	webSrvConfRoutes := rg.Group("conf").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
+	webSrvConfRoutes := rg.Group("conf").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
 	{
 		webSrvConfController := web_server_config.NewController(svcIns)
 
+		// 读接口：仅查询配置信息，无副作用，不记录操作日志
 		webSrvConfRoutes.
-			GET("getOptions", webSrvConfController.GetOptions).                    // 获取options选择参数信息
-			POST("getConfInfo", webSrvConfController.GetConfigTextLines).          // 获取配置文件信息
-			POST("get-context-text", webSrvConfController.GetContextTextLines).    // 获取上下文配置明细
-			POST("get-conf-struct", webSrvConfController.GetConfig).               // 获取配置文件JSON数据
-			POST("get-includes", webSrvConfController.GetIncludedConfigs).         // 获取包含的配置文件路径列表
-			POST("search-ctx-poses", webSrvConfController.SearchContextPositions). // 搜索上下文坐标列表
-			POST("insert-clone-ctx", webSrvConfController.InsertWithClone).
-			POST("insert-new-ctx", webSrvConfController.InsertWithNew).
-			DELETE("remove-ctx", webSrvConfController.Remove).
-			POST("update-conf", webSrvConfController.UpdateConfig).
-			POST("modify-ctx-value", webSrvConfController.ModifyContextValue).
-			POST("modify-clone-ctx", webSrvConfController.ModifyWithClone).
-			POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState).
-			POST("modify-new-ctx", webSrvConfController.ModifyWithNew).
-			POST("move-ctx", webSrvConfController.Move)
+			GET("getOptions", webSrvConfController.GetOptions).                   // 获取 options 选择参数信息
+			POST("getConfInfo", webSrvConfController.GetConfigTextLines).         // 获取配置文件信息
+			POST("get-context-text", webSrvConfController.GetContextTextLines).   // 获取上下文配置明细
+			POST("get-conf-struct", webSrvConfController.GetConfig).              // 获取配置文件 JSON 数据
+			POST("get-includes", webSrvConfController.GetIncludedConfigs).        // 获取包含的配置文件路径列表
+			POST("search-ctx-poses", webSrvConfController.SearchContextPositions) // 搜索上下文坐标列表
+
+		// 写接口：会变更配置文件内容，统一记录操作日志
+		webSrvConfRoutes.Use(middleware.OperationRecord()).
+			POST("insert-clone-ctx", webSrvConfController.InsertWithClone).                   // 克隆已有配置上下文后插入
+			POST("insert-new-ctx", webSrvConfController.InsertWithNew).                       // 插入全新的配置上下文
+			DELETE("remove-ctx", webSrvConfController.Remove).                                // 删除配置上下文
+			POST("update-conf", webSrvConfController.UpdateConfig).                           // 更新配置文件
+			POST("modify-ctx-value", webSrvConfController.ModifyContextValue).                // 修改配置上下文的值
+			POST("modify-clone-ctx", webSrvConfController.ModifyWithClone).                   // 用克隆的配置上下文替换原有内容
+			POST("change-ctx-enabled-state", webSrvConfController.ChangeContextEnabledState). // 启用或禁用配置上下文
+			POST("modify-new-ctx", webSrvConfController.ModifyWithNew).                       // 用全新的配置上下文替换原有内容
+			POST("move-ctx", webSrvConfController.Move)                                       // 调整配置上下文的位置
 	}
 
 	webSrvBinCMDRoutes := rg.Group("bin-cmd").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.OperationRecord())
@@ -94,7 +99,7 @@ func InitPrivateHeimdallrApi(rg *gin.RouterGroup) {
 		webSrvBinCMDRoutes.POST("exec", webSrvBinCMDController.Exec) // 提交Web服务端二进制命令工具执行请求
 	}
 
-	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.OperationRecord())
+	webSrvStatisticsRoutes := rg.Group("hmdr-statistics").Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
 	{
 		webSrvStatisticsController := web_server_statistics.NewController(svcIns)
 
